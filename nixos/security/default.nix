@@ -1,5 +1,5 @@
 {
   imports = [
-    ./sudo.nix
+    ./sudo-rs.nix
   ];
 }
