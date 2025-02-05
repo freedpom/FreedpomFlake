@@ -4,10 +4,10 @@
   ...
 }:
 let
-  cfg = config.ff.security.sudo;
+  cfg = config.ff.security.sudo-rs;
 in
 {
-  options.ff.security.sudo = {
+  options.ff.security.sudo-rs = {
     enable = lib.mkEnableOption "Enable sudo-rs instead of regular sudo";
   };
 
