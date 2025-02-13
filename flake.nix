@@ -10,6 +10,10 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-root.url = "github:srid/flake-root";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -24,15 +28,12 @@
         inputs.devshell.flakeModule
         inputs.flake-root.flakeModule
         inputs.git-hooks-nix.flakeModule
+        inputs.home-manager.flakeModules.home-manager
       ];
 
       # Per-system configuration
       perSystem =
-        {
-          config,
-          pkgs,
-          ...
-        }:
+        { config, pkgs, ... }:
         {
           # Code formatting and linting setup
           treefmt.config = {
@@ -84,10 +85,12 @@
             };
           };
         };
-
       flake = {
         nixosModules = {
           freedpomFlake = ./nixos;
+        };
+        homeManagerModules = {
+          freedpomFlake = ./home-manager;
         };
       };
     };
