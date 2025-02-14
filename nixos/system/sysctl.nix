@@ -1,9 +1,9 @@
 { lib, config, ... }:
 let
-  cfg = config.cm.nixos.system.sysctl;
+  cfg = config.ff.system.sysctl;
 in
 {
-  options.cm.nixos.system.sysctl = {
+  options.ff.system.sysctl = {
     cachyos = lib.mkOption {
       type = lib.types.bool;
       default = true;

@@ -4,10 +4,10 @@
   ...
 }:
 let
-  cfg = config.cm.nixos.system.systemd-boot;
+  cfg = config.ff.system.systemd-boot;
 in
 {
-  options.cm.nixos.system.systemd-boot = {
+  options.ff.system.systemd-boot = {
     enable = lib.mkEnableOption "Enable configuration for boot optimization and systemd-boot setup";
   };
 
