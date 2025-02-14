@@ -1,5 +1,1 @@
-{
-  imports = [
-    ./bash.nix
-  ];
-}
+{ imports = [ ./bash.nix ]; }
