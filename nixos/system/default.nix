@@ -2,6 +2,6 @@
   imports = [
     ./nix.nix
     ./sysctl.nix
-    ./systemd-boot
+    ./systemd-boot.nix
   ];
 }
