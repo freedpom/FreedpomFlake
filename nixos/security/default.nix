@@ -1,1 +1,6 @@
-{ imports = [ ./sudo-rs.nix ]; }
+{
+  imports = [
+    ./sudo-rs.nix
+    ./sops.nix
+  ];
+}
