@@ -3,7 +3,7 @@ let
   cfg = config.ff.services.openssh;
 in
 {
-  options.cm.nixos.services.openssh = {
+  options.ff.services.openssh = {
     enable = lib.mkEnableOption "Enable the openssh";
   };
 

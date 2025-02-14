@@ -8,7 +8,7 @@ let
   cfg = config.ff.services.ananicy;
 in
 {
-  options.cm.nixos.services.ananicy = {
+  options.ff.services.ananicy = {
     enable = lib.mkEnableOption "Enable the ananicy service for process resource management with customized rules and settings";
   };
 

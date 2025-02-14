@@ -9,7 +9,7 @@ let
 in
 {
 
-  options.cm.nixos.services.pipewire = {
+  options.ff.services.pipewire = {
     enable = lib.mkEnableOption "Enable PipeWire configuration to provide low-latency audio/video routing with pro-audio optimizations";
   };
 
