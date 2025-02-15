@@ -13,7 +13,7 @@ in
 
   config = lib.mkIf cfg.enable {
     sops = {
-      defaultSopsFile = /persist/secrets/general.yaml;
+      defaultSopsFile = "${lib.getExe config.flake-root.package}/general.yaml";
       age = {
         generateKey = true;
       };
