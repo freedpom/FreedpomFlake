@@ -11,6 +11,12 @@ let
   cfg = config.ff.common;
 in
 {
+
+  disabledModules = [
+    (modulesPath + "/profiles/all-hardware.nix")
+    (modulesPath + "/profiles/base.nix")
+  ];
+
   options.ff.common = {
     enable = lib.mkEnableOption "Enable nix system configuration";
   };
@@ -49,10 +55,6 @@ in
 
     imports = [ (modulesPath + "/profiles/minimal.nix") ];
     boot.initrd.includeDefaultModules = false;
-    disabledModules = [
-      (modulesPath + "/profiles/all-hardware.nix")
-      (modulesPath + "/profiles/base.nix")
-    ];
 
     home-manager = {
       useGlobalPkgs = true;
