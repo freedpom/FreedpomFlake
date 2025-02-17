@@ -12,6 +12,8 @@ let
 in
 {
 
+  imports = [ (modulesPath + "/profiles/minimal.nix") ];
+
   disabledModules = [
     (modulesPath + "/profiles/all-hardware.nix")
     (modulesPath + "/profiles/base.nix")
@@ -53,7 +55,6 @@ in
       useXkbConfig = true;
     };
 
-    imports = [ (modulesPath + "/profiles/minimal.nix") ];
     boot.initrd.includeDefaultModules = false;
 
     home-manager = {
