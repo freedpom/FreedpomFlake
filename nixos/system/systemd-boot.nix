@@ -13,6 +13,7 @@ in
 
   config = lib.mkIf cfg.enable {
     boot = {
+
       plymouth = {
         enable = true;
         #logo = "";managed by stylix
@@ -45,9 +46,13 @@ in
       ];
       consoleLogLevel = lib.mkForce 0;
       initrd = {
+        includeDefaultModules = true;
+
         verbose = false;
         systemd.enable = true;
+
       };
+
     };
     services.scx.enable = true; # by default uses scx_rustland scheduler
   };

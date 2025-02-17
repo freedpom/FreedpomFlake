@@ -40,22 +40,13 @@ in
       networkmanager.enable = true;
     };
     i18n.defaultLocale = "en_US.UTF-8";
-
-    # Configure keymap in X11
-    services.xserver.xkb = {
-      layout = "us";
-      variant = "";
-    };
-
     time.timeZone = "America/New_York";
 
     console = {
       earlySetup = true;
-      #font = "Lat2-Terminus16";
-      useXkbConfig = true;
+      font = "${pkgs.terminus_font}/share/consolefonts/ter-120n.psf.gz";
+      packages = with pkgs; [ terminus_font ];
     };
-
-    boot.initrd.includeDefaultModules = false;
 
     home-manager = {
       useGlobalPkgs = true;
