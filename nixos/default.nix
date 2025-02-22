@@ -4,5 +4,6 @@
     ./services
     ./system
     ./common.nix
+    ./hostConfig.nix
   ];
 }
