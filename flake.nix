@@ -27,7 +27,7 @@
       ];
       imports = [
         inputs.home-manager.flakeModules.home-manager
-        inputs.fpFmt.flakeModules.default
+        inputs.fpFmt.flakeModule
       ];
 
       flake = {
