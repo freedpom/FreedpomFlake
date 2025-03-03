@@ -10,31 +10,29 @@
       ];
       default = "headless";
       example = "wayland";
-      description = "Whether to configure the system for a headless server, a KMS console or a Wayland desktop.";
+      description = "Configure the system for a headless server, a KMS console, or a Wayland desktop environment.";
+    };
+    tags = lib.mkOption {
+      type = lib.types.listOf lib.types.enum [
+        "power-save" # Laptops & small arm devices
+        "gaming" # High performance gaming
+        "rt-audio" # Real-time audio
+      ];
+      default = "";
+      example = "gaming rt-audio";
+      description = "";
     };
     inputType = lib.mkOption {
       type = lib.types.enum [
+        "controller"
         "keyboard"
         "mouse"
         "touch"
         "trackpad"
-        "controller"
       ];
       default = "keyboard";
       example = "mouse";
-      description = "Whether to configure the system UI for a keyboard, a mouse, a touch screen, trackpad or a controller.";
-    };
-    persistMain = lib.mkOption {
-      type = lib.types.path;
-      default = "/nix/persist";
-      example = "/nix/persist";
-      description = "The directory to store persistent data.";
-    };
-    persistHome = lib.mkOption {
-      type = lib.types.path;
-      default = "/nix/persist/home";
-      example = "/nix/persist/home";
-      description = "The directory to store persistent home data.";
+      description = "Configure the system UI for input devices such as a keyboard, mouse, touch screen, trackpad, or controller.";
     };
   };
 }
