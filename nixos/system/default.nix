@@ -4,5 +4,6 @@
     ./sysctl.nix
     ./systemd-boot.nix
     ./persistence.nix
+    ./networking.nix
   ];
 }
