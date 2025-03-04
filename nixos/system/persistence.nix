@@ -12,7 +12,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    environment.persistence."${config.hostConf.persistMain}" = {
+    environment.persistence."/nix/persist" = {
       enable = true;
       hideMounts = true;
       directories = [
