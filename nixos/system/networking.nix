@@ -20,6 +20,6 @@ in
       # Lazy IPv6 connectivity for the container
       enableIPv6 = true;
     };
-    services.tailscale.enable = lib.optional cfg.mesh true;
+    services.tailscale.enable = cfg.mesh;
   };
 }

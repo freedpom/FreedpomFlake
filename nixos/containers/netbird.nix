@@ -1,5 +1,4 @@
 {
-  inputs,
   lib,
   config,
   ...
@@ -20,30 +19,32 @@ in
       localAddress = "192.168.100.11";
       hostAddress6 = "fc00::1";
       localAddress6 = "fc00::2";
-      config = { lib, ... }: {
+      config =
+        { lib, ... }:
+        {
 
-        services.netbird = {
-          enable = true;
-          server = {
+          services.netbird = {
             enable = true;
+            server = {
+              enable = true;
+            };
           };
-        };
 
-        system.stateVersion = "24.11";
+          system.stateVersion = "24.11";
 
-        networking = {
-          firewall = {
-            enable = true;
-            allowedTCPPorts = [ 80 ];
+          networking = {
+            firewall = {
+              enable = true;
+              allowedTCPPorts = [ 80 ];
+            };
+            # Use systemd-resolved inside the container
+            # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
+            useHostResolvConf = lib.mkForce false;
           };
-          # Use systemd-resolved inside the container
-          # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
-          useHostResolvConf = lib.mkForce false;
+
+          services.resolved.enable = true;
+
         };
-
-        services.resolved.enable = true;
-
-      };
     };
   };
 }
