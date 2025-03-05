@@ -1,6 +1,7 @@
 {
   lib,
   config,
+  inputs,
   ...
 }:
 let
@@ -26,6 +27,8 @@ in
         "/etc/machine-id"
       ];
     };
+
+    imports = lib.optional cfg.enable [ inputs.impermanence.nixosModules.impermanence ];
 
   };
 }
