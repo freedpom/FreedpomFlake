@@ -28,5 +28,4 @@ in
       ];
     };
   };
-  imports = lib.optional cfg.enable inputs.impermanence.nixosModules.impermanence;
 }
