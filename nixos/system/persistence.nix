@@ -27,8 +27,6 @@ in
         "/etc/machine-id"
       ];
     };
-
-    imports = lib.optional cfg.enable [ inputs.impermanence.nixosModules.impermanence ];
-
   };
+  imports = lib.optional cfg.enable [ inputs.impermanence.nixosModules.impermanence ];
 }
