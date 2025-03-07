@@ -1,12 +1,18 @@
 {
   lib,
   config,
+  inputs,
   ...
 }:
 let
   cfg = config.ff.system.persistence;
 in
 {
+
+  imports = [
+    inputs.impermanence.nixosModules.impermanence
+  ];
+
   options.ff.system.persistence = {
     enable = lib.mkEnableOption "Enable system persistence";
   };
