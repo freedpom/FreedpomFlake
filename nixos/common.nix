@@ -25,15 +25,6 @@ in
 
   config = lib.mkIf cfg.enable {
     services.gpm.enable = true;
-
-    fonts.packages =
-      with pkgs;
-      [
-        noto-fonts
-        liberation_ttf
-
-      ]
-      ++ builtins.filter lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
     networking = {
       hostName = hostname; # Define your hostname.
       hostId = "00000000"; # Define your host ID.
