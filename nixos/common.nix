@@ -24,7 +24,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    services.gpm.enable = true;
+    # services.gpm.enable = true;
     networking = {
       hostName = hostname; # Define your hostname.
       hostId = "00000000"; # Define your host ID.

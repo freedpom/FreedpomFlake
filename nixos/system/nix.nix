@@ -24,7 +24,7 @@ in
           connect-timeout = 5;
           min-free = 128000000;
           max-free = 1000000000;
-          experimental-features = 'nix-command flakes';
+          experimental-features = "nix-command flakes";
           allowed-users = [ "@wheel" ];
           trusted-users = [ "@wheel" ];
           fallback = true;
@@ -34,6 +34,7 @@ in
           # Use available binary caches
           builders-use-substitutes = true;
           max-jobs = "auto";
+
         };
         channel.enable = false;
 
@@ -44,6 +45,7 @@ in
         # Make builds run with low priority
         daemonCPUSchedPolicy = "idle";
         daemonIOSchedClass = "idle";
+
       };
     programs.nh = {
       clean = {
