@@ -36,6 +36,7 @@ in
         efi = {
          efiSysMountPoint = "/boot"; 
          canTouchEfiVariables = true;
+        };
       };
       kernelParams = [
         "quiet"
