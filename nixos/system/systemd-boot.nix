@@ -8,7 +8,7 @@ let
 in
 {
   options.ff.system.systemd-boot = {
-    enable = lib.mkEnableOption "Enable configuration for boot optimization and systemd-boot setup";
+    enable = lib.mkEnableOption "Enable systemd-boot";
   };
 
   config = lib.mkIf cfg.enable {
@@ -16,26 +16,18 @@ in
 
       plymouth = {
         enable = true;
-        #logo = "";managed by stylix
-        # theme = "hexagon_2";
-        #themePackages = with pkgs; [
-        # By default we would install all themes
-        #(adi1090x-plymouth-themes.override {
-        #selected_themes = [ "hexagon_2" ];
-        #})
-        #];
       };
       loader = {
         timeout = 0;
         systemd-boot = {
           editor = false;
           enable = true;
-          graceful = true; 
+          graceful = lib.mkDefault true;
           configurationLimit = lib.mkDefault 10;
         };
         efi = {
-         efiSysMountPoint = "/boot"; 
-         canTouchEfiVariables = true;
+          efiSysMountPoint = "/boot";
+          canTouchEfiVariables = lib.mkDefault false;
         };
       };
       kernelParams = [
@@ -50,7 +42,7 @@ in
       ];
       consoleLogLevel = lib.mkForce 0;
       initrd = {
-        includeDefaultModules = true;
+        includeDefaultModules = lib.mkDefauklt false;
 
         verbose = false;
         systemd.enable = true;
