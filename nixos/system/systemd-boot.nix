@@ -30,9 +30,12 @@ in
         systemd-boot = {
           editor = false;
           enable = true;
+          graceful = true; 
           configurationLimit = lib.mkDefault 10;
         };
-        efi.canTouchEfiVariables = true;
+        efi = {
+         efiSysMountPoint = "/boot"; 
+         canTouchEfiVariables = true;
       };
       kernelParams = [
         "quiet"
@@ -46,7 +49,7 @@ in
       ];
       consoleLogLevel = lib.mkForce 0;
       initrd = {
-        includeDefaultModules = false;
+        includeDefaultModules = true;
 
         verbose = false;
         systemd.enable = true;
