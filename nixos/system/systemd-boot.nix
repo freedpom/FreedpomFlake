@@ -42,7 +42,7 @@ in
       ];
       consoleLogLevel = lib.mkForce 0;
       initrd = {
-        includeDefaultModules = lib.mkDefauklt false;
+        includeDefaultModules = lib.mkDefault false;
 
         verbose = false;
         systemd.enable = true;
