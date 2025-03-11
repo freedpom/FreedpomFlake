@@ -5,5 +5,6 @@
     ./systemd-boot.nix
     ./persistence.nix
     ./networking.nix
+    ./font.nix
   ];
 }
