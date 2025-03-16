@@ -1,14 +1,9 @@
-{ lib, config, pkgs, ... }: let
-
-cfg = config.ff.hostConf;
-
-kmsConfDir = pkgs.writeTextFile {
-  name = "kmscon-config";
-  destination = "/kmscon.conf";
-  text = cfg.extraConfig;
-};
-
-in
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 {
   options.ff.hostConf = {
     displayType = {
@@ -42,30 +37,5 @@ in
     default = "keyboard";
     example = "mouse";
     description = "Configure the system UI for input devices such as a keyboard, mouse, touch screen, trackpad, or controller.";
-  };
-
-  config = lib.mkIf cfg.kmscon {
-    systemd.services.kmscon = {
-      after = [
-        "systemd-logind.service"
-        "systemd-vconsole-setup.service"
-      ];
-      requires = [ "systemd-logind.service" ];
-
-      serviceConfig.ExecStart = [
-        ""
-        ''
-          ${pkgs.kmscon}/bin/kmscon "--vt=%I" ${cfg.extraOptions} --seats=seat0 --no-switchvt --configdir ${kmsConfDir} --login -- ${pkgs.shadow}/bin/login -p codman
-        ''
-      ];
-
-      restartIfChanged = false;
-      aliases = [ "autovt@.service" ];
-    };
-
-    systemd.suppressedSystemUnits = [ "autovt@.service" ];
-
-    systemd.services.systemd-vconsole-setup.enable = false;
-    systemd.services.reload-systemd-vconsole-setup.enable = false;
   };
 }
