@@ -1,19 +1,24 @@
-{ lib, ... }:
+{ lib, config, pkgs, ... }: let
+
+cfg = config.ff.hostConf;
+
+kmsConfDir = pkgs.writeTextFile {
+  name = "kmscon-config";
+  destination = "/kmscon.conf";
+  text = cfg.extraConfig;
+};
+
+in
 {
-  options.hostConf = {
+  options.ff.hostConf = {
     displayType = {
-      headless = lib.mkEnableOption;
-      wayland = lib.mkEnableOption;
+      # headless = lib.mkEnableOption;
+      # wayland = lib.mkEnableOption;
       kmscon = lib.mkOption {
-        type = lib.types.list;
+        type = lib.types.listOf lib.types.int;
         default = "";
         description = "list of ttys that will be enabled with kms console";
       };
-    };
-    agetty = lib.mkOption {
-      type = lib.types.list;
-      default = "";
-      description = "list of ttys that will use the default console";
     };
   };
   tags = lib.mkOption {
@@ -39,4 +44,28 @@
     description = "Configure the system UI for input devices such as a keyboard, mouse, touch screen, trackpad, or controller.";
   };
 
+  config = lib.mkIf cfg.kmscon {
+    systemd.services.kmscon = {
+      after = [
+        "systemd-logind.service"
+        "systemd-vconsole-setup.service"
+      ];
+      requires = [ "systemd-logind.service" ];
+
+      serviceConfig.ExecStart = [
+        ""
+        ''
+          ${pkgs.kmscon}/bin/kmscon "--vt=%I" ${cfg.extraOptions} --seats=seat0 --no-switchvt --configdir ${kmsConfDir} --login -- ${pkgs.shadow}/bin/login -p codman
+        ''
+      ];
+
+      restartIfChanged = false;
+      aliases = [ "autovt@.service" ];
+    };
+
+    systemd.suppressedSystemUnits = [ "autovt@.service" ];
+
+    systemd.services.systemd-vconsole-setup.enable = false;
+    systemd.services.reload-systemd-vconsole-setup.enable = false;
+  };
 }
