@@ -42,9 +42,9 @@ in
     disableAt = lib.mkOption {
       type = lib.types.nullOr (lib.types.listOf lib.types.str);
       default = null;
-      description = "Numeric identifier of ttys that should not use the kms console";
+      description = "Numeric identifier of ttys that should not use the kms console, must include tty1 or tty switching will not work";
       example = [
-        "tty2"
+        "tty1"
       ];
     };
 
