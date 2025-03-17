@@ -61,11 +61,11 @@ in
   config.users = {
     inherit (cfg) mutableUsers;
     users = lib.mkMerge (
-      builtins.map (user: {
-        user = {
-          inherit (cfg.users.${user}) uid hashedPassword extraGroups;
+      builtins.map (_user: {
+        _user = {
+          inherit (cfg.users.${_user}) uid hashedPassword extraGroups;
         };
-      }) cfg.users
+      }) (builtins.attrNames cfg.users)
     );
   };
 }
