@@ -55,17 +55,19 @@ in
     };
     users = lib.mkOption {
       type = lib.types.attrsOf (lib.types.submodule userOpts);
-      default = {};
+      default = { };
     };
   };
   config.users = {
-    mutableUsers = cfg.mutableUsers;
-    users = builtins.map ( user: {
-      user = {
-        uid = cfg.users.${user}.uid;
-        hashedPassword = cfg.users.${user}.hashedPassword;
-        extraGroups = cfg.users.${user}.extraGroups;
-      };
-    } ) cfg.users;
+    inherit (cfg) mutableUsers;
+    users = lib.mkMerge (
+      builtins.map (user: {
+        user = {
+          inherit (cfg.users.${user}) uid;
+          inherit (cfg.users.${user}) hashedPassword;
+          inherit (cfg.users.${user}) extraGroups;
+        };
+      }) cfg.users
+    );
   };
 }
