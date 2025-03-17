@@ -6,5 +6,6 @@
     ./persistence.nix
     ./networking.nix
     ./font.nix
+    ./userConfig.nix
   ];
 }

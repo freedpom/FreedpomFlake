@@ -1,11 +1,7 @@
-{ config, lib, ... }:
-let
+{ lib, ... }:
+{
 
-  cfg = config.ff.userConfig;
-
-  cfgUser = cfg.users.${user};
-
-  userOpts = {
+  options.userConf = {
     userType = lib.mkOption {
       type = lib.types.enum [
         "user" # Normal user
@@ -45,29 +41,5 @@ let
       ];
       description = "extra groups needed by user";
     };
-  };
-in
-
-{
-  options.ff.userConfig = {
-    mutableUsers = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "Allow users to be modified from the running system";
-    };
-    users = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule userOpts);
-      default = {};
-    };
-  };
-  config.users = {
-    mutableUsers = cfg.mutableUsers;
-    users = builtins.map ( user: {
-      user = {
-        uid = cfgUser.uid;
-        hashedPassword = cfgUser.hashedPassword;
-        extraGroups = cfgUser.extraGroups;
-      };
-    } ) cfg.users;
   };
 }
