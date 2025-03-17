@@ -3,7 +3,7 @@ let
 
   cfg = config.ff.userConfig;
 
-  userOpts = {
+  userOpts = lib.types.submodule {
     userType = lib.mkOption {
       type = lib.types.enum [
         "user" # Normal user
@@ -35,8 +35,8 @@ let
       description = "hashed password of the specified user";
     };
     extraGroups = lib.mkOption {
-      type = lib.types.list;
-      default = [ ];
+      type = lib.types.listOf lib.types.str;
+      default = [ "" ];
       example = [
         "audio"
         "video"
@@ -54,8 +54,8 @@ in
       description = "Allow users to be modified from the running system";
     };
     users = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule userOpts);
-      default = { };
+      type = lib.types.attrsOf userOpts;
+      default = {};
     };
   };
   config.users = {
@@ -63,7 +63,7 @@ in
     users = lib.mkMerge (
       builtins.map (_user: {
         _user = {
-          inherit (cfg.users.${_user}) uid hashedPassword extraGroups;
+          inherit (cfg.users.${_user}) uid hashedPassword;
         };
       }) (builtins.attrNames cfg.users)
     );
