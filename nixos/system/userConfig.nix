@@ -63,9 +63,7 @@ in
     users = lib.mkMerge (
       builtins.map (user: {
         user = {
-          inherit (cfg.users.${user}) uid;
-          inherit (cfg.users.${user}) hashedPassword;
-          inherit (cfg.users.${user}) extraGroups;
+          inherit (cfg.users.${user}) uid hashedPassword extraGroups;
         };
       }) cfg.users
     );
