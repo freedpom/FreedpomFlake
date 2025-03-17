@@ -3,8 +3,6 @@ let
 
   cfg = config.ff.userConfig;
 
-  cfgUser = cfg.users.${user};
-
   userOpts = {
     userType = lib.mkOption {
       type = lib.types.enum [
@@ -64,9 +62,9 @@ in
     mutableUsers = cfg.mutableUsers;
     users = builtins.map ( user: {
       user = {
-        uid = cfgUser.uid;
-        hashedPassword = cfgUser.hashedPassword;
-        extraGroups = cfgUser.extraGroups;
+        uid = cfg.users.${user}.uid;
+        hashedPassword = cfg.users.${user}.hashedPassword;
+        extraGroups = cfg.users.${user}.extraGroups;
       };
     } ) cfg.users;
   };
