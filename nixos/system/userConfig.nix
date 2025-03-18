@@ -3,7 +3,7 @@ let
 
   cfg = config.ff.userConfig;
 
-  userOpts = {
+  userOpts = { ... }: {
     userType = lib.mkOption {
       type = lib.types.enum [
         "user" # Normal user
