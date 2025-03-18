@@ -3,7 +3,7 @@ let
 
   cfg = config.ff.userConfig;
 
-  userOpts = lib.types.submodule {
+  userOpts = {
     userType = lib.mkOption {
       type = lib.types.enum [
         "user" # Normal user
@@ -36,7 +36,7 @@ let
     };
     extraGroups = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "" ];
+      default = [];
       example = [
         "audio"
         "video"
@@ -54,7 +54,7 @@ in
       description = "Allow users to be modified from the running system";
     };
     users = lib.mkOption {
-      type = lib.types.attrsOf userOpts;
+      type = lib.types.attrsOf (lib.types.submodule userOpts);
       default = {};
     };
   };
