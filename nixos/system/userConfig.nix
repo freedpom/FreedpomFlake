@@ -69,7 +69,7 @@ in
           inherit (cfg.users.${_user}) uid hashedPassword extraGroups;
           isSystemUser = lib.mkIf (cfg.${_user}.type == "system") lib.mkDefault true;
           isNormalUser = lib.mkIf (
-            cfg.${_user}.type == "user" || cfg.${_user}.type == "admin"
+            (cfg.${_user}.type == "user") || (cfg.${_user}.type == "admin")
           ) lib.mkDefault true;
         };
       }) (builtins.attrNames cfg.users)
