@@ -28,7 +28,7 @@ in
             };
             tags = lib.mkOption {
               type = lib.types.listOf lib.types.enum [
-                # Tags enabling groups for userspace functionality
+                "base"
               ];
               default = "";
               example = "gaming";
@@ -67,7 +67,9 @@ in
       builtins.map (_user: {
         ${_user} = {
           inherit (cfg.users.${_user}) uid hashedPassword extraGroups;
-          isNormalUser = true;
+          isSystemUser = lib.mkIf (cfg.${_user}.type == "system") lib.mkDefault true;
+          isNormalUser =
+            lib.mkIf (cfg.${_user}.type == "user") || (cfg.${_user}.type == "admin") lib.mkDefault true;
         };
       }) (builtins.attrNames cfg.users)
     );
