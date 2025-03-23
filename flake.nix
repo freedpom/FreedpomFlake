@@ -36,7 +36,7 @@
         nixosModules = {
           freedpomFlake = ./nixos;
         };
-        homeManagerModules = {
+        homeModules = {
           freedpomFlake = ./home-manager;
         };
       };
