@@ -16,7 +16,7 @@ in
       type = lib.types.attrsOf (
         lib.types.submodule {
           options = {
-            userType = lib.mkOption {
+            role = lib.mkOption {
               type = lib.types.enum [
                 "user" # Normal user
                 "admin" # System administrator
@@ -67,15 +67,16 @@ in
       builtins.map (user: {
         ${user} = {
           inherit (cfg.users.${user}) uid hashedPassword;
-          isSystemUser = lib.mkIf (cfg.users.${user}.userType == "system") true;
+          isSystemUser = lib.mkIf (cfg.users.${user}.role == "system") true;
 
           isNormalUser = lib.mkIf (
-            (cfg.users.${user}.userType == "user") || (cfg.users.${user}.userType == "admin")
+            (cfg.users.${user}.role == "user") || (cfg.users.${user}.role == "admin")
           ) true;
 
           extraGroups =
             cfg.users.${user}.extraGroups
-            ++ lib.optionals (cfg.users.${user}.userType == "admin") [ "wheel" ];
+            ++ lib.optionals (cfg.users.${user}.role == "admin") [ "wheel" ]
+            ++ lib.optionals (cfg.users.${user}.tags == "base") [ "networkmanager" ];
         };
       }) (builtins.attrNames cfg.users)
     );
