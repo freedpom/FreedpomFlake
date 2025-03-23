@@ -64,13 +64,13 @@ in
   config.users = {
     inherit (cfg) mutableUsers;
     users = lib.mkMerge (
-      builtins.map (_user: {
-        ${_user} = {
-          inherit (cfg.users.${_user}) uid hashedPassword extraGroups;
-          isSystemUser = lib.mkIf (cfg.${_user}.type == "system") lib.mkDefault true;
+      builtins.map (user: {
+        ${user} = {
+          inherit (cfg.users.${user}) uid hashedPassword extraGroups;
+          isSystemUser = lib.mkIf (cfg.users.${user}.userType == "system") true;
           isNormalUser = lib.mkIf (
-            (cfg.${_user}.type == "user") || (cfg.${_user}.type == "admin")
-          ) lib.mkDefault true;
+            (cfg.users.${user}.userType == "user") || (cfg.users.${user}.userType == "admin")
+          ) true;
         };
       }) (builtins.attrNames cfg.users)
     );
