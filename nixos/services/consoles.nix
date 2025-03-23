@@ -63,10 +63,13 @@ in
           "getty@${ttyId}" = {
             enable = true;
             wantedBy = [ "default.target" ];
-            serviceConfig.ExecStart = [
-              "" # override upstream default with an empty ExecStart
-              (gettyCmd "--noclear --keep-baud pts/%I 115200,38400,9600 $TERM")
-            ];
+            serviceConfig = {
+              ExecStart = [
+                "" # override upstream default with an empty ExecStart
+                (gettyCmd "--noclear --keep-baud pts/%I 115200,38400,9600 $TERM")
+              ];
+              Restart = "always";
+            };
             environment.TTY = "%I";
             restartIfChanged = false;
             aliases = [ "autovt@${ttyId}.service" ];
