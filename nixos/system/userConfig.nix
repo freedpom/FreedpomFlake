@@ -66,11 +66,16 @@ in
     users = lib.mkMerge (
       builtins.map (user: {
         ${user} = {
-          inherit (cfg.users.${user}) uid hashedPassword extraGroups;
+          inherit (cfg.users.${user}) uid hashedPassword;
           isSystemUser = lib.mkIf (cfg.users.${user}.userType == "system") true;
+
           isNormalUser = lib.mkIf (
             (cfg.users.${user}.userType == "user") || (cfg.users.${user}.userType == "admin")
           ) true;
+
+          extraGroups =
+            cfg.users.${user}.extraGroups
+            ++ lib.optionals (cfg.users.${user}.userType == "admin") [ "wheel" ];
         };
       }) (builtins.attrNames cfg.users)
     );
