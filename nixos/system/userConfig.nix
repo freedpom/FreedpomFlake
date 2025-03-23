@@ -27,10 +27,8 @@ in
               description = "Configure system users.";
             };
             tags = lib.mkOption {
-              type = lib.types.listOf lib.types.enum [
-                "base"
-              ];
-              default = "";
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
               example = "gaming";
               description = "";
             };
@@ -76,7 +74,7 @@ in
           extraGroups =
             cfg.users.${user}.extraGroups
             ++ lib.optionals (cfg.users.${user}.role == "admin") [ "wheel" ]
-            ++ lib.optionals (cfg.users.${user}.tags == "base") [ "networkmanager" ];
+            ++ lib.optionals (lib.elem "base" cfg.users.${user}.tags) [ "networkmanager" ];
         };
       }) (builtins.attrNames cfg.users)
     );
