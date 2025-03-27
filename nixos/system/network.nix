@@ -26,13 +26,13 @@ let
   serverTCPRanges = builtins.filter (lib.strings.hasInfix "-") serverTCP ++ cfg.firewall.extraTCP;
   serverUDPRanges = builtins.filter (lib.strings.hasInfix "-") serverUDP ++ cfg.firewall.extraUDP;
   pcTCPPorts =
-    builtins.filter (v: !(lib.strings.hasInfix "-" v)) pcTCP ++ cfg.firewall.extraTCP;
+    builtins.map lib.toInt (builtins.filter (v: !(lib.strings.hasInfix "-" v)) pcTCP ++ cfg.firewall.extraTCP);
   pcUDPPorts =
-    builtins.filter (v: !(lib.strings.hasInfix "-" v)) pcUDP ++ cfg.firewall.extraUDP;
+    builtins.map lib.toInt (builtins.filter (v: !(lib.strings.hasInfix "-" v)) pcUDP ++ cfg.firewall.extraUDP);
   serverTCPPorts =
-    builtins.filter (v: !(lib.strings.hasInfix "-" v)) serverTCP ++ cfg.firewall.extraTCP;
+    builtins.map lib.toInt (builtins.filter (v: !(lib.strings.hasInfix "-" v)) serverTCP ++ cfg.firewall.extraTCP);
   serverUDPPorts =
-    builtins.filter (v: !(lib.strings.hasInfix "-" v)) serverUDP ++ cfg.firewall.extraUDP;
+    builtins.map lib.toInt (builtins.filter (v: !(lib.strings.hasInfix "-" v)) serverUDP ++ cfg.firewall.extraUDP);
 
 in
 {
@@ -51,13 +51,13 @@ in
       };
 
       extraTCP = {
-        type = lib.types.listOf lib.types.int;
+        type = lib.types.listOf lib.types.str;
         default = [ ];
         description = "List of TCP ports to be opened, ranges are supported as well.";
       };
 
       extraUDP = {
-        type = lib.types.listOf lib.types.int;
+        type = lib.types.listOf lib.types.str;
         default = [ ];
         description = "List of UDP ports to be opened, ranges are supported as well.";
       };
