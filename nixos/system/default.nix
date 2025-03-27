@@ -4,7 +4,7 @@
     ./sysctl.nix
     ./systemd-boot.nix
     ./persistence.nix
-    ./networking.nix
+    ./network.nix
     ./font.nix
     ./userConfig.nix
   ];
