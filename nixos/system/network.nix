@@ -21,10 +21,14 @@ let
   ];
 
   ## Internal stuff, make configuration changes above.
-  pcTCPRanges = builtins.filter (lib.strings.hasInfix "-") pcTCP ++ cfg.firewall.extraTCP;
-  pcUDPRanges = builtins.filter (lib.strings.hasInfix "-") pcUDP ++ cfg.firewall.extraUDP;
-  serverTCPRanges = builtins.filter (lib.strings.hasInfix "-") serverTCP ++ cfg.firewall.extraTCP;
-  serverUDPRanges = builtins.filter (lib.strings.hasInfix "-") serverUDP ++ cfg.firewall.extraUDP;
+  pcTCPRanges =
+    builtins.map (f: t: {from = f; to = t; }) (builtins.map (lib.splitString "-") (builtins.filter (lib.strings.hasInfix "-") pcTCP ++ cfg.firewall.extraTCP));
+  pcUDPRanges =
+    builtins.map (f: t: {from = f; to = t; }) (builtins.map (lib.splitString "-") (builtins.filter (lib.strings.hasInfix "-") pcUDP ++ cfg.firewall.extraUDP));
+  serverTCPRanges =
+    builtins.map (f: t: {from = f; to = t; }) (builtins.map (lib.splitString "-") (builtins.filter (lib.strings.hasInfix "-") serverTCP ++ cfg.firewall.extraTCP));
+  serverUDPRanges =
+    builtins.map (f: t: {from = f; to = t; }) (builtins.map (lib.splitString "-") (builtins.filter (lib.strings.hasInfix "-") serverUDP ++ cfg.firewall.extraUDP));
   pcTCPPorts =
     builtins.map lib.toInt (builtins.filter (v: !(lib.strings.hasInfix "-" v)) pcTCP ++ cfg.firewall.extraTCP);
   pcUDPPorts =
@@ -40,7 +44,7 @@ in
     ff.system.network.firewall = {
       enable = lib.mkEnableOption "Enable Firewall";
 
-      preset = {
+      preset = lib.mkOption {
         type = lib.types.enum [
           "pc"
           "server"
@@ -50,13 +54,13 @@ in
         default = "most";
       };
 
-      extraTCP = {
+      extraTCP = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
         description = "List of TCP ports to be opened, ranges are supported as well.";
       };
 
-      extraUDP = {
+      extraUDP = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
         description = "List of UDP ports to be opened, ranges are supported as well.";
