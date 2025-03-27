@@ -1,7 +1,7 @@
 { config, lib, ... }:
 let
 
-  cfg = config.ff.network;
+  cfg = config.ff.system.network;
 
   ## Port Presets
   pcTCP = [
@@ -37,7 +37,7 @@ let
 in
 {
   options = {
-    ff.network.firewall = {
+    ff.system.network.firewall = {
       enable = lib.mkEnableOption "Enable Firewall";
 
       preset = {
@@ -68,11 +68,10 @@ in
 
     firewall = {
       enable = lib.mkIf cfg.firewall.enable true;
-      allowPing = lib.mkIf (cfg.firewall.preset == "all") lib.mkDefault false;
+      allowPing = lib.mkIf (cfg.firewall.preset == "all") true;
 
       allowedTCPPorts =
-        cfg.firewall.extraTCPPorts
-        ++ lib.optionals (cfg.firewall.preset == "pc") pcTCPPorts
+        lib.optionals (cfg.firewall.preset == "pc") pcTCPPorts
         ++ lib.optionals (cfg.firewall.preset == "server") serverTCPPorts;
 
       allowedTCPPortRanges =
@@ -80,8 +79,7 @@ in
         ++ lib.optionals (cfg.firewall.preset == "server") serverTCPRanges;
 
       allowedUDPPorts =
-        cfg.firewall.extraUDPPorts
-        ++ lib.optionals (cfg.firewall.preset == "pc") pcUDPPorts
+        lib.optionals (cfg.firewall.preset == "pc") pcUDPPorts
         ++ lib.optionals (cfg.firewall.preset == "server") serverUDPPorts;
 
       allowedUDPPortRanges =
