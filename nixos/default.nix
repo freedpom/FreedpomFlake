@@ -4,6 +4,6 @@
     ./services
     ./system
     ./common.nix
-    ./displaySpec
+    ./displaySpec.nix
   ];
 }
