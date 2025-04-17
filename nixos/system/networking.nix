@@ -13,14 +13,14 @@ in
   };
 
   config = lib.mkIf cfg.containers.enable {
-networking = {
-    nat = {
-      enable = true;
-      internalInterfaces = [ "ve-+" ];
-      externalInterface = "en01";
-      # Lazy IPv6 connectivity for the container
-      enableIPv6 = true;
-    };
+    networking = {
+      nat = {
+        enable = true;
+        internalInterfaces = [ "ve-+" ];
+        externalInterface = "en01";
+        # Lazy IPv6 connectivity for the container
+        enableIPv6 = true;
+      };
 
       firewall = {
         allowedTCPPorts = [ ];
@@ -37,7 +37,7 @@ networking = {
         connectionConfig."ipv6.ip6-privacy" = 2;
       };
 
-};
+    };
     services.tailscale.enable = cfg.mesh;
   };
 }
