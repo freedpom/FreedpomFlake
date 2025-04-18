@@ -14,9 +14,10 @@ in
 
   config = lib.mkIf cfg.containers.enable {
     networking = {
+      nftables.enable = true;
       nat = {
         enable = true;
-        internalInterfaces = [ "ve-+" ];
+        internalInterfaces = [ "ve-*" ];
         externalInterface = "en01";
         # Lazy IPv6 connectivity for the container
         enableIPv6 = true;

@@ -1,5 +1,8 @@
 let
-  enabledUsers = [ "quinno" "codman" ];
+  enabledUsers = [
+    "quinno"
+    "codman"
+  ];
 
   mkUserTmpfs = user: {
     "/home/${user}" = {
@@ -11,8 +14,9 @@ let
     };
   };
 
-  userTmpfsConfigs = builtins.foldl' (acc: user: acc // mkUserTmpfs user) {} enabledUsers;
-in {
+  userTmpfsConfigs = builtins.foldl' (acc: user: acc // mkUserTmpfs user) { } enabledUsers;
+in
+{
   disko.devices.nodev = {
     "/home" = {
       fsType = "tmpfs";

@@ -1,5 +1,8 @@
 let
-  enabledUsers = [ "quinno" "codman" ];
+  enabledUsers = [
+    "quinno"
+    "codman"
+  ];
 
   # Function to generate user subvolumes
   mkUserSubvolume = user: {
@@ -14,8 +17,9 @@ let
   };
 
   # Combine all user subvolumes into one attribute set
-  userSubvolumes = builtins.foldl' (acc: user: acc // mkUserSubvolume user) {} enabledUsers;
-in {
+  userSubvolumes = builtins.foldl' (acc: user: acc // mkUserSubvolume user) { } enabledUsers;
+in
+{
   disko.devices.disk.home = {
     type = "disk";
     content = {
