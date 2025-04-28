@@ -1,5 +1,5 @@
 {
   imports = [
-
+    ./netbird.nix
   ];
 }

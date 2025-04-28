@@ -2,34 +2,34 @@
   description = "NixOS and Home-Manager presets";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-root.url = "github:srid/flake-root";
+    
     fpFmt = {
       url = "github:freedpom/FreedpomFormatter";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
+    
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    flake-root.url = "github:srid/flake-root";
+    
     impermanence.url = "github:nix-community/impermanence";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs =
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
-        "x86_64-linux"
         "aarch64-linux"
+        "x86_64-linux"
       ];
 
       imports = [
-        inputs.home-manager.flakeModules.home-manager
         inputs.fpFmt.flakeModule
+        inputs.home-manager.flakeModules.home-manager
       ];
 
       flake = {

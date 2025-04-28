@@ -1,8 +1,9 @@
 {
+  # Import service module configurations
   imports = [
     ./ananicy.nix
-    ./pipewire.nix
-    ./openssh.nix
     ./consoles.nix
+    ./openssh.nix
+    ./pipewire.nix
   ];
 }

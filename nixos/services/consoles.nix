@@ -1,6 +1,6 @@
-##
-## KNOWN ISSUE: enabling kmscon@tty1 causes it to take over ttys, I think cause of seats or something idk
-##
+# Console configuration module for KMS console
+# KNOWN ISSUE: enabling kmscon@tty1 causes it to take over ttys,
+# possibly due to seat configuration issues
 
 {
   config,
@@ -26,10 +26,12 @@ let
 
 in
 {
+  # Configuration options for KMS console
   options.ff.services.kmscon = {
-
+    # Core options
     enable = lib.mkEnableOption "Enable kms console";
-
+    
+    # User authentication options
     autologinUser = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
@@ -38,7 +40,8 @@ in
         If unspecified, a login prompt is shown as usual.
       '';
     };
-
+    
+    # TTY configuration
     disableAt = lib.mkOption {
       type = lib.types.nullOr (lib.types.listOf lib.types.str);
       default = null;

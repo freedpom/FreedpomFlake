@@ -1,4 +1,6 @@
+{ config, lib, ... }:
 {
+  # Nix store disk configuration
   disko.devices.disk.primary = {
     type = "disk";
     content = {
@@ -28,17 +30,17 @@
                 "/nix" = {
                   mountpoint = "/nix";
                   mountOptions = [
+                    "commit=180"
                     "compress=zstd:10"
                     "noatime"
-                    "commit=180"
                   ];
                 };
                 "/nix/store" = {
                   mountpoint = "/nix/store";
                   mountOptions = [
+                    "commit=180"
                     "compress=zstd:5"
                     "noatime"
-                    "commit=180"
                   ];
                 };
               };

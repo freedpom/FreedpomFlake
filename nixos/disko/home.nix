@@ -1,7 +1,8 @@
 let
+  # List of users with home directories
   enabledUsers = [
-    "quinno"
     "codman"
+    "quinno"
   ];
 
   # Function to generate user subvolumes
@@ -9,9 +10,9 @@ let
     "/nix/home/${user}" = {
       mountpoint = "/nix/home/${user}";
       mountOptions = [
+        "commit=60"
         "compress=zstd:5"
         "noatime"
-        "commit=60"
       ];
     };
   };
@@ -20,6 +21,7 @@ let
   userSubvolumes = builtins.foldl' (acc: user: acc // mkUserSubvolume user) { } enabledUsers;
 in
 {
+  # Home disk configuration
   disko.devices.disk.home = {
     type = "disk";
     content = {
@@ -39,9 +41,9 @@ in
                 "/nix/home" = {
                   mountpoint = "/nix/home";
                   mountOptions = [
+                    "commit=60"
                     "compress=zstd:5"
                     "noatime"
-                    "commit=60"
                   ];
                 };
               } // userSubvolumes;

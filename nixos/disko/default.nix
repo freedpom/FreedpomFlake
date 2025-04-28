@@ -4,20 +4,24 @@ let
 in
 {
 
+  # Import disk configuration modules
   imports = [
     ./home.nix
     ./nix-store.nix
     ./temp.nix
   ];
 
+  # Disk configuration options
   options.ff.disks = {
-    enable = lib.mkEnableOption "Enable";
-    nix-disk = lib.mkOption {
+    enable = lib.mkEnableOption "Enable disk configurations";
+    
+    home-disk = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       example = "/dev/disk/by-id/nvme-";
       default = null;
     };
-    home-disk = lib.mkOption {
+    
+    nix-disk = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       example = "/dev/disk/by-id/nvme-";
       default = null;

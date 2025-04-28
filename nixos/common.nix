@@ -1,19 +1,22 @@
 {
-  pkgs,
-  lib,
   config,
-  modulesPath,
   hostname,
   inputs,
+  lib,
+  modulesPath,
+  pkgs,
   ...
 }:
 let
   cfg = config.ff.common;
 in
 {
+  # Import necessary modules
+  imports = [ 
+    (modulesPath + "/profiles/minimal.nix") 
+  ];
 
-  imports = [ (modulesPath + "/profiles/minimal.nix") ];
-
+  # Disable unnecessary modules
   disabledModules = [
     (modulesPath + "/profiles/all-hardware.nix")
     (modulesPath + "/profiles/base.nix")
@@ -24,28 +27,35 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # services.gpm.enable = true;
+    # System Settings
+    i18n.defaultLocale = "en_US.UTF-8";
+    
     networking = {
-      hostName = hostname; # Define your hostname.
       hostId = "00000000"; # Define your host ID.
+      hostName = hostname; # Define your hostname.
       networkmanager.enable = true;
     };
-    i18n.defaultLocale = "en_US.UTF-8";
+    
     time.timeZone = "America/New_York";
 
+    # Console Settings
     console = {
       earlySetup = true;
       font = "${pkgs.terminus_font}/share/consolefonts/ter-120n.psf.gz";
       packages = with pkgs; [ terminus_font ];
     };
 
+    # Home Manager Settings
     home-manager = {
-      useGlobalPkgs = false;
-      useUserPackages = true;
       backupFileExtension = "bk";
       extraSpecialArgs = {
         inherit inputs;
       };
+      useGlobalPkgs = false;
+      useUserPackages = true;
     };
+    
+    # Commented out services
+    # services.gpm.enable = true;
   };
 }
