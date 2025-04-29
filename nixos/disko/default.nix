@@ -14,13 +14,13 @@ in
   # Disk configuration options
   options.ff.disks = {
     enable = lib.mkEnableOption "Enable disk configurations";
-    
+
     home-disk = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       example = "/dev/disk/by-id/nvme-";
       default = null;
     };
-    
+
     nix-disk = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       example = "/dev/disk/by-id/nvme-";

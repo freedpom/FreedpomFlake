@@ -12,7 +12,7 @@ in
     # OpenSSH server configuration
     services.openssh = {
       enable = true;
-      
+
       # Security-hardened host keys
       hostKeys = [
         {

@@ -25,17 +25,17 @@ in
         # supported values 0.01..86400
         # values which have sense: 1..60
         check_freq = 15;
-        
+
         # Loglevel configuration
         # supported values: trace, debug, info, warn, error, critical
         loglevel = "info";
         log_applied_rule = false;
-        
+
         # Module loading settings
         cgroup_load = true;
         rule_load = true;
         type_load = true;
-        
+
         # Feature application settings
         apply_cgroup = true;
         apply_ionice = true;
@@ -43,7 +43,7 @@ in
         apply_nice = true;
         apply_oom_score_adj = true;
         apply_sched = true;
-        
+
         # Advanced settings
         # It tries to move realtime task to root cgroup to be able to move it to the ananicy-cpp controlled one
         # NOTE: may introduce issues, for example with polkit

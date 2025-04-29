@@ -4,17 +4,17 @@
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-root.url = "github:srid/flake-root";
-    
+
     fpFmt = {
       url = "github:freedpom/FreedpomFormatter";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    
+
     impermanence.url = "github:nix-community/impermanence";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };

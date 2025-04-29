@@ -11,8 +11,6 @@ in
     programs.bash = {
       enable = true;
       enableCompletion = true;
-      
-      # History-related settings grouped together
       historyControl = [ "ignoreboth" ];
       historyFile = "${config.home.homeDirectory}/.bash_history";
       historyFileSize = 1000;

@@ -12,8 +12,8 @@ let
 in
 {
   # Import necessary modules
-  imports = [ 
-    (modulesPath + "/profiles/minimal.nix") 
+  imports = [
+    (modulesPath + "/profiles/minimal.nix")
   ];
 
   # Disable unnecessary modules
@@ -29,13 +29,13 @@ in
   config = lib.mkIf cfg.enable {
     # System Settings
     i18n.defaultLocale = "en_US.UTF-8";
-    
+
     networking = {
       hostId = "00000000"; # Define your host ID.
       hostName = hostname; # Define your hostname.
       networkmanager.enable = true;
     };
-    
+
     time.timeZone = "America/New_York";
 
     # Console Settings
@@ -54,8 +54,5 @@ in
       useGlobalPkgs = false;
       useUserPackages = true;
     };
-    
-    # Commented out services
-    # services.gpm.enable = true;
   };
 }

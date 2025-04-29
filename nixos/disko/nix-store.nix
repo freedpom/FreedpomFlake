@@ -1,5 +1,4 @@
-{ config, lib, ... }:
-{
+_: {
   # Nix store disk configuration
   disko.devices.disk.primary = {
     type = "disk";

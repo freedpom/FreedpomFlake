@@ -16,7 +16,7 @@ in
     containers.netbird = {
       autoStart = true;
       privateNetwork = true;
-      
+
       # Network Addresses
       hostAddress = "192.168.100.10";
       hostAddress6 = "fc00::1";
@@ -36,7 +36,7 @@ in
             # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
             useHostResolvConf = lib.mkForce false;
           };
-          
+
           # Services
           services.netbird = {
             enable = true;
@@ -44,9 +44,9 @@ in
               enable = true;
             };
           };
-          
+
           services.resolved.enable = true;
-          
+
           # System Configuration
           system.stateVersion = "24.11";
 

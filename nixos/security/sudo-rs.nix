@@ -13,7 +13,7 @@ in
     security = {
       # Disable standard sudo
       sudo.enable = lib.mkForce false;
-      
+
       # Enable sudo-rs with security settings
       sudo-rs = {
         enable = true;

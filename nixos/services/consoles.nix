@@ -30,7 +30,7 @@ in
   options.ff.services.kmscon = {
     # Core options
     enable = lib.mkEnableOption "Enable kms console";
-    
+
     # User authentication options
     autologinUser = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
@@ -40,7 +40,7 @@ in
         If unspecified, a login prompt is shown as usual.
       '';
     };
-    
+
     # TTY configuration
     disableAt = lib.mkOption {
       type = lib.types.nullOr (lib.types.listOf lib.types.str);
