@@ -1,11 +1,11 @@
 {
   imports = [
+    ./font.nix
+    ./networking.nix
     ./nix.nix
+    ./persistence.nix
     ./sysctl.nix
     ./systemd-boot.nix
-    ./persistence.nix
-    ./networking.nix
-    ./font.nix
     ./userConfig.nix
   ];
 }

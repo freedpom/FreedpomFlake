@@ -14,30 +14,35 @@ in
 
   config = lib.mkIf cfg.containers.enable {
     networking = {
+      # Core network settings
       nftables.enable = true;
-      nat = {
-        enable = true;
-        internalInterfaces = [ "ve-*" ];
-        externalInterface = "en01";
-        # Lazy IPv6 connectivity for the container
-        enableIPv6 = true;
-      };
 
+      # Firewall settings
       firewall = {
+        enable = true;
         allowedTCPPorts = [ ];
         allowedUDPPorts = [ ];
-        enable = true;
       };
+
+      # NAT configuration for containers
+      nat = {
+        enable = true;
+        # Lazy IPv6 connectivity for the container
+        enableIPv6 = true;
+        externalInterface = "en01";
+        internalInterfaces = [ "ve-*" ];
+      };
+
+      # NetworkManager settings
       networkmanager = {
+        # Enable IPv6 privacy extensions in NetworkManager.
+        connectionConfig."ipv6.ip6-privacy" = 2;
         ethernet.macAddress = "random";
         wifi = {
           macAddress = "random";
           scanRandMacAddress = true;
         };
-        # Enable IPv6 privacy extensions in NetworkManager.
-        connectionConfig."ipv6.ip6-privacy" = 2;
       };
-
     };
     services.tailscale.enable = cfg.mesh;
   };

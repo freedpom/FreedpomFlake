@@ -16,7 +16,9 @@ in
 
       # Enable sudo-rs with security settings
       sudo-rs = {
+        # Core configuration
         enable = true;
+        # Security hardening - only allow users in wheel group to use sudo
         execWheelOnly = true;
       };
     };

@@ -11,6 +11,7 @@ in
   config = lib.mkIf cfg.enable {
     # OpenSSH server configuration
     services.openssh = {
+      # Enable OpenSSH daemon
       enable = true;
 
       # Security-hardened host keys

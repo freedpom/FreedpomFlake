@@ -20,38 +20,46 @@ in
       in
       {
         settings = {
-          accept-flake-config = true;
-          connect-timeout = 5;
-          min-free = 128000000;
-          max-free = 1000000000;
-          experimental-features = "nix-command flakes";
+          # Core features and permissions
           allowed-users = [ "@wheel" ];
+          experimental-features = "nix-command flakes";
           trusted-users = [ "@wheel" ];
-          fallback = true;
-          warn-dirty = false;
+
+          # Behavioral settings
+          accept-flake-config = true;
           auto-optimise-store = true;
+          fallback = true;
           flake-registry = "";
+          warn-dirty = false;
+
+          # Performance settings
+          connect-timeout = 5;
+          max-free = 1000000000;
+          max-jobs = "auto";
+          min-free = 128000000;
+
+          # Builder settings
           # Use available binary caches
           builders-use-substitutes = true;
-          max-jobs = "auto";
-
         };
         channel.enable = false;
 
-        registry = lib.mapAttrs (_: flake: { inherit flake; }) flakeInputs;
-        nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
-
+        # Daemon resource management
         # https://gitlab.com/garuda-linux/garuda-nix-subsystem/-/blob/stable/internal/modules/base/nix.nix?ref_type=heads#L15
         # Make builds run with low priority
         daemonCPUSchedPolicy = "idle";
         daemonIOSchedClass = "idle";
 
+        # Flake registry and nix path
+        nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
+        registry = lib.mapAttrs (_: flake: { inherit flake; }) flakeInputs;
+
       };
     programs.nh = {
       clean = {
+        dates = "daily";
         enable = true;
         extraArgs = "--keep-since 3d --keep 2";
-        dates = "daily";
       };
       enable = true;
     };
