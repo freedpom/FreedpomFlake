@@ -1,1 +1,4 @@
-{ imports = [ ./bash.nix ]; }
+{
+  # Import specific program configurations for home-manager
+  imports = [ ./bash.nix ];
+}

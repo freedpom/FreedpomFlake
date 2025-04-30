@@ -27,17 +27,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # System Settings
-    i18n.defaultLocale = "en_US.UTF-8";
-
-    networking = {
-      hostId = "00000000"; # Define your host ID.
-      hostName = hostname; # Define your hostname.
-      networkmanager.enable = true;
-    };
-
-    time.timeZone = "America/New_York";
-
     # Console Settings
     console = {
       earlySetup = true;
@@ -54,5 +43,16 @@ in
       useGlobalPkgs = false;
       useUserPackages = true;
     };
+
+    # System Settings
+    i18n.defaultLocale = "en_US.UTF-8";
+
+    networking = {
+      hostId = "00000000"; # Define your host ID.
+      hostName = hostname; # Define your hostname.
+      networkmanager.enable = true;
+    };
+
+    time.timeZone = "America/New_York";
   };
 }

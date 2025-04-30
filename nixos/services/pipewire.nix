@@ -19,21 +19,23 @@ in
     boot = lib.mkIf config.services.pipewire.enable { kernelParams = [ "threadirqs" ]; };
 
     environment.systemPackages = with pkgs; [
-      pavucontrol
-      qpwgraph
-      playerctl
       alsa-utils
+      pavucontrol
+      playerctl
+      qpwgraph
     ];
 
     services = {
       pipewire = {
         enable = true;
+        # Audio subsystems
         alsa = {
           enable = true;
           support32Bit = lib.mkForce config.hardware.graphics.enable32Bit;
         };
-        pulse.enable = true;
         jack.enable = false;
+        pulse.enable = true;
+        # Session manager
         wireplumber = {
           enable = true;
         };
@@ -50,17 +52,19 @@ in
     # https://github.com/musnix/musnix/blob/86ef22cbdd7551ef325bce88143be9f37da64c26/modules/base.nix#L112
     security = {
       pam.loginLimits = [
+        # Memory limits
         {
           domain = "@audio";
           item = "memlock";
           type = "-";
           value = "unlimited";
         }
+        # File limits
         {
           domain = "@audio";
-          item = "rtprio";
-          type = "-";
-          value = "99";
+          item = "nofile";
+          type = "hard";
+          value = "99999";
         }
         {
           domain = "@audio";
@@ -68,11 +72,12 @@ in
           type = "soft";
           value = "99999";
         }
+        # Realtime priority limits
         {
           domain = "@audio";
-          item = "nofile";
-          type = "hard";
-          value = "99999";
+          item = "rtprio";
+          type = "-";
+          value = "99";
         }
       ];
       rtkit.enable = true;

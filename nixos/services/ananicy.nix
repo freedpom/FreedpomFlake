@@ -15,17 +15,16 @@ in
 
   config = lib.mkIf cfg.enable {
     services.ananicy = {
+      # Core service configuration
       enable = true;
-      package = pkgs.ananicy-cpp;
       rulesProvider = pkgs.ananicy-rules-cachyos;
       settings = {
-        # Core settings
+        # Core timing and logging settings
         ## Ananicy 2.X configuration
         # Ananicy run full system scan every "check_freq" seconds
         # supported values 0.01..86400
         # values which have sense: 1..60
         check_freq = 15;
-
         # Loglevel configuration
         # supported values: trace, debug, info, warn, error, critical
         loglevel = "info";

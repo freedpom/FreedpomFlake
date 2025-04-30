@@ -33,11 +33,11 @@
       ];
 
       flake = {
-        nixosModules = {
-          freedpomFlake = ./nixos;
-        };
         homeModules = {
           freedpomFlake = ./home-manager;
+        };
+        nixosModules = {
+          freedpomFlake = ./nixos;
         };
       };
     };

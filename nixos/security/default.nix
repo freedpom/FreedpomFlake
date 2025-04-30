@@ -1,5 +1,5 @@
 {
-  # Import security-related modules
+  # Import security-related configuration modules
   imports = [
     ./sudo-rs.nix
   ];

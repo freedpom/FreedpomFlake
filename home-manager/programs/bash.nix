@@ -9,8 +9,11 @@ in
 
   config = lib.mkIf cfg.enable {
     programs.bash = {
+      # Core configurations
       enable = true;
       enableCompletion = true;
+
+      # History settings
       historyControl = [ "ignoreboth" ];
       historyFile = "${config.home.homeDirectory}/.bash_history";
       historyFileSize = 1000;
