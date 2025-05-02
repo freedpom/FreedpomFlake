@@ -11,6 +11,14 @@ in
 
   options.ff.services.pipewire = {
     enable = lib.mkEnableOption "Enable PipeWire configuration to provide low-latency audio/video routing with pro-audio optimizations";
+    
+    # Documentation about latency values:
+    # 32/48000 = ~0.67ms latency
+    # 64/48000 = ~1.33ms latency
+    # 128/48000 = ~2.67ms latency
+    # 256/48000 = ~5.33ms latency
+    # 512/48000 = ~10.67ms latency
+    # 1024/48000 = ~21.33ms latency
   };
 
   config = lib.mkIf cfg.enable {
@@ -42,9 +50,10 @@ in
             "link.max-buffers" = 16; # Version < 3 clients can't handle more than this
             "log.level" = 2; # Warning level
             "default.clock.rate" = 48000;
-            "default.clock.quantum" = 32; # Low-latency quantum (buffer size)
+            "default.clock.quantum" = 32; # Low-latency quantum (buffer size) - 0.67ms
             "default.clock.min-quantum" = 32; # Minimum buffer size
             "default.clock.max-quantum" = 8192; # Maximum buffer size
+            "core.clock.power-of-two-quantum" = false; # Allow flexible buffer sizes for better latency control
             "core.daemon" = true;
             "core.name" = "pipewire-0";
           };
@@ -53,7 +62,7 @@ in
               name = "libpipewire-module-rtkit";
               args = {
                 "nice.level" = -15;
-                "rt.prio" = 88;
+                "rt.prio" = 90; # Slightly higher priority for audio processing
                 "rt.time.soft" = 200000;
                 "rt.time.hard" = 200000;
               };
@@ -95,7 +104,7 @@ in
               name = "libpipewire-module-rtkit";
               args = {
                 "nice.level" = -15;
-                "rt.prio" = 88;
+                "rt.prio" = 90; # Slightly higher priority for audio processing
                 "rt.time.soft" = 200000;
                 "rt.time.hard" = 200000;
               };
@@ -122,8 +131,8 @@ in
             }
           ];
           "stream.properties" = {
-            "node.latency" = "32/48000"; # 0.67ms
-            "resample.quality" = 1;
+            "node.latency" = "32/48000"; # 0.67ms latency - good balance of low latency and quality
+            "resample.quality" = 4; # Slightly better resampling quality while maintaining performance
           };
         };
         # Session manager with low-latency configuration
