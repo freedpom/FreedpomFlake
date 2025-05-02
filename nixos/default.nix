@@ -1,7 +1,6 @@
 {
   imports = [
     # Directory imports
-    ./desktop
     ./security
     ./services
     ./system
