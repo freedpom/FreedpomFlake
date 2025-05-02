@@ -4,190 +4,163 @@
 }:
 {
   options.ff.hostConf = {
-    displayType = {
+    tags = {
       description = ''
-        Configuration options for the display server and console setup.
+        Tags that define the host's role and characteristics, separated into distinct categories
+        that can be combined without overlapping functionality.
 
-        Example:
+        Each tag applies specific system configurations and can be combined with tags from other
+        categories to create custom profiles for different use cases.
+
+        Example combinations:
         ```nix
-        ff.hostConf.displayType = {
-          wayland = true;
-          kmscon = [ 1 2 3 ];
+        # Gaming laptop with battery optimization
+        ff.hostConf.tags = {
+          compute = [ "gaming" ];
+          power = [ "battery" ];
+          environment = [ "mobile" ];
+        };
+
+        # Professional workstation for audio production
+        ff.hostConf.tags = {
+          compute = [ "creative" "audio" ];
+          power = [ "performance" ];
+          environment = [ "desktop" ];
+        };
+
+        # Home theater PC
+        ff.hostConf.tags = {
+          compute = [ "media" ];
+          power = [ "efficiency" ];
+          environment = [ "living-room" ];
+        };
+
+        # Headless server with minimal resources
+        ff.hostConf.tags = {
+          compute = [ "server" ];
+          power = [ "efficiency" ];
+          environment = [ "headless" ];
         };
         ```
       '';
 
-      headless = lib.mkEnableOption "Headless mode (no graphical interface)";
-
-      x11 = lib.mkEnableOption "Enable X11 display server";
-
-      wayland = lib.mkEnableOption "Enable Wayland display server";
-
-      kmscon = lib.mkOption {
-        type = lib.types.listOf lib.types.int;
+      compute = lib.mkOption {
+        type = lib.types.listOf (
+          lib.types.enum [
+            "gaming" # Gaming optimizations, Steam, gaming-specific drivers
+            "office" # Office applications, document handling
+            "server" # Server applications, databases, web services
+          ]
+        );
         default = [ ];
         example = [
-          1
-          2
-          3
+          "development"
+          "creative"
         ];
-        description = "List of TTYs that will be enabled with KMS console";
+        description = ''
+          Compute profiles define the primary computational tasks and software stacks.
+
+          These tags influence which software packages are installed, kernel optimizations,
+          filesystem configurations, and specialized tools for specific workflows.
+        '';
+      };
+
+      power = lib.mkOption {
+        type = lib.types.listOf (
+          lib.types.enum [
+            "performance" # Maximum performance, ignores power consumption
+            "efficiency" # Balanced power/performance ratio
+            "battery" # Maximize battery life on portable devices
+          ]
+        );
+        default = [ "efficiency" ];
+        example = [ "performance" ];
+        description = ''
+          Power profiles define how the system manages power and performance.
+
+          These tags configure CPU governors, thermal settings, power management,
+          and performance-related kernel parameters.
+        '';
+      };
+
+      environment = lib.mkOption {
+        type = lib.types.listOf (
+          lib.types.enum [
+            "desktop" # Standard desktop environment
+            "mobile" # Laptop/portable device
+            "tablet" # Tablet/convertible device
+            "living-room" # Media center/HTPC setup
+            "headless" # No graphical interface
+            "industrial" # Industrial/embedded environment
+          ]
+        );
+        default = [ "desktop" ];
+        example = [ "mobile" ];
+        description = ''
+          Environment profiles define the physical context and form factor.
+
+          These tags influence display settings, power management policies,
+          network configurations, and other hardware-related settings.
+        '';
+      };
+
+      special = lib.mkOption {
+        type = lib.types.listOf (
+          lib.types.enum [
+            "kiosk" # Single-application display
+            "accessibility" # Enhanced accessibility features
+            "minimal" # Minimal resource usage
+            "secure" # Enhanced security measures
+            "realtime" # Realtime processing guarantees
+          ]
+        );
+        default = [ ];
+        example = [ "kiosk" ];
+        description = ''
+          Special profiles for specific use cases that require unique configurations.
+
+          These tags enable specialized system configurations that don't fit into
+          the other categories.
+        '';
       };
     };
 
-    tags = lib.mkOption {
-      type = lib.types.listOf (
-        lib.types.enum [
-          "power-save" # Laptops & small arm devices
-          "gaming" # High performance gaming
-          "rt-audio" # Real-time audio
-          "server" # Server-oriented configuration
-          "workstation" # Desktop workstation
-          "media-center" # Media center/HTPC
-          "kiosk" # Kiosk/single-application display
-          "development" # Development environment
-        ]
-      );
-      default = [ ];
-      example = [
-        "gaming"
-        "rt-audio"
-      ];
-      description = ''
-        Tags that define the host's role and characteristics.
+    # Removed performanceProfile option - now managed through tags.power
 
-        These tags influence various system settings like CPU frequency scaling,
-        kernel parameters, power management, and more.
-
-        Example:
-        ```nix
-        ff.hostConf.tags = [ "power-save" "development" ];
-        ```
-      '';
-    };
-
-    performanceProfile = lib.mkOption {
+    uiMode = lib.mkOption {
       type = lib.types.enum [
-        "balanced" # Default balanced performance and power usage
-        "performance" # Maximum performance, higher power usage
-        "power-saver" # Maximum battery life, reduced performance
-        "low-latency" # Optimized for low-latency applications like audio/gaming
+        "touch" # Optimized for touch input - large targets, swipe gestures
+        "pointer" # Optimized for mouse/trackpad/trackball - precise targeting
+        "keyboard" # Optimized for keyboard navigation - clear focus indicators
+        "tv" # Optimized for remote/distant viewing - very large UI, D-pad navigation
       ];
-      default = "balanced";
-      example = "performance";
+      default = "pointer";
+      example = "touch";
       description = ''
-        Performance profile for the system.
+        Determines the primary UI interaction mode, affecting component sizing and interaction patterns.
 
-        This affects CPU governor, kernel settings, power management,
-        and other performance-related configurations.
+        This setting influences:
+        - UI component sizes (button/target sizes)
+        - Navigation patterns (visible focus, tab order)
+        - Gesture support
+        - Overall layout (compact vs. spacious)
+        - Text size and readability
 
-        Note: This can be overridden by specific tags. For example,
-        the "gaming" tag will imply "performance" profile settings, and
-        "power-save" tag will imply "power-saver" profile settings unless 
-        explicitly configured otherwise.
-      '';
-    };
+        Examples:
 
-    inputDevices = lib.mkOption {
-      type = lib.types.listOf (
-        lib.types.submodule {
-          options = {
-            type = lib.mkOption {
-              type = lib.types.enum [
-                "controller" # Game controller
-                "keyboard" # Standard keyboard
-                "mouse" # Standard mouse
-                "touch" # Touchscreen
-                "trackpad" # Laptop trackpad
-                "tablet" # Graphics tablet
-                "trackball" # Trackball pointer
-                "joystick" # Joystick
-                "remote" # Remote control
-              ];
-              description = "Type of input device";
-              example = "mouse";
-            };
-
-            primary = lib.mkOption {
-              type = lib.types.bool;
-              default = false;
-              description = "Whether this is the primary input device of its type";
-            };
-
-            name = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
-              description = "Optional device name for identification";
-              example = "Logitech G502";
-            };
-
-            config = lib.mkOption {
-              type = lib.types.attrsOf lib.types.anything;
-              default = { };
-              description = "Additional device-specific configuration";
-              example = {
-                sensitivity = 0.8;
-                accelProfile = "flat";
-              };
-            };
-          };
-        }
-      );
-      default = [
-        {
-          type = "keyboard";
-          primary = true;
-        }
-      ];
-      example = [
-        {
-          type = "keyboard";
-          primary = true;
-          name = "Main Keyboard";
-        }
-        {
-          type = "mouse";
-          primary = true;
-          name = "Gaming Mouse";
-          config = {
-            sensitivity = 0.8;
-          };
-        }
-        {
-          type = "controller";
-          name = "Xbox Controller";
-        }
-      ];
-      description = ''
-        Configure the system for various input devices.
-
-        This affects UI behavior, input settings, and device-specific configurations.
-
-        Example:
         ```nix
-        ff.hostConf.inputDevices = [
-          { type = "keyboard"; primary = true; }
-          { type = "mouse"; primary = true; }
-          { type = "touch"; }
-        ];
-        ```
-      '';
-    };
+        # For a tablet or touchscreen device
+        ff.hostConf.uiMode = "touch";
 
-    # Legacy option kept for backward compatibility
-    inputType = lib.mkOption {
-      type = lib.types.enum [
-        "controller"
-        "keyboard"
-        "mouse"
-        "touch"
-        "trackpad"
-      ];
-      default = "keyboard";
-      example = "mouse";
-      description = ''
-        DEPRECATED: Use inputDevices instead.
-        Legacy option for configuring the primary input device.
+        # For a traditional desktop computer
+        ff.hostConf.uiMode = "pointer";
+
+        # For a media center/HTPC
+        ff.hostConf.uiMode = "tv";
+
+        # For a keyboard-centric tiling window manager setup
+        ff.hostConf.uiMode = "keyboard";
+        ```
       '';
     };
   };
