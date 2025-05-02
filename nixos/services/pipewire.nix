@@ -11,6 +11,14 @@ in
 
   options.ff.services.pipewire = {
     enable = lib.mkEnableOption "Enable PipeWire configuration to provide low-latency audio/video routing with pro-audio optimizations";
+    
+    # Documentation about latency values:
+    # 32/48000 = ~0.67ms latency
+    # 64/48000 = ~1.33ms latency
+    # 128/48000 = ~2.67ms latency
+    # 256/48000 = ~5.33ms latency
+    # 512/48000 = ~10.67ms latency
+    # 1024/48000 = ~21.33ms latency
   };
 
   config = lib.mkIf cfg.enable {
@@ -35,9 +43,139 @@ in
         };
         jack.enable = false;
         pulse.enable = true;
-        # Session manager
+        # Low-latency daemon configuration
+        extraConfig.pipewire = {
+          "context.properties" = {
+            # Core properties
+            "link.max-buffers" = 16; # Version < 3 clients can't handle more than this
+            "log.level" = 2; # Warning level
+            "default.clock.rate" = 48000;
+            "default.clock.quantum" = 32; # Low-latency quantum (buffer size) - 0.67ms
+            "default.clock.min-quantum" = 32; # Minimum buffer size
+            "default.clock.max-quantum" = 8192; # Maximum buffer size
+            "core.clock.power-of-two-quantum" = false; # Allow flexible buffer sizes for better latency control
+            "core.daemon" = true;
+            "core.name" = "pipewire-0";
+          };
+          "context.modules" = [
+            {
+              name = "libpipewire-module-rtkit";
+              args = {
+                "nice.level" = -15;
+                "rt.prio" = 90; # Slightly higher priority for audio processing
+                "rt.time.soft" = 200000;
+                "rt.time.hard" = 200000;
+              };
+              flags = [
+                "ifexists"
+                "nofail"
+              ];
+            }
+            { name = "libpipewire-module-protocol-native"; }
+            { name = "libpipewire-module-profiler"; }
+            { name = "libpipewire-module-metadata"; }
+            { name = "libpipewire-module-spa-device-factory"; }
+            { name = "libpipewire-module-spa-node-factory"; }
+            { name = "libpipewire-module-client-node"; }
+            { name = "libpipewire-module-client-device"; }
+            {
+              name = "libpipewire-module-portal";
+              flags = [
+                "ifexists"
+                "nofail"
+              ];
+            }
+            {
+              name = "libpipewire-module-access";
+              args = { };
+            }
+            { name = "libpipewire-module-adapter"; }
+            { name = "libpipewire-module-link-factory"; }
+            { name = "libpipewire-module-session-manager"; }
+          ];
+        };
+        # Low-latency ALSA configuration
+        extraConfig."pipewire-pulse" = {
+          "context.properties" = {
+            "log.level" = 2;
+          };
+          "context.modules" = [
+            {
+              name = "libpipewire-module-rtkit";
+              args = {
+                "nice.level" = -15;
+                "rt.prio" = 90; # Slightly higher priority for audio processing
+                "rt.time.soft" = 200000;
+                "rt.time.hard" = 200000;
+              };
+              flags = [
+                "ifexists"
+                "nofail"
+              ];
+            }
+            { name = "libpipewire-module-protocol-native"; }
+            { name = "libpipewire-module-client-node"; }
+            { name = "libpipewire-module-adapter"; }
+            { name = "libpipewire-module-metadata"; }
+            {
+              name = "libpipewire-module-protocol-pulse";
+              args = {
+                "pulse.min.req" = "32/48000"; # 0.67ms
+                "pulse.default.req" = "32/48000"; # 0.67ms
+                "pulse.max.req" = "32/48000"; # 0.67ms
+                "pulse.min.frag" = "32/48000"; # 0.67ms
+                "pulse.default.frag" = "32/48000"; # 0.67ms
+                "pulse.max.frag" = "32/48000"; # 0.67ms
+                "pulse.min.quantum" = "32/48000"; # 0.67ms
+              };
+            }
+          ];
+          "stream.properties" = {
+            "node.latency" = "32/48000"; # 0.67ms latency - good balance of low latency and quality
+            "resample.quality" = 4; # Slightly better resampling quality while maintaining performance
+          };
+        };
+        # Session manager with low-latency configuration
         wireplumber = {
           enable = true;
+          # Low-latency Wireplumber configuration
+          extraConfig = {
+            wireplumber = {
+              "wireplumber.conf" = ''
+                context.properties = {
+                  log.level = 2
+                }
+
+                wireplumber.profiles = {
+                  main = {
+                    monitor.bluez = true
+                  }
+                }
+              '';
+              # Configure session settings for low latency
+              "main.lua.d/51-disable-suspension.lua" = ''
+                table.insert (alsa_monitor.rules, {
+                  matches = {
+                    {
+                      -- Disable suspension for all audio devices
+                      { "node.name", "matches", "alsa_input.*" },
+                      { "node.name", "matches", "alsa_output.*" },
+                    },
+                  },
+                  apply_properties = {
+                    ["session.suspend-timeout-seconds"] = 0,  -- 0 disables suspend
+                  },
+                })
+              '';
+              # Blacklist problematic "front:6c" device
+              "main.lua.d/99-alsa-blacklist.lua" = ''
+                alsa_monitor.blacklist = {
+                  -- Blacklist the problematic device
+                  { matches = {{ "node.name", "matches", "alsa_card.*front:6c*" }} },
+                }
+              '';
+            };
+          };
         };
       };
       # Expose timers and cpu dma latency the members of the audio group

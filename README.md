@@ -10,7 +10,7 @@
 
 [![NixOS Unstable](https://img.shields.io/badge/NixOS-unstable-blue.svg)](https://nixos.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Platforms](https://img.shields.io/badge/platforms-aarch64|x86__64-brightgreen)](https://github.com/freedpom/FreedpomFlake)
+[![Platforms](https://img.shields.io/badge/platforms-aarch64%7Cx86__64-brightgreen)](https://github.com/freedpom/FreedpomFlake)
 
 NixOS and Home-Manager presets for reproducible system configurations.
 
