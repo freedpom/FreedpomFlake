@@ -87,9 +87,9 @@ in
                   args = {
                     server.address = [ "unix:native" ];
                     pulse.min = {
-                      req = 32/48000;
-                      quantum = 32/48000;
-                      frag = 32/48000;
+                      req = "32/48000";
+                      quantum = "32/48000";
+                      frag = "32/48000";
                     };
                   };
                 }
@@ -97,7 +97,7 @@ in
             };
             "12-stream" = {
               "context.stream.properties" = {
-                node.latency = 32/48000;
+                node.latency = "32/48000";
                 resample.quality = 1;
               };
             };
