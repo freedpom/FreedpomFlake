@@ -54,41 +54,52 @@ in
             "10-clock-rate" = {
               "context.properties" = {
                 "default.clock.rate" = 48000;
-                "default.clock.allowed-rates" = [ 44100 48000 88200 96000 ];
+                "default.clock.allowed-rates" = [
+                  44100
+                  48000
+                  88200
+                  96000
+                ];
                 "default.clock.quantum" = 1024;
                 "default.clock.min-quantum" = 32;
                 "default.clock.max-quantum" = 8192;
               };
             };
-            "11-scarlett-pro" = {
-              "context.modules" = [{
-                name = "libpipewire-module-filter-chain";
-                args = {
-                  "node.name" = "Focusrite Scarlett";
-                  "node.description" = "Professional Audio Interface";
-                  "media.name" = "Pro Audio Pipeline";
-                  "filter.graph" = {
-                    nodes = [{
-                      type = "deviceio";
-                      name = "Focusrite Scarlett";
-                      device = "Focusrite_Scarlett*";
-                      direction = "duplex";
-                      priority = 100;
-                      latency = "32/48000";
-                    }];
+            "11-modules" = {
+              "context.modules" = [
+                {
+                  name = "libpipewire-module-rtkit";
+                  flags = [
+                    "ifexists"
+                    "nofail"
+                  ];
+                  args = {
+                    nice.level = -15;
+                    rt = {
+                      prio = 88;
+                      time.soft = 200000;
+                      time.hard = 200000;
+                    };
                   };
-                };
-              }];
+                }
+                {
+                  name = "libpipewire-module-protocol-pulse";
+                  args = {
+                    server.address = [ "unix:native" ];
+                    pulse.min = {
+                      req = 32/48000;
+                      quantum = 32/48000;
+                      frag = 32/48000;
+                    };
+                  };
+                }
+              ];
             };
-
-            "20-disable-devices" = {
-              "context.objects" = [{
-                factory = "adapter";
-                matches = [{ "device.name" = "~usb-Sony_Interactive*"; }];
-                args = {
-                  "node.disabled" = true;
-                };
-              }];
+            "12-stream" = {
+              "context.stream.properties" = {
+                node.latency = 32/48000;
+                resample.quality = 1;
+              };
             };
           };
         };
