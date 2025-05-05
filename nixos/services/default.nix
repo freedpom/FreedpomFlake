@@ -3,6 +3,7 @@
   imports = [
     ./ananicy.nix
     ./consoles.nix
+    ./ollama.nix
     ./openssh.nix
     ./pipewire.nix
   ];
