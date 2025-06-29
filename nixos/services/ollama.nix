@@ -13,9 +13,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    services.ollama = {
-      enable = true;
-      acceleration = "rocm";
+    services = {
+      ollama = {
+        enable = true;
+        acceleration = "rocm";
+      };
+      open-webui = {
+        enable = true;
+      };
     };
   };
 }
