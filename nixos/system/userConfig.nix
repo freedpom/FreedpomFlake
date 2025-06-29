@@ -2,7 +2,6 @@
   inputs,
   config,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -79,7 +78,7 @@ in
             };
 
             homeState = lib.mkOption {
-              type = lib.types.string;
+              type = lib.types.str;
               description = "Home stateVersion";
             };
           };
@@ -96,6 +95,7 @@ in
       users = lib.mkMerge (
         builtins.map (user: {
           ${user} = {
+
             inherit (cfg.users.${user}) uid hashedPassword;
             isSystemUser = lib.mkIf (cfg.users.${user}.role == "system") true;
 
@@ -107,6 +107,7 @@ in
               cfg.users.${user}.extraGroups
               ++ lib.optionals (cfg.users.${user}.role == "admin") adminGroups
               ++ lib.optionals (lib.elem "base" cfg.users.${user}.tags) baseGroups;
+
           };
         }) (builtins.attrNames cfg.users)
       );
@@ -123,9 +124,11 @@ in
       users = lib.mkMerge (
         builtins.map (user: {
           ${user} = {
+
             home.stateVersion = cfg.users.${user}.homeState;
-            home.packages = [ pkgs.htop ];
             programs.home-manager.enable = true;
+            imports = cfg.users.${user}.homeModules;
+
           };
         }) (builtins.attrNames cfg.users)
       );
