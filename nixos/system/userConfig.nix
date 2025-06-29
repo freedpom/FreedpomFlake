@@ -68,12 +68,6 @@ in
             };
 
             homeModules = lib.mkOption {
-              type = lib.types.listOf lib.types.str;
-              default = [ ];
-              example = [
-                "codmod"
-                "qMod"
-              ];
               description = "Home-manager modules for the user";
             };
 
