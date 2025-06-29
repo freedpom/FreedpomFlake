@@ -68,7 +68,6 @@ in
             };
 
             homeModules = lib.mkOption {
-              type = lib.types.str;
               description = "Home-manager modules for the user";
             };
 
