@@ -2,6 +2,7 @@
   inputs,
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -17,9 +18,9 @@ in
 {
   options.ff.userConfig = {
 
-    enableHM = lib.mkEnableOption "Enable home-manager";
-
     mutableUsers = lib.mkEnableOption "Allow users to be modified from the running system";
+
+    enableHM = lib.mkEnableOption "Enable home-manager";
 
     users = lib.mkOption {
       type = lib.types.attrsOf (
@@ -44,7 +45,7 @@ in
             };
 
             uid = lib.mkOption {
-              type = lib.types.number;
+              type = lib.types.int;
               default = "";
               example = "1000";
               description = "user id of the specified user";
@@ -64,18 +65,22 @@ in
                 "audio"
                 "video"
               ];
+              description = "Extra groups needed by the user";
+            };
 
-              homeModules = lib.mkOption {
-                type = lib.types.listOf lib.types.str;
-                default = [ ];
-                example = [
-                  "codmod"
-                  "qMod"
-                ];
-                description = "Home-manager modules for the user";
-              };
+            homeModules = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+              example = [
+                "codmod"
+                "qMod"
+              ];
+              description = "Home-manager modules for the user";
+            };
 
-              description = "extra groups needed by user";
+            homeState = lib.mkOption {
+              type = lib.types.string;
+              description = "Home stateVersion";
             };
           };
         }
@@ -108,7 +113,6 @@ in
     };
 
     # Home Manager Settings
-    programs.home-manager.enable = cfg.enableHM;
     home-manager = lib.mkIf cfg.enableHM {
       backupFileExtension = "bk";
       extraSpecialArgs = {
@@ -116,15 +120,15 @@ in
       };
       useGlobalPkgs = true;
       useUserPackages = true;
+      users = lib.mkMerge (
+        builtins.map (user: {
+          ${user} = {
+            home.stateVersion = cfg.users.${user}.homeState;
+            home.packages = [ pkgs.htop ];
+            programs.home-manager.enable = true;
+          };
+        }) (builtins.attrNames cfg.users)
+      );
     };
-
-    homeConfigurations = lib.mkIf cfg.enableHM lib.mkMerge (
-      builtins.map (user: {
-        ${user} = {
-
-        };
-      }) (builtins.attrNames cfg.users)
-    );
   };
-
 }
