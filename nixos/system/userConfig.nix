@@ -121,7 +121,7 @@ in
 
             home.stateVersion = cfg.users.${user}.homeState;
             programs.home-manager.enable = true;
-            imports = [ cfg.users.${user}.homeModules ];
+            imports = cfg.users.${user}.homeModules;
 
           };
         }) (builtins.attrNames cfg.users)
