@@ -7,5 +7,6 @@
     ./sysctl.nix
     ./systemd-boot.nix
     ./userConfig.nix
+    ./useCmini.nix
   ];
 }
