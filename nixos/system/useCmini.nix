@@ -12,8 +12,6 @@ in
 {
   options.ff.useCmini = {
 
-    mutableUsers = lib.mkEnableOption "Allow users to be modified from the running system";
-
     enableHM = lib.mkEnableOption "Enable home-manager";
 
     users = lib.mkOption {
@@ -39,7 +37,7 @@ in
     home-manager = lib.mkIf cfg.enableHM {
       users = lib.mkMerge (
         builtins.map (user: {
-          ${user} = import cfg.users.${user}.homeModules;
+          ${user} = import cfg.users.${user}.homeModule;
         }) (builtins.attrNames cfg.users)
       );
     };
