@@ -13,6 +13,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    nixpkgs.config.allowUnfree = true;
     services = {
       ollama = {
         enable = true;
