@@ -42,7 +42,7 @@ in
       description = "List of users to add to the system";
       type = with types; attrsOf (submodule userOpts);
       default = { };
-            example = {
+      example = {
         alice = {
           homeModule = /path/module.nix;
         };
@@ -55,7 +55,7 @@ in
     home-manager = lib.mkIf cfg.enableHM {
       users = lib.mkMerge (
         builtins.map (user: {
-          ${user.name} = import cfg.users.${user.name}.homeModule;
+          ${user} = import cfg.users.${user}.homeModule;
         }) (builtins.attrNames cfg.users)
       );
     };
