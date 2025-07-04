@@ -18,7 +18,7 @@ in
         enable = true;
       };
       loader = {
-        timeout = 0;
+        timeout = lib.mkDefault 0;
         systemd-boot = {
           editor = false;
           enable = true;
