@@ -5,12 +5,12 @@
 }:
 let
 
-  cfg = config.ff.userConfig;
+  cfg = config.ff.useCmini;
 
 in
 
 {
-  options.ff.userConfig = {
+  options.ff.useCmini = {
 
     mutableUsers = lib.mkEnableOption "Allow users to be modified from the running system";
 
