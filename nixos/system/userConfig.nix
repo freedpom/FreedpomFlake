@@ -67,12 +67,13 @@ in
               description = "Extra groups needed by the user";
             };
 
-            homeModules = lib.mkOption {
+            homeModule = lib.mkOption {
               description = "Home-manager modules for the user";
             };
 
             homeState = lib.mkOption {
-              type = lib.types.float;
+              type = lib.types.nullOr lib.types.float;
+              default = null;
               description = "Home stateVersion";
             };
           };
@@ -119,15 +120,18 @@ in
       useUserPackages = true;
       users = lib.mkMerge (
         builtins.map (user: {
-          ${user} = {
-            home = {
-              stateVersion = cfg.users.${user}.homeState;
-              username = lib.toString cfg.users.${user}
-            };
-            programs.home-manager.enable = true;
-            imports = cfg.users.${user}.homeModules;
+          ${user} = lib.mkMerge [
+            import
+            cfg.users.${user}.homeModule
+            {
+              home = {
+                stateVersion = lib.mkIf (cfg.users.${user}.homeState != null) cfg.users.${user}.homeState;
+                username = lib.toString cfg.users.${user};
+              };
+              programs.home-manager.enable = true;
 
-          };
+            }
+          ];
         }) (builtins.attrNames cfg.users)
       );
     };
