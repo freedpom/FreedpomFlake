@@ -120,8 +120,10 @@ in
       users = lib.mkMerge (
         builtins.map (user: {
           ${user} = {
-
-            home.stateVersion = cfg.users.${user}.homeState;
+            home = {
+              stateVersion = cfg.users.${user}.homeState;
+              username = lib.toString cfg.users.${user}
+            };
             programs.home-manager.enable = true;
             imports = cfg.users.${user}.homeModules;
 
