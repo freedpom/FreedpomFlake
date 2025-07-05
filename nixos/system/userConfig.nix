@@ -120,18 +120,7 @@ in
       useUserPackages = true;
       users = lib.mkMerge (
         builtins.map (user: {
-          ${user} = lib.mkMerge [
-            import
-            cfg.users.${user}.homeModule
-            {
-              home = {
-                stateVersion = lib.mkIf (cfg.users.${user}.homeState != null) cfg.users.${user}.homeState;
-                username = lib.toString cfg.users.${user};
-              };
-              programs.home-manager.enable = true;
-
-            }
-          ];
+          ${user} = import cfg.users.${user}.homeModule;
         }) (builtins.attrNames cfg.users)
       );
     };
