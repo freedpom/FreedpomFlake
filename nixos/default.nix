@@ -9,5 +9,6 @@
     ./common.nix
     ./displaySpec.nix
     ./hostConfig.nix
+    ./useCmini.nix
   ];
 }
