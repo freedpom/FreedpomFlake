@@ -120,7 +120,7 @@ in
       useUserPackages = true;
       users = lib.mkMerge (
         builtins.map (user: {
-          ${user}.imports = cfg.users.${user}.homeModule;
+          ${user}.imports = [ cfg.users.${user}.homeModule ];
         }) (builtins.attrNames cfg.users)
       );
     };
