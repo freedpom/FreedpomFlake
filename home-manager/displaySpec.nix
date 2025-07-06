@@ -134,27 +134,6 @@
           ];
         };
       };
-      HDMI-A-1 = {
-        resolution = {
-          width = 1920;
-          height = 1080;
-        };
-        framerate = 60;
-        scale = 1.0;
-        position = {
-          x = 2560;
-          y = 0;
-        };
-        tags = [
-          "secondary"
-          "communication"
-          "vertical"
-        ];
-        workspaces = [
-          "4"
-          "5"
-        ];
-      };
     };
   };
 }
