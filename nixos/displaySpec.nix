@@ -1,7 +1,7 @@
 { lib, ... }:
 {
   options = {
-    videoPorts = lib.mkOption {
+    ff.hardware.videoPorts = lib.mkOption {
       type = lib.types.attrsOf (
         lib.types.submodule {
           options = {
