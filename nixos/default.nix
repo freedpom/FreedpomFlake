@@ -7,8 +7,5 @@
 
     # Individual module imports
     ./common.nix
-    ./displaySpec.nix
-    ./hostConfig.nix
-    ./useCmini.nix
   ];
 }

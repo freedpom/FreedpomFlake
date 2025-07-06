@@ -1,4 +1,7 @@
 {
   # Import program-specific home-manager configurations
-  imports = [ ./programs ];
+  imports = [
+    ./programs
+    ./displaySpec.nix
+  ];
 }
