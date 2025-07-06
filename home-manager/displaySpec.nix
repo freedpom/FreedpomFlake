@@ -38,19 +38,11 @@
             };
 
             # Monitor position in multi-monitor setup
-            position = {
-              x = lib.mkOption {
-                type = lib.types.int;
-                default = 0;
-                description = "X coordinate of monitor position";
-                example = 1920;
-              };
-              y = lib.mkOption {
-                type = lib.types.int;
-                default = 0;
-                description = "Y coordinate of monitor position";
-                example = 0;
-              };
+            position = lib.mkOption {
+              type = lib.types.str;
+              default = "auto";
+              description = "Coordinate of monitor position";
+              example = "3840x0";
             };
 
             # Color depth
