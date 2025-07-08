@@ -19,8 +19,6 @@ in
 
     mutableUsers = lib.mkEnableOption "Allow users to be modified from the running system";
 
-    enableHM = lib.mkEnableOption "Enable home-manager";
-
     users = lib.mkOption {
       type = lib.types.attrsOf (
         lib.types.submodule {
@@ -44,17 +42,20 @@ in
             };
 
             uid = lib.mkOption {
-              type = lib.types.int;
-              default = "";
-              example = "1000";
+              type = lib.types.nullOr lib.types.int;
+              default = null;
+              example = 1000;
               description = "user id of the specified user";
             };
 
             hashedPassword = lib.mkOption {
               type = lib.types.str;
-              default = "$6$i8pqqPIplhh3zxt1$bUH178Go8y5y6HeWKIlyjMUklE2x/8Vy9d3KiCD1WN61EtHlrpWrGJxphqu7kB6AERg6sphGLonDeJvS/WC730"; # "password"
               example = "$6$i8pqqPIplhh3zxt1$bUH178Go8y5y6HeWKIlyjMUklE2x/8Vy9d3KiCD1WN61EtHlrpWrGJxphqu7kB6AERg6sphGLonDeJvS/WC730";
               description = "hashed password of the specified user";
+            };
+
+            home = {
+              type = lib.types.nullOr lib.types.str;
             };
 
             extraGroups = lib.mkOption {
@@ -67,12 +68,15 @@ in
               description = "Extra groups needed by the user";
             };
 
-            homeModules = lib.mkOption {
+            homeModule = lib.mkOption {
+              type = lib.types.attrs;
+              default = { };
               description = "Home-manager modules for the user";
             };
 
             homeState = lib.mkOption {
-              type = lib.types.str;
+              type = lib.types.nullOr lib.types.float;
+              default = null;
               description = "Home stateVersion";
             };
           };
@@ -90,7 +94,9 @@ in
         builtins.map (user: {
           ${user} = {
 
-            inherit (cfg.users.${user}) uid hashedPassword;
+            inherit (cfg.users.${user}) hashedPassword;
+            uid = lib.mkIf (cfg.users.${user}.uid != null) cfg.users.${user}.uid;
+
             isSystemUser = lib.mkIf (cfg.users.${user}.role == "system") true;
 
             isNormalUser = lib.mkIf (
@@ -108,7 +114,7 @@ in
     };
 
     # Home Manager Settings
-    home-manager = lib.mkIf cfg.enableHM {
+    home-manager = {
       backupFileExtension = "bk";
       extraSpecialArgs = {
         inherit inputs;
@@ -118,11 +124,11 @@ in
       users = lib.mkMerge (
         builtins.map (user: {
           ${user} = {
-
-            home.stateVersion = cfg.users.${user}.homeState;
-            programs.home-manager.enable = true;
-            imports = cfg.users.${user}.homeModules;
-
+            imports = [ cfg.users.${user}.homeModule ];
+            home = {
+              username = user;
+              homeDirectory = lib.mkIf (cfg.users.${user}.home == null) "/home/${user}" // cfg.users.${user}.home;
+            };
           };
         }) (builtins.attrNames cfg.users)
       );
