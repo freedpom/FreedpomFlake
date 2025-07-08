@@ -1,7 +1,6 @@
 {
   config,
   hostname,
-  inputs,
   lib,
   modulesPath,
   pkgs,
@@ -32,16 +31,6 @@ in
       earlySetup = true;
       font = "${pkgs.terminus_font}/share/consolefonts/ter-120n.psf.gz";
       packages = with pkgs; [ terminus_font ];
-    };
-
-    # Home Manager Settings
-    home-manager = {
-      backupFileExtension = "bk";
-      extraSpecialArgs = {
-        inherit inputs;
-      };
-      useGlobalPkgs = false;
-      useUserPackages = true;
     };
 
     # System Settings
