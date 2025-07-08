@@ -54,10 +54,6 @@ in
               description = "hashed password of the specified user";
             };
 
-            home = {
-              type = lib.types.nullOr lib.types.str;
-            };
-
             extraGroups = lib.mkOption {
               type = lib.types.listOf lib.types.str;
               default = [ ];
@@ -66,6 +62,10 @@ in
                 "video"
               ];
               description = "Extra groups needed by the user";
+            };
+
+            home = {
+              type = lib.types.nullOr lib.types.str;
             };
 
             homeModule = lib.mkOption {
