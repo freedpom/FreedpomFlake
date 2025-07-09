@@ -116,15 +116,18 @@ in
       useGlobalPkgs = true;
       useUserPackages = true;
       users = lib.mkMerge (
-        builtins.map (user: {
-          ${user} = {
-            imports = [ cfg.users.${user}.homeModule ];
-            home = {
-              username = user;
-              homeDirectory = lib.mkIf (cfg.users.${user}.home == null) "/home/${user}" // cfg.users.${user}.home;
+        builtins.map (
+          user:
+          lib.mkIf (cfg.users.${user}.homeModule != null) {
+            ${user} = {
+              imports = [ cfg.users.${user}.homeModule ];
+              home = {
+                username = user;
+                homeDirectory = lib.mkIf (cfg.users.${user}.home == null) "/home/${user}" // cfg.users.${user}.home;
+              };
             };
-          };
-        }) (builtins.attrNames cfg.users)
+          }
+        ) (builtins.attrNames cfg.users)
       );
     };
   };

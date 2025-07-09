@@ -54,7 +54,7 @@ in
     systemd.tmpfiles.rules = lib.mkIf cfg.ephHome (
       lib.concatLists (
         builtins.map (user: [
-          "d ${cfg.directory}/home/${user} 0710 ${user} ${config.users.users.${user}.group}"
+          "d ${cfg.directory}/home/${user} 0700 ${user} ${config.users.users.${user}.group}"
         ]) (builtins.attrNames config.ff.userConfig.users)
       )
     );
