@@ -12,6 +12,8 @@ in
 
     enable = lib.mkEnableOption "Enable system persistence";
 
+    ephHome = lib.mkEnableOption "Setup persistent directories for an ephemeral home";
+
     directory = lib.mkOption {
       type = lib.types.str;
       default = "/nix/persist";
@@ -47,5 +49,14 @@ in
         "/etc/machine-id"
       ] ++ cfg.files;
     };
+
+    # Systemd-tmpfiles rules for ephemeral /home
+    systemd.tmpfiles.rules = lib.mkIf cfg.ephHome (
+      lib.concatLists (
+        builtins.map (user: [
+          "d ${cfg.directory}/home/${user} 0710 ${user} ${config.users.users.${user}.group}"
+        ]) (builtins.attrNames config.ff.userConfig.users)
+      )
+    );
   };
 }

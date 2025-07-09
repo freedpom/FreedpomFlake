@@ -73,12 +73,6 @@ in
               default = { };
               description = "Home-manager modules for the user";
             };
-
-            homeState = lib.mkOption {
-              type = lib.types.nullOr lib.types.float;
-              default = null;
-              description = "Home stateVersion";
-            };
           };
         }
       );
