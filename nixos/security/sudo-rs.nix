@@ -5,7 +5,11 @@ in
 {
   # Configuration options for sudo-rs
   options.ff.security.sudo-rs = {
-    enable = lib.mkEnableOption "Enable sudo-rs instead of regular sudo";
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Enable sudo-rs instead of regular sudo";
+    };
   };
 
   config = lib.mkIf cfg.enable {
