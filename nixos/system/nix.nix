@@ -14,6 +14,8 @@ in
 
   config = lib.mkIf cfg.enable {
 
+    nixpkgs.config.allowUnfree = true;
+
     nix =
       let
         flakeInputs = lib.filterAttrs (_: lib.isType "flake") inputs;
