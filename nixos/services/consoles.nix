@@ -10,7 +10,7 @@
 }:
 let
 
-  cfg = config.ff.services.kmscon;
+  cfg = config.ff.services.consoles;
 
   baseArgs =
     [
@@ -27,9 +27,9 @@ let
 in
 {
   # Configuration options for KMS console
-  options.ff.services.kmscon = {
+  options.ff.services.consoles = {
     # Core options
-    enable = lib.mkEnableOption "Enable kms console";
+    enable = lib.mkEnableOption "Enable fancy console setup";
 
     # User authentication options
     autologinUser = lib.mkOption {
@@ -42,12 +42,13 @@ in
     };
 
     # TTY configuration
-    disableAt = lib.mkOption {
-      type = lib.types.nullOr (lib.types.listOf lib.types.str);
-      default = null;
-      description = "Numeric identifier of ttys that should not use the kms console, must include tty1 or tty switching will not work";
+    gettyAt = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ "tty1" ];
+      description = "List of ttys that should use agetty instead of kmscon";
       example = [
         "tty1"
+        "tty4"
       ];
     };
 
@@ -56,29 +57,26 @@ in
 
     services.kmscon.enable = true;
 
-    systemd = lib.mkIf (cfg.disableAt != null) {
+    systemd.services = lib.mkMerge (
+      builtins.map (ttyId: {
 
-      services = lib.mkMerge (
-        builtins.map (ttyId: {
+        "kmsconvt@${ttyId}".enable = false;
 
-          "kmsconvt@${ttyId}".enable = false;
-
-          "getty@${ttyId}" = {
-            enable = true;
-            wantedBy = [ "default.target" ];
-            serviceConfig = {
-              ExecStart = [
-                "" # override upstream default with an empty ExecStart
-                (gettyCmd "--noclear --keep-baud pts/%I 115200,38400,9600 $TERM")
-              ];
-              Restart = "always";
-            };
-            environment.TTY = "%I";
-            restartIfChanged = false;
-            aliases = [ "autovt@${ttyId}.service" ];
+        "getty@${ttyId}" = {
+          enable = true;
+          wantedBy = [ "default.target" ];
+          serviceConfig = {
+            ExecStart = [
+              "" # override upstream default with an empty ExecStart
+              (gettyCmd "--noclear --keep-baud pts/%I 115200,38400,9600 $TERM")
+            ];
+            Restart = "always";
           };
-        }) cfg.disableAt
-      );
-    };
+          environment.TTY = "%I";
+          restartIfChanged = false;
+          aliases = [ "autovt@${ttyId}.service" ];
+        };
+      }) cfg.gettyAt
+    );
   };
 }
