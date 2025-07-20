@@ -68,7 +68,7 @@ in
           serviceConfig = {
             ExecStart = [
               "" # override upstream default with an empty ExecStart
-              (gettyCmd "--noclear --keep-baud pts/%I 115200,38400,9600 $TERM")
+              (gettyCmd "--noclear --keep-baud %I 115200,38400,9600 $TERM")
             ];
             Restart = "always";
           };
