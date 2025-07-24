@@ -1,82 +1,66 @@
-# Console configuration module for KMS console
-# KNOWN ISSUE: enabling kmscon@tty1 causes it to take over ttys,
-# possibly due to seat configuration issues
-
 {
   config,
   lib,
-  pkgs,
   ...
 }:
-let
-
-  cfg = config.ff.services.consoles;
-
-  baseArgs =
-    [
-      "--login-program"
-      "${pkgs.shadow}/bin/login"
-    ]
-    ++ lib.optionals (cfg.autologinUser != null) [
-      "--autologin"
-      cfg.autologinUser
-    ];
-
-  gettyCmd = args: "${lib.getExe' pkgs.util-linux "agetty"} ${lib.escapeShellArgs baseArgs} ${args}";
-
-in
 {
   # Configuration options for KMS console
   options.ff.services.consoles = {
-    # Core options
-    enable = lib.mkEnableOption "Enable fancy console setup";
 
-    # User authentication options
+    autologin = lib.mkEnableOption "Global autologin toggle";
+
     autologinUser = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      description = ''
-        Username of the account that will be automatically logged in at the console.
-        If unspecified, a login prompt is shown as usual.
-      '';
+      description = "Global autologin user";
     };
 
     # TTY configuration
-    gettyAt = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ "tty1" ];
-      description = "List of ttys that should use agetty instead of kmscon";
-      example = [
-        "tty1"
-        "tty4"
+    getty = lib.mkOption {
+      type = lib.types.oneOf [
+        lib.types.bool
+        lib.types.listOf
+        (
+          lib.types.str
+          // {
+            check = s: lib.strings.hasInfix "tty" s;
+            description = "String containing tty#, can be prefaced with username@ for autologin";
+          }
+        )
       ];
+      default = false;
+      description = "Configure getty to run on specific ttys or all available ttys";
+      example = ''
+        true - run on all ttys not taken by other consoles, provides 2 consoles by default or fills to highest number used
+        false - don't run at all
+        [ "user@tty1" "tty3" "tty4" ] - run on specified ttys
+      '';
+    };
+
+    kmscon = lib.mkOption {
+      type = lib.types.oneOf [
+        lib.types.bool
+        lib.types.listOf
+        (
+          lib.types.str
+          // {
+            check = s: lib.strings.hasInfix "tty" s;
+            description = "String containing tty#, can be prefaced with username@ for autologin";
+          }
+        )
+      ];
+      default = false;
+      description = "Configure kmscon to run on specific ttys or all available ttys";
+      example = ''
+        true - run on all ttys not taken by other consoles, provides 2 consoles by default or fills to highest number used
+        false - don't run at all
+        [ "user@tty1" "tty3" "tty4" ] - run on specified ttys
+      '';
     };
 
   };
-  config = lib.mkIf cfg.enable {
+  config = {
 
-    services.kmscon.enable = true;
-
-    systemd.services = lib.mkMerge (
-      builtins.map (ttyId: {
-
-        "kmsconvt@${ttyId}".enable = false;
-
-        "getty@${ttyId}" = {
-          enable = true;
-          wantedBy = [ "default.target" ];
-          serviceConfig = {
-            ExecStart = [
-              "" # override upstream default with an empty ExecStart
-              (gettyCmd "--noclear --keep-baud %I 115200,38400,9600 $TERM")
-            ];
-            Restart = "always";
-          };
-          environment.TTY = "%I";
-          restartIfChanged = false;
-          aliases = [ "autovt@${ttyId}.service" ];
-        };
-      }) cfg.gettyAt
-    );
+    systemd.services = { };
   };
 }
