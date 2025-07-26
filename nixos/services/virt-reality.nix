@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -13,9 +14,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [
-      "opencomposite"
-      "wlx-overlay-s"
+    environment.systemPackages = [
+      pkgs.opencomposite
+      pkgs.wlx-overlay-s
     ];
     services = {
       wivrn = {
