@@ -9,6 +9,11 @@ let
   cfg = config.ff.services.consoles;
   inherit (lib) concatStringsSep optional;
 
+  # Stylix integration
+  stylixEnabled = config.stylix.enable or false;
+  stylixColors = config.stylix.base16Scheme or null;
+  stylixFonts = config.stylix.fonts or null;
+
   # Extract TTY number from string (e.g., "tty1" -> "1")
   extractTtyNum =
     ttyStr:
@@ -76,23 +81,82 @@ let
       wantedBy = [ "multi-user.target" ];
     };
 
+  # Convert hex color to RGB tuple
+  hexToRgb =
+    hex:
+    let
+      cleanHex = removePrefix "#" hex;
+      r = toString (lib.trivial.fromHex (substring 0 2 cleanHex));
+      g = toString (lib.trivial.fromHex (substring 2 2 cleanHex));
+      b = toString (lib.trivial.fromHex (substring 4 2 cleanHex));
+    in
+    "${r}, ${g}, ${b}";
+
+  # Build Stylix color arguments
+  buildStylixColorArgs =
+    if !cfg.stylix.enable || !stylixEnabled || stylixColors == null then
+      [ ]
+    else
+      [
+        "--palette=custom"
+        "--palette-black=${hexToRgb stylixColors.base00}"
+        "--palette-red=${hexToRgb stylixColors.base08}"
+        "--palette-green=${hexToRgb stylixColors.base0B}"
+        "--palette-yellow=${hexToRgb stylixColors.base0A}"
+        "--palette-blue=${hexToRgb stylixColors.base0D}"
+        "--palette-magenta=${hexToRgb stylixColors.base0E}"
+        "--palette-cyan=${hexToRgb stylixColors.base0C}"
+        "--palette-white=${hexToRgb stylixColors.base07}"
+        "--palette-light-grey=${hexToRgb stylixColors.base05}"
+        "--palette-dark-grey=${hexToRgb stylixColors.base03}"
+        "--palette-light-red=${hexToRgb stylixColors.base08}"
+        "--palette-light-green=${hexToRgb stylixColors.base0B}"
+        "--palette-light-yellow=${hexToRgb stylixColors.base0A}"
+        "--palette-light-blue=${hexToRgb stylixColors.base0D}"
+        "--palette-light-magenta=${hexToRgb stylixColors.base0E}"
+        "--palette-light-cyan=${hexToRgb stylixColors.base0C}"
+        "--palette-foreground=${hexToRgb stylixColors.base05}"
+        "--palette-background=${hexToRgb stylixColors.base00}"
+      ];
+
   # Build kmscon command arguments
   buildKmsconArgs =
     kmsconConfig:
+    let
+      # Use Stylix font if enabled and no manual font specified
+      fontName =
+        if kmsconConfig.font.name != null then
+          kmsconConfig.font.name
+        else if cfg.stylix.enable && stylixEnabled && stylixFonts != null then
+          stylixFonts.monospace.name
+        else
+          null;
+
+      fontSize =
+        if kmsconConfig.font.size != null then
+          kmsconConfig.font.size
+        else if cfg.stylix.enable && stylixEnabled && stylixFonts != null then
+          (stylixFonts.sizes.terminal or stylixFonts.sizes.desktop or 12)
+        else
+          null;
+    in
     [
       "--vt"
       "%I"
       "--login"
     ]
-    ++ (optional (kmsconConfig.font.name != null) "--font-name=${kmsconConfig.font.name}")
-    ++ (optional (kmsconConfig.font.size != null) "--font-size=${toString kmsconConfig.font.size}")
+    ++ (optional (fontName != null) "--font-name=${fontName}")
+    ++ (optional (fontSize != null) "--font-size=${toString fontSize}")
     ++ (optional (kmsconConfig.font.dpi != null) "--font-dpi=${toString kmsconConfig.font.dpi}")
     ++ (optional (!kmsconConfig.hwaccel) "--no-hwaccel")
     ++ (optional (!kmsconConfig.drm) "--no-drm")
-    ++ (optional (kmsconConfig.palette != "default") "--palette=${kmsconConfig.palette}")
+    ++ (optional (
+      kmsconConfig.palette != "default" && !cfg.stylix.enable
+    ) "--palette=${kmsconConfig.palette}")
     ++ (optional (
       kmsconConfig.scrollbackSize != null
     ) "--sb-size=${toString kmsconConfig.scrollbackSize}")
+    ++ buildStylixColorArgs
     ++ kmsconConfig.extraArgs;
 
   # Create systemd service for kmscon
@@ -237,6 +301,23 @@ in
       };
       default = { };
       description = "Kmscon configuration options";
+    };
+
+    stylix = {
+      enable = mkOption {
+        type = types.bool;
+        default = stylixEnabled;
+        description = mdDoc ''
+          Enable Stylix integration for kmscon.
+
+          When enabled, kmscon will automatically use:
+          - Stylix color scheme for terminal colors
+          - Stylix monospace font (if no manual font specified)
+          - Stylix font sizes
+
+          Manual font and color settings take precedence over Stylix.
+        '';
+      };
     };
   };
 
