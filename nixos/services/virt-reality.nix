@@ -25,13 +25,6 @@ in
         firewall
       '';
     };
-    headsetConfig = lib.mkOption {
-      type = lib.types.nullOr lib.types.enum [
-        "quest2"
-      ];
-      default = null;
-      description = "headset type";
-    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -45,7 +38,6 @@ in
 
         extraPackages = [
           pkgs.opencomposite
-          pkgs.wlx-overlay-s
         ];
 
         config = {
@@ -59,13 +51,32 @@ in
               {
                 encoder = "vaapi";
                 codec = "h265";
-                # 1.0 x 1.0 scaling
-                width = 1.0;
+                width = 0.125;
                 height = 1.0;
                 offset_x = 0.0;
                 offset_y = 0.0;
+                group = 0;
+              }
+              {
+                encoder = "vaapi";
+                codec = "h265";
+                width = 0.375;
+                height = 1.0;
+                offset_x = 0.125;
+                offset_y = 0.0;
+                group = 0;
+              }
+              {
+                encoder = "vaapi";
+                codec = "h265";
+                width = 0.5;
+                height = 1.0;
+                offset_x = 0.5;
+                offset_y = 0.0;
+                group = 0;
               }
             ];
+            application = [ pkgs.wlx-overlay-s ];
           };
         };
       };
