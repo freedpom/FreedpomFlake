@@ -11,17 +11,42 @@ in
   # Configuration options for Ananicy service
   options.ff.services.virt-reality = {
     enable = lib.mkEnableOption "Enable the virtual reality";
+    autoStart = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Auto start
+      '';
+    };
+    openFirewall = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        firewall
+      '';
+    };
+    headsetConfig = lib.mkOption {
+      type = lib.types.nullOr lib.types.enum [
+        "quest2"
+      ];
+      default = null;
+      description = "headset type";
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [
-      pkgs.opencomposite
-      pkgs.wlx-overlay-s
-    ];
     services = {
       wivrn = {
         enable = true;
         defaultRuntime = true;
+
+        autoStart = cfg.autoStart;
+        openFirewall = cfg.openFirewall;
+
+        extraPackages = [
+          pkgs.opencomposite
+          pkgs.wlx-overlay-s
+        ];
 
         config = {
           enable = true;
