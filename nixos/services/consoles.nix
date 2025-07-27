@@ -4,94 +4,196 @@
   pkgs,
   ...
 }:
+with lib;
 let
   cfg = config.ff.services.consoles;
+
+  # Extract TTY number from string (e.g., "tty1" -> "1")
+  extractTtyNum =
+    ttyStr:
+    let
+      match = builtins.match ".*tty([0-9]+).*" ttyStr;
+    in
+    if match != null then builtins.head match else null;
+
+  # Extract username from autologin string (e.g., "user@tty1" -> "user")
+  extractUser =
+    str:
+    let
+      match = builtins.match "([^@]+)@.*" str;
+    in
+    if match != null then builtins.head match else null;
+
+  # Parse TTY specification into structured data
+  parseTtySpec = spec: {
+    tty = extractTtyNum spec;
+    user = extractUser spec;
+    autologin = builtins.match ".*@.*" spec != null;
+  };
+
+  # Generate default TTY list when bool is true
+  generateDefaultTtys = count: map (i: "tty${toString i}") (range 1 count);
+
+  # Normalize TTY configuration to list format
+  normalizeTtyConfig =
+    config:
+    if isBool config then
+      if config then generateDefaultTtys 6 else [ ]
+    else if isList config then
+      config
+    else
+      throw "Invalid TTY configuration type";
+
+  # Process TTY configurations
+  gettyTtys = normalizeTtyConfig cfg.getty;
+  kmsconTtys = normalizeTtyConfig cfg.kmscon;
+  allTtys = gettyTtys ++ kmsconTtys;
+
+  # Parse all TTY specifications
+
+  # Create systemd service for getty
+  createGettyService =
+    spec:
+    let
+      parsed = parseTtySpec spec;
+      ttyNum = parsed.tty;
+      inherit (parsed) user;
+    in
+    nameValuePair "getty@tty${ttyNum}" {
+      enable = true;
+      serviceConfig = {
+        ExecStart = mkForce (
+          if parsed.autologin && user != null then
+            "${getExe' pkgs.util-linux "agetty"} --login-program ${pkgs.shadow}/bin/login --autologin ${user} --noclear %I $TERM"
+          else
+            "${getExe' pkgs.util-linux "agetty"} --login-program ${pkgs.shadow}/bin/login --noclear %I $TERM"
+        );
+        Type = "idle";
+        Restart = "always";
+        RestartSec = "0";
+      };
+      wantedBy = [ "multi-user.target" ];
+    };
+
+  # Create systemd service for kmscon
+  createKmsconService =
+    spec:
+    let
+      parsed = parseTtySpec spec;
+      ttyNum = parsed.tty;
+      inherit (parsed) user;
+    in
+    nameValuePair "kmsconvt@tty${ttyNum}" {
+      enable = true;
+      serviceConfig = {
+        ExecStart = mkForce (
+          if parsed.autologin && user != null then
+            "${getExe pkgs.kmscon} --vt %I --login -- ${pkgs.shadow}/bin/login -f ${user}"
+          else
+            "${getExe pkgs.kmscon} --vt %I --login"
+        );
+        Type = "simple";
+        Restart = "always";
+        RestartSec = "0";
+      };
+      wantedBy = [ "multi-user.target" ];
+    };
+
+  # Validation functions
+  validateTtyFormat = spec: extractTtyNum spec != null || throw "Invalid TTY format: ${spec}";
+
+  validateUserExists =
+    spec:
+    let
+      user = extractUser spec;
+    in
+    if user != null then user != "" || throw "Empty username in: ${spec}" else true;
+
 in
 {
-  # Global options
   options.ff.services.consoles = {
+    enable = mkEnableOption "console services configuration";
 
-    autologin = lib.mkEnableOption "Global autologin toggle";
-
-    autologinUser = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Global autologin user (for this flake)";
-    };
-
-    # Console configuration
-    getty = lib.mkOption {
-      type = lib.types.oneOf [
-        lib.types.bool
-        lib.types.listOf
-        (
-          lib.types.str
-          // {
-            check = s: lib.strings.hasInfix "tty" s;
-            description = "String containing tty#, can be prefaced with username@ for autologin";
-          }
-        )
+    getty = mkOption {
+      type = types.oneOf [
+        types.bool
+        (types.listOf types.str)
       ];
       default = false;
-      description = "Configure getty to run on specific ttys or all available ttys";
-      example = ''
-        [ "user@tty1" "tty3" "tty4" ] - autologin on user@tty#, run normally on other specified ttys
-        true - run on all ttys not taken by other consoles, provides 2 consoles by default or fills to highest number used
-        false - don't run at all
+      description = mdDoc ''
+        Configure getty on TTYs.
+
+        - `true`: Enable on tty1-tty6
+        - `false`: Disable
+        - List: Enable on specified TTYs (e.g., ["tty1" "user@tty2"])
+
+        Use "user@ttyN" format for autologin.
       '';
+      example = [
+        "user@tty1"
+        "tty2"
+        "tty3"
+      ];
     };
 
-    kmscon = lib.mkOption {
-      type = lib.types.oneOf [
-        lib.types.bool
-        lib.types.listOf
-        (
-          lib.types.str
-          // {
-            check = s: lib.strings.hasInfix "tty" s;
-            description = "String containing tty#, can be prefaced with username@ for autologin";
-          }
-        )
+    kmscon = mkOption {
+      type = types.oneOf [
+        types.bool
+        (types.listOf types.str)
       ];
       default = false;
-      description = "Configure kmscon to run on specific ttys or all available ttys";
-      example = ''
-        [ "user@tty1" "tty3" "tty4" ] - autologin on user@tty#, run normally on other specified ttys
-        true - run on all ttys not taken by other consoles, provides 2 consoles by default
-        false - don't run at all
-      '';
-    };
+      description = mdDoc ''
+        Configure kmscon on TTYs.
 
+        - `true`: Enable on tty1-tty6
+        - `false`: Disable  
+        - List: Enable on specified TTYs (e.g., ["tty1" "user@tty2"])
+
+        Use "user@ttyN" format for autologin.
+      '';
+      example = [
+        "user@tty1"
+        "tty2"
+      ];
+    };
   };
-  config = let
-    mergedIds = if lib.isList cfg.getty && cfg.kmscon then cfg.getty ++ cfg.kmscon else if lib.isList cfg.getty then cfg.getty else if lib.isList cfg.kmscon then cfg.kmscon else throw "you broke it :("; # merge ttyids into a single list
 
-    ttyIds = (ids: lib.flatten (lib.map (id: lib.strings.match ".*([t]+[t]+[y].*)" id) ids)); # filter tty identifiers from a list
+  config = mkIf (cfg.getty || cfg.kmscon) {
+    # Disable default console
+    console.useXkbConfig = mkDefault true;
 
-    largeId = (ids: lib.foldl' (m: c: if c > m then c else m) (builtins.head (ttyIds v)) (builtins.tail (ttyIds ids))); # return highest tty identifier
+    # Create systemd services
+    systemd.services =
+      (listToAttrs (map createGettyService gettyTtys))
+      // (listToAttrs (map createKmsconService kmsconTtys));
 
-    autologinAt = lib.filter (id: lib.strings.hasInfix "@" id) mergedIds; # filter for user@tty#
-
-    userFilter = id: lib.strings.match "(.*)[@]" id;
-
-    gettyUnit = id: {
-      serviceConfig.ExecStart = [
-        ""
-        "${lib.getExe' pkgs.util-linux "agetty"} --login-program ${pkgs.shadow}/bin/login ${lib.optionals (lib.elem id autologinAt) "--autologin ${userFilter id}"}"
-      ];
-    };
-  in 
-  lib.mkIf cfg.getty != false || cfg.kmscon != false {
-    console.enable = false; # Disable default console creation
-    systemd.services = lib.genAttrs gettyAt gettyUnit // lib.genAttrs kmsAt kmsUnit;
+    # System assertions for validation
     assertions = [
       {
-        assertion = !(cfg.getty && cfg.kmscon);
-        message = "Getty and kmscon cannot both be true";
+        assertion =
+          !(cfg.getty && cfg.kmscon)
+          || (
+            length gettyTtys == 0
+            || length kmsconTtys == 0
+            || length (intersectLists (map extractTtyNum gettyTtys) (map extractTtyNum kmsconTtys)) == 0
+          );
+        message = "Getty and kmscon cannot be configured on the same TTY";
       }
       {
-        assertion = cfg.getty != [] && cfg.kmscon != [];
-        message = "Neither getty nor kmscon can be set to an empty list";
+        assertion = all validateTtyFormat allTtys;
+        message = "All TTY specifications must contain 'ttyN' format";
+      }
+      {
+        assertion = all validateUserExists allTtys;
+        message = "Autologin specifications must have valid usernames";
+      }
+      {
+        assertion = !(isList cfg.getty && length cfg.getty == 0);
+        message = "Getty cannot be set to empty list";
+      }
+      {
+        assertion = !(isList cfg.kmscon && length cfg.kmscon == 0);
+        message = "Kmscon cannot be set to empty list";
       }
     ];
   };
