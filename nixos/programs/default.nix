@@ -1,0 +1,3 @@
+{
+  imports = [ ./alvr.nix ];
+}
