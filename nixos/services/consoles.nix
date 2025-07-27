@@ -7,6 +7,7 @@
 with lib;
 let
   cfg = config.ff.services.consoles;
+  inherit (lib) concatStringsSep optional;
 
   # Extract TTY number from string (e.g., "tty1" -> "1")
   extractTtyNum =
@@ -75,6 +76,25 @@ let
       wantedBy = [ "multi-user.target" ];
     };
 
+  # Build kmscon command arguments
+  buildKmsconArgs =
+    kmsconConfig:
+    [
+      "--vt"
+      "%I"
+      "--login"
+    ]
+    ++ (optional (kmsconConfig.font.name != null) "--font-name=${kmsconConfig.font.name}")
+    ++ (optional (kmsconConfig.font.size != null) "--font-size=${toString kmsconConfig.font.size}")
+    ++ (optional (kmsconConfig.font.dpi != null) "--font-dpi=${toString kmsconConfig.font.dpi}")
+    ++ (optional (!kmsconConfig.hwaccel) "--no-hwaccel")
+    ++ (optional (!kmsconConfig.drm) "--no-drm")
+    ++ (optional (kmsconConfig.palette != "default") "--palette=${kmsconConfig.palette}")
+    ++ (optional (
+      kmsconConfig.scrollbackSize != null
+    ) "--sb-size=${toString kmsconConfig.scrollbackSize}")
+    ++ kmsconConfig.extraArgs;
+
   # Create systemd service for kmscon
   createKmsconService =
     spec:
@@ -82,15 +102,17 @@ let
       parsed = parseTtySpec spec;
       ttyNum = parsed.tty;
       inherit (parsed) user;
+      kmsconArgs = buildKmsconArgs cfg.kmsconConfig;
+      argsStr = concatStringsSep " " kmsconArgs;
     in
     nameValuePair "kmsconvt@tty${ttyNum}" {
       enable = true;
       serviceConfig = {
         ExecStart = mkForce (
           if parsed.autologin && user != null then
-            "${getExe pkgs.kmscon} --vt %I --login -- ${pkgs.shadow}/bin/login -f ${user}"
+            "${getExe pkgs.kmscon} ${argsStr} -- ${pkgs.shadow}/bin/login -f ${user}"
           else
-            "${getExe pkgs.kmscon} --vt %I --login -- ${pkgs.shadow}/bin/login"
+            "${getExe pkgs.kmscon} ${argsStr} -- ${pkgs.shadow}/bin/login"
         );
         Type = "simple";
         Restart = "always";
@@ -156,9 +178,69 @@ in
         "tty2"
       ];
     };
+
+    kmsconConfig = mkOption {
+      type = types.submodule {
+        options = {
+          font = {
+            name = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Font name for kmscon";
+              example = "monospace";
+            };
+            size = mkOption {
+              type = types.nullOr types.ints.positive;
+              default = null;
+              description = "Font size in points";
+              example = 12;
+            };
+            dpi = mkOption {
+              type = types.nullOr types.ints.positive;
+              default = null;
+              description = "DPI value for fonts";
+              example = 96;
+            };
+          };
+          hwaccel = mkOption {
+            type = types.bool;
+            default = false;
+            description = "Enable 3D hardware acceleration";
+          };
+          drm = mkOption {
+            type = types.bool;
+            default = true;
+            description = "Use DRM if available";
+          };
+          palette = mkOption {
+            type = types.str;
+            default = "default";
+            description = "Color palette to use";
+            example = "solarized";
+          };
+          scrollbackSize = mkOption {
+            type = types.nullOr types.ints.positive;
+            default = null;
+            description = "Scrollback buffer size in lines";
+            example = 1000;
+          };
+          extraArgs = mkOption {
+            type = types.listOf types.str;
+            default = [ ];
+            description = "Additional arguments to pass to kmscon";
+            example = [
+              "--xkb-layout=us"
+              "--xkb-variant=colemak"
+            ];
+          };
+        };
+      };
+      default = { };
+      description = "Kmscon configuration options";
+    };
   };
 
-  config = mkIf (cfg.enable) {
+  config = mkIf cfg.enable {
     # Disable default console
     console.useXkbConfig = mkDefault true;
 
@@ -167,10 +249,15 @@ in
       (listToAttrs (map createGettyService gettyTtys))
       // (listToAttrs (map createKmsconService kmsconTtys))
       # Disable getty on kmscon TTYs
-      // (listToAttrs (map (spec: 
-        let ttyNum = extractTtyNum spec;
-        in nameValuePair "getty@tty${ttyNum}" { enable = false; }
-      ) kmsconTtys));
+      // (listToAttrs (
+        map (
+          spec:
+          let
+            ttyNum = extractTtyNum spec;
+          in
+          nameValuePair "getty@tty${ttyNum}" { enable = false; }
+        ) kmsconTtys
+      ));
 
     # System assertions for validation
     assertions = [
