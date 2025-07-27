@@ -9,10 +9,10 @@ let
   cfg = config.ff.services.consoles;
   inherit (lib) concatStringsSep optional;
 
-  # Stylix integration (temporarily disabled)
-  stylixEnabled = false;
-  stylixColors = null;
-  stylixFonts = null;
+  # TODO: Stylix integration
+  # HINT: Use config.lib.stylix.colors for color scheme
+  # HINT: Use config.stylix.fonts for font configuration
+  # HINT: Handle base16Scheme properly (might be string path to YAML)
 
   # Extract TTY number from string (e.g., "tty1" -> "1")
   extractTtyNum =
@@ -81,111 +81,20 @@ let
       wantedBy = [ "multi-user.target" ];
     };
 
-  # Convert single hex digit to decimal
-  hexDigitToDecimal =
-    c:
-    if c == "0" then
-      0
-    else if c == "1" then
-      1
-    else if c == "2" then
-      2
-    else if c == "3" then
-      3
-    else if c == "4" then
-      4
-    else if c == "5" then
-      5
-    else if c == "6" then
-      6
-    else if c == "7" then
-      7
-    else if c == "8" then
-      8
-    else if c == "9" then
-      9
-    else if c == "a" || c == "A" then
-      10
-    else if c == "b" || c == "B" then
-      11
-    else if c == "c" || c == "C" then
-      12
-    else if c == "d" || c == "D" then
-      13
-    else if c == "e" || c == "E" then
-      14
-    else if c == "f" || c == "F" then
-      15
-    else
-      0;
-
-  # Convert two hex digits to decimal
-  hexPairToDecimal =
-    pair:
-    let
-      high = hexDigitToDecimal (substring 0 1 pair);
-      low = hexDigitToDecimal (substring 1 1 pair);
-    in
-    high * 16 + low;
-
-  # Convert hex color to RGB tuple
-  hexToRgb =
-    hex:
-    let
-      cleanHex = removePrefix "#" hex;
-      r = toString (hexPairToDecimal (substring 0 2 cleanHex));
-      g = toString (hexPairToDecimal (substring 2 2 cleanHex));
-      b = toString (hexPairToDecimal (substring 4 2 cleanHex));
-    in
-    "${r}, ${g}, ${b}";
-
-  # Build Stylix color arguments
-  buildStylixColorArgs =
-    if !cfg.stylix.enable || !stylixEnabled || stylixColors == null then
-      [ ]
-    else
-      [
-        "--palette=custom"
-        "--palette-black=${hexToRgb stylixColors.base00}"
-        "--palette-red=${hexToRgb stylixColors.base08}"
-        "--palette-green=${hexToRgb stylixColors.base0B}"
-        "--palette-yellow=${hexToRgb stylixColors.base0A}"
-        "--palette-blue=${hexToRgb stylixColors.base0D}"
-        "--palette-magenta=${hexToRgb stylixColors.base0E}"
-        "--palette-cyan=${hexToRgb stylixColors.base0C}"
-        "--palette-white=${hexToRgb stylixColors.base07}"
-        "--palette-light-grey=${hexToRgb stylixColors.base05}"
-        "--palette-dark-grey=${hexToRgb stylixColors.base03}"
-        "--palette-light-red=${hexToRgb stylixColors.base08}"
-        "--palette-light-green=${hexToRgb stylixColors.base0B}"
-        "--palette-light-yellow=${hexToRgb stylixColors.base0A}"
-        "--palette-light-blue=${hexToRgb stylixColors.base0D}"
-        "--palette-light-magenta=${hexToRgb stylixColors.base0E}"
-        "--palette-light-cyan=${hexToRgb stylixColors.base0C}"
-        "--palette-foreground=${hexToRgb stylixColors.base05}"
-        "--palette-background=${hexToRgb stylixColors.base00}"
-      ];
+  # TODO: Implement Stylix color integration
+  # HINT: Convert hex colors to RGB tuples for kmscon palette
+  # HINT: Use format "--palette-black=255, 255, 255" for RGB values
+  # HINT: Map base16 colors: base00=black, base08=red, base0B=green, etc.
 
   # Build kmscon command arguments
   buildKmsconArgs =
     kmsconConfig:
     let
-      # Use Stylix font if enabled and no manual font specified
-      fontName =
-        if kmsconConfig.font.name != null then
-          kmsconConfig.font.name
-        else if cfg.stylix.enable && stylixEnabled && stylixFonts != null then
-          stylixFonts.monospace.name
-        else
-          null;
-
-      fontSize =
-        if kmsconConfig.font.size != null then
-          kmsconConfig.font.size
-        else if cfg.stylix.enable && stylixEnabled && stylixFonts != null then
-          (stylixFonts.sizes.terminal or stylixFonts.sizes.desktop or 12)
-        else
-          null;
+      # TODO: Add Stylix font fallback
+      # HINT: Use stylixFonts.monospace.name for font name
+      # HINT: Use stylixFonts.sizes.terminal for font size
+      fontName = kmsconConfig.font.name;
+      fontSize = kmsconConfig.font.size;
     in
     [
       "--vt"
@@ -197,13 +106,11 @@ let
     ++ (optional (kmsconConfig.font.dpi != null) "--font-dpi=${toString kmsconConfig.font.dpi}")
     ++ (optional (!kmsconConfig.hwaccel) "--no-hwaccel")
     ++ (optional (!kmsconConfig.drm) "--no-drm")
-    ++ (optional (
-      kmsconConfig.palette != "default" && !cfg.stylix.enable
-    ) "--palette=${kmsconConfig.palette}")
+    ++ (optional (kmsconConfig.palette != "default") "--palette=${kmsconConfig.palette}")
     ++ (optional (
       kmsconConfig.scrollbackSize != null
     ) "--sb-size=${toString kmsconConfig.scrollbackSize}")
-    ++ buildStylixColorArgs
+    # TODO: Add Stylix color arguments here when implemented
     ++ kmsconConfig.extraArgs;
 
   # Create systemd service for kmscon
@@ -350,22 +257,14 @@ in
       description = "Kmscon configuration options";
     };
 
-    stylix = {
-      enable = mkOption {
-        type = types.bool;
-        default = stylixEnabled;
-        description = mdDoc ''
-          Enable Stylix integration for kmscon.
-
-          When enabled, kmscon will automatically use:
-          - Stylix color scheme for terminal colors
-          - Stylix monospace font (if no manual font specified)
-          - Stylix font sizes
-
-          Manual font and color settings take precedence over Stylix.
-        '';
-      };
-    };
+    # TODO: Re-implement Stylix integration
+    # stylix = {
+    #   enable = mkOption {
+    #     type = types.bool;
+    #     default = config.stylix.enable or false;
+    #     description = "Enable Stylix integration for kmscon colors and fonts";
+    #   };
+    # };
   };
 
   config = mkIf cfg.enable {
