@@ -158,7 +158,7 @@ in
     };
   };
 
-  config = mkIf (cfg.getty || cfg.kmscon) {
+  config = mkIf (cfg.enable) {
     # Disable default console
     console.useXkbConfig = mkDefault true;
 
