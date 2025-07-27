@@ -171,12 +171,9 @@ in
     assertions = [
       {
         assertion =
-          !(cfg.getty && cfg.kmscon)
-          || (
-            length gettyTtys == 0
-            || length kmsconTtys == 0
-            || length (intersectLists (map extractTtyNum gettyTtys) (map extractTtyNum kmsconTtys)) == 0
-          );
+          length gettyTtys == 0
+          || length kmsconTtys == 0
+          || length (intersectLists (map extractTtyNum gettyTtys) (map extractTtyNum kmsconTtys)) == 0;
         message = "Getty and kmscon cannot be configured on the same TTY";
       }
       {
