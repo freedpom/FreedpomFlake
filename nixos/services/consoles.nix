@@ -165,7 +165,12 @@ in
     # Create systemd services
     systemd.services =
       (listToAttrs (map createGettyService gettyTtys))
-      // (listToAttrs (map createKmsconService kmsconTtys));
+      // (listToAttrs (map createKmsconService kmsconTtys))
+      # Disable getty on kmscon TTYs
+      // (listToAttrs (map (spec: 
+        let ttyNum = extractTtyNum spec;
+        in nameValuePair "getty@tty${ttyNum}" { enable = false; }
+      ) kmsconTtys));
 
     # System assertions for validation
     assertions = [
