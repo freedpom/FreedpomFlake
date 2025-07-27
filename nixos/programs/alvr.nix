@@ -6,7 +6,7 @@ in
   options.ff.programs.alvr.enable = lib.mkEnableOption "Enable ALVR";
   config = lib.mkIf cfg.enable {
     programs.alvr = {
-      emable = true;
+      enable = true;
       openFirewall = true;
     };
   };
