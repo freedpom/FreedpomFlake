@@ -81,14 +81,61 @@ let
       wantedBy = [ "multi-user.target" ];
     };
 
+  # Convert single hex digit to decimal
+  hexDigitToDecimal =
+    c:
+    if c == "0" then
+      0
+    else if c == "1" then
+      1
+    else if c == "2" then
+      2
+    else if c == "3" then
+      3
+    else if c == "4" then
+      4
+    else if c == "5" then
+      5
+    else if c == "6" then
+      6
+    else if c == "7" then
+      7
+    else if c == "8" then
+      8
+    else if c == "9" then
+      9
+    else if c == "a" || c == "A" then
+      10
+    else if c == "b" || c == "B" then
+      11
+    else if c == "c" || c == "C" then
+      12
+    else if c == "d" || c == "D" then
+      13
+    else if c == "e" || c == "E" then
+      14
+    else if c == "f" || c == "F" then
+      15
+    else
+      0;
+
+  # Convert two hex digits to decimal
+  hexPairToDecimal =
+    pair:
+    let
+      high = hexDigitToDecimal (substring 0 1 pair);
+      low = hexDigitToDecimal (substring 1 1 pair);
+    in
+    high * 16 + low;
+
   # Convert hex color to RGB tuple
   hexToRgb =
     hex:
     let
       cleanHex = removePrefix "#" hex;
-      r = toString (lib.trivial.fromHex (substring 0 2 cleanHex));
-      g = toString (lib.trivial.fromHex (substring 2 2 cleanHex));
-      b = toString (lib.trivial.fromHex (substring 4 2 cleanHex));
+      r = toString (hexPairToDecimal (substring 0 2 cleanHex));
+      g = toString (hexPairToDecimal (substring 2 2 cleanHex));
+      b = toString (hexPairToDecimal (substring 4 2 cleanHex));
     in
     "${r}, ${g}, ${b}";
 
