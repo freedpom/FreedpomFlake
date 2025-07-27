@@ -9,10 +9,10 @@ let
   cfg = config.ff.services.consoles;
   inherit (lib) concatStringsSep optional;
 
-  # Stylix integration
-  stylixEnabled = config.stylix.enable or false;
-  stylixColors = config.stylix.base16Scheme or null;
-  stylixFonts = config.stylix.fonts or null;
+  # Stylix integration (temporarily disabled)
+  stylixEnabled = false;
+  stylixColors = null;
+  stylixFonts = null;
 
   # Extract TTY number from string (e.g., "tty1" -> "1")
   extractTtyNum =
