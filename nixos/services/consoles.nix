@@ -90,7 +90,7 @@ let
           if parsed.autologin && user != null then
             "${getExe pkgs.kmscon} --vt %I --login -- ${pkgs.shadow}/bin/login -f ${user}"
           else
-            "${getExe pkgs.kmscon} --vt %I --login"
+            "${getExe pkgs.kmscon} --vt %I --login -- ${pkgs.shadow}/bin/login"
         );
         Type = "simple";
         Restart = "always";
