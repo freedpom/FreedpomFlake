@@ -110,6 +110,13 @@ let
     ++ (optional (
       kmsconConfig.scrollbackSize != null
     ) "--sb-size=${toString kmsconConfig.scrollbackSize}")
+    # Video/Display options
+    ++ (optional (kmsconConfig.video.gpus != "all") "--gpus=${kmsconConfig.video.gpus}")
+    ++ (optional (
+      kmsconConfig.video.renderEngine != null
+    ) "--render-engine=${kmsconConfig.video.renderEngine}")
+    ++ (optional kmsconConfig.video.renderTiming "--render-timing")
+    ++ (optional (!kmsconConfig.video.useOriginalMode) "--no-use-original-mode")
     # TODO: Add Stylix color arguments here when implemented
     ++ kmsconConfig.extraArgs;
 
@@ -242,13 +249,47 @@ in
             description = "Scrollback buffer size in lines";
             example = 1000;
           };
+          video = {
+            gpus = mkOption {
+              type = types.enum [
+                "all"
+                "aux"
+                "primary"
+              ];
+              default = "all";
+              description = "GPU selection mode";
+            };
+            renderEngine = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Console renderer engine";
+              example = "gltex";
+            };
+            renderTiming = mkOption {
+              type = types.bool;
+              default = false;
+              description = "Print renderer timing information";
+            };
+            useOriginalMode = mkOption {
+              type = types.bool;
+              default = true;
+              description = "Use original KMS video mode";
+            };
+          };
           extraArgs = mkOption {
             type = types.listOf types.str;
             default = [ ];
-            description = "Additional arguments to pass to kmscon";
+            description = mdDoc ''
+              Additional arguments to pass to kmscon.
+
+              Useful for display-specific settings like:
+              - `"--seats=seat0:card0-HDMI-A-1"` - Use specific output
+              - Custom resolution or display configurations
+            '';
             example = [
               "--xkb-layout=us"
               "--xkb-variant=colemak"
+              "--seats=seat0:card0-HDMI-A-1"
             ];
           };
         };
