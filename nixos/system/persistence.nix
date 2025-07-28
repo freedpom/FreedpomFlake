@@ -4,30 +4,40 @@
   ...
 }:
 let
-  cfg = config.ff.system.persistence;
+  cfg = config.ff.system.preservation;
+
+  enabledUserProgs = user: lib.attrNames (lib.filterAttrs (name: value: let result = builtins.tryEval (value.enable or false); in result.success && result.value) config.home-manager.users.${user}.programs);
+  preserveProgs = user: list: lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (enabledUserProgs user)) list);
+  mkPreserveHome = user: {
+    directories = (preserveProgs user progDirs) ++ cfg.homeExtraDirs;
+    files = (preserveProgs user progFiles) ++ cfg.homeExtraFiles;
+  };
+  progDirs = { };
+  progFiles = { };
+
 in
 {
 
-  options.ff.system.persistence = {
+  options.ff.system.preservation = {
 
     enable = lib.mkEnableOption "Enable system persistence";
 
-    ephHome = lib.mkEnableOption "Setup persistent directories for an ephemeral home";
+    preserveHome = lib.mkEnableOption "Preserve user directories on an ephemeral /home";
 
-    directory = lib.mkOption {
+    storageDir = lib.mkOption {
       type = lib.types.str;
       default = "/nix/persist";
       description = "Directory where persistent data will be stored";
     };
 
-    directories = lib.mkOption {
+    extraDirectories = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "Extra directories to be persisted";
 
     };
 
-    files = lib.mkOption {
+    extraFiles = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "Extra files to be persisted";
@@ -35,28 +45,36 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    environment.persistence.${cfg.directory} = {
+    preservation = {
       enable = true;
-      hideMounts = true;
-      directories = [
-        "/var/log"
-        "/var/lib/nixos"
-        "/var/lib/systemd/coredump"
-        "/var/lib/tailscale"
-        "/etc/NetworkManager/system-connections"
-      ] ++ cfg.directories;
-      files = [
-        "/etc/machine-id"
-      ] ++ cfg.files;
+      preserveAt.${cfg.storageDir} = {
+        directories = [
+          "/var/log"
+          "/var/lib/nixos"
+          "/var/lib/systemd/coredump"
+          "/var/lib/tailscale"
+          "/etc/NetworkManager/system-connections"
+        ] ++ cfg.extraDirectories;
+        files = [
+          {
+            file = "/etc/machine-id";
+            inInitrd = true;
+          }
+        ] ++ cfg.extraFiles;
+        users = lib.mkif cfg.preserveHome lib.genAttrs (lib.attrNames config.home-manager.users) mkPreserveHome;
+      };
     };
 
-    # Systemd-tmpfiles rules for ephemeral /home
-    systemd.tmpfiles.rules = lib.mkIf cfg.ephHome (
-      lib.concatLists (
-        builtins.map (user: [
-          "d ${cfg.directory}/home/${user} 0755 ${user} ${config.users.users.${user}.group}"
-        ]) (builtins.attrNames config.ff.userConfig.users)
-      )
-    );
+    # Modify default machine-id service to use actual file location
+    systemd.services.systemd-machine-id-commit = {
+      unitConfig.ConditionPathIsMountPoint = [
+        ""
+        "/persistent/etc/machine-id"
+      ];
+      serviceConfig.ExecStart = [
+        ""
+        "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
+      ];
+    };
   };
 }
