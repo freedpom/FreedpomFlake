@@ -162,10 +162,9 @@ in
     enable = mkEnableOption "console services configuration";
 
     getty = mkOption {
-      type = types.oneOf [
-        types.bool
-        (types.listOf types.str)
-      ];
+      type = types.either types.bool (
+        types.listOf (types.strMatching "^(tty[0-9]+|[a-zA-Z0-9]+@tty[0-9]+)$")
+      );
       default = false;
       description = mdDoc ''
         Configure getty on TTYs.
@@ -184,10 +183,9 @@ in
     };
 
     kmscon = mkOption {
-      type = types.oneOf [
-        types.bool
-        (types.listOf types.str)
-      ];
+      type = types.either types.bool (
+        types.listOf (types.strMatching "^(tty[0-9]+|[a-zA-Z0-9]+@tty[0-9]+)$")
+      );
       default = false;
       description = mdDoc ''
         Configure kmscon on TTYs.
