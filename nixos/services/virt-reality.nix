@@ -13,7 +13,7 @@ in
     enable = lib.mkEnableOption "Enable the virtual reality";
     autoStart = lib.mkOption {
       type = lib.types.bool;
-      default = false;
+      default = true;
       description = ''
         Auto start
       '';
@@ -33,8 +33,8 @@ in
         enable = true;
         defaultRuntime = true;
 
-        autoStart = cfg.autoStart;
-        openFirewall = cfg.openFirewall;
+        inherit (cfg) autoStart;
+        inherit (cfg) openFirewall;
 
         extraPackages = [
           pkgs.opencomposite
