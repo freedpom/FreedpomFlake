@@ -57,6 +57,9 @@ let
 
   # Parse all TTY specifications
 
+  # Create autovt@ service for consoles enabled with true
+  createAutovtService = mkIf cfg.getty { } // mkIf cfg.kmscon { };
+
   # Create systemd service for getty
   createGettyService =
     spec:
@@ -99,6 +102,7 @@ let
     [
       "--vt"
       "%I"
+      "--no-switchvt"
       "--login"
     ]
     ++ (optional (fontName != null) "--font-name=${fontName}")
