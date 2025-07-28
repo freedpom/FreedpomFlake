@@ -57,9 +57,6 @@ let
 
   # Parse all TTY specifications
 
-  # Create autovt@ service for consoles enabled with true
-  createAutovtService = mkIf cfg.getty { } // mkIf cfg.kmscon { };
-
   # Create systemd service for getty
   createGettyService =
     spec:
@@ -311,23 +308,17 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Disable default console
     console.useXkbConfig = mkDefault true;
 
     # Create systemd services
     systemd.services =
       (listToAttrs (map createGettyService gettyTtys))
       // (listToAttrs (map createKmsconService kmsconTtys))
-      # Disable getty on kmscon TTYs
-      // (listToAttrs (
-        map (
-          spec:
-          let
-            ttyNum = extractTtyNum spec;
-          in
-          nameValuePair "getty@tty${ttyNum}" { enable = false; }
-        ) kmsconTtys
-      ));
+      # Disable default getty services
+      // {
+        "autovt@".enable = false;
+        "getty@".enable = false;
+      };
 
     # System assertions for validation
     assertions = [
@@ -353,6 +344,10 @@ in
       {
         assertion = !(isList cfg.kmscon && length cfg.kmscon == 0);
         message = "Kmscon cannot be set to empty list";
+      }
+      {
+        assertion = !config.services.kmscon.enable;
+        message = "Please do not enable consoles externally";
       }
     ];
   };
