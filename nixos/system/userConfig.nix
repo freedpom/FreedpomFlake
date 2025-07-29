@@ -12,6 +12,19 @@ let
 
   adminGroups = [ "wheel" ];
 
+  # copy home manager's program modules
+  programList = lib.attrNames (builtins.readDir (inputs.home-manager.outPath + "/modules/programs"));
+
+  programPath = inputs.home-manager.outPath + "/modules/programs/";
+
+  importPrograms = lib.map (p: import (programPath + p) {
+    inherit lib;
+    pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
+    config = {};
+  }) programList;
+
+  homePrograms = lib.foldl' (mods: mod: mods // mod.options.programs or { }) { } (lib.filter ( p: builtins.hasAttr "options" p) importPrograms);
+
 in
 
 {
@@ -64,14 +77,20 @@ in
               description = "Extra groups needed by the user";
             };
 
-            home = {
+            home = lib.mkOption {
               type = lib.types.nullOr lib.types.str;
+              default = null;
             };
 
             homeModule = lib.mkOption {
               type = lib.types.attrs;
               default = { };
               description = "Home-manager modules for the user";
+            };
+            
+            programs = lib.mkOption {
+              type = lib.types.nullOr lib.types.attrsOf (lib.types.submodule homePrograms);
+              default = null;
             };
           };
         }
@@ -105,16 +124,6 @@ in
           };
         }) (builtins.attrNames cfg.users)
       );
-    };
-
-    # Home Manager Settings
-    home-manager = {
-      backupFileExtension = "bk";
-      extraSpecialArgs = {
-        inherit inputs;
-      };
-      useGlobalPkgs = true;
-      useUserPackages = true;
     };
   };
 }
