@@ -25,6 +25,13 @@ in
         firewall
       '';
     };
+    bitrate = lib.mkOption {
+      type = lib.types.int;
+      default = 50000000;
+      description = ''
+        The Bitrate
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -43,10 +50,8 @@ in
         config = {
           enable = true;
           json = {
-            # 1.0x foveation scaling
             scale = 1.0;
-            # 100 Mb/s
-            bitrate = 100000000;
+            bitrate = cfg.bitrate;
             encoders = [
               {
                 encoder = "vaapi";
@@ -55,7 +60,6 @@ in
                 height = 1.0;
                 offset_x = 0.0;
                 offset_y = 0.0;
-                group = 0;
               }
               {
                 encoder = "vaapi";
@@ -64,7 +68,6 @@ in
                 height = 1.0;
                 offset_x = 0.125;
                 offset_y = 0.0;
-                group = 0;
               }
               {
                 encoder = "vaapi";
@@ -73,7 +76,6 @@ in
                 height = 1.0;
                 offset_x = 0.5;
                 offset_y = 0.0;
-                group = 0;
               }
             ];
             application = [ pkgs.wlx-overlay-s ];
