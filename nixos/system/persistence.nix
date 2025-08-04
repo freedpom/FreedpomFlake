@@ -6,21 +6,15 @@
 let
   cfg = config.ff.system.preservation;
 
-  enabledUserProgs =
+  parsePackages =
     user:
-    lib.attrNames (
-      lib.filterAttrs (
-        _name: value:
-        let
-          result = builtins.tryEval (value.enable or false);
-        in
-        result.success && result.value
-      ) config.home-manager.users.${user}.programs
+    lib.map (d: (builtins.parseDrvName d.name).name) (
+      config.home-manager.users.${user}.home.packages ++ config.environment.systemPackages
     );
 
   preserveProgs =
     user: list:
-    lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (enabledUserProgs user)) list));
+    lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (parsePackages user)) list));
 
   mkPreserveHome = user: {
     directories = (preserveProgs user progDirs) ++ homeDirs ++ cfg.homeExtraDirs;
@@ -34,23 +28,49 @@ let
     "Pictures"
     "Videos"
     ".ssh"
-    ".config/wivrn" # need to read system programs
-    ".local/share/steam"
-    ".stremio-server" # need to read home.packages
-    ".local/share/Smart Code ltd/Stremio"
-    {
-      directory = ".config/legcord";
-      configureParent = true;
-    }
   ];
+
   homeFiles = [ ];
+
   progDirs = {
     firefox = ".mozilla";
     gh = ".config/gh";
+    legcord = ".config/legcord";
     librewolf = ".librewolf";
     tidal-hifi = ".config/tidal-hifi";
+    wivrn = ".config/wivrn";
+    steam = ".local/share/steam";
+    stremio-shell = [
+      ".stremio-server"
+      ".local/share/Smart Code ltd/Stremio"
+    ];
   };
+
   progFiles = { };
+
+  # Some directories need tmpfiles rules otherwise they will be owned by root
+  tmpRules = u: {
+    "/home/${u}/.config".d = {
+      user = u;
+      inherit (config.users.users.${u}) group;
+      mode = "0755";
+    };
+    "/home/${u}/.local".d = {
+      user = u;
+      inherit (config.users.users.${u}) group;
+      mode = "0755";
+    };
+    "/home/${u}/.local/share".d = {
+      user = u;
+      inherit (config.users.users.${u}) group;
+      mode = "0755";
+    };
+    "/home/${u}/.local/state".d = {
+      user = u;
+      inherit (config.users.users.${u}) group;
+      mode = "0755";
+    };
+  };
 
 in
 {
@@ -118,15 +138,20 @@ in
     };
 
     # Modify default machine-id service to use actual file location
-    systemd.services.systemd-machine-id-commit = {
-      unitConfig.ConditionPathIsMountPoint = [
-        ""
-        "/persistent/etc/machine-id"
-      ];
-      serviceConfig.ExecStart = [
-        ""
-        "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
-      ];
+    systemd = {
+      services.systemd-machine-id-commit = {
+        unitConfig.ConditionPathIsMountPoint = [
+          ""
+          "/persistent/etc/machine-id"
+        ];
+        serviceConfig.ExecStart = [
+          ""
+          "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
+        ];
+      };
+      tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (
+        lib.mkMerge (lib.map tmpRules (lib.attrNames config.home-manager.users))
+      );
     };
   };
 }

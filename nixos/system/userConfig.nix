@@ -1,4 +1,3 @@
-## TODO: decide between userConfig.users.homeConfig and userConfig.homeConfigs
 {
   config,
   lib,
