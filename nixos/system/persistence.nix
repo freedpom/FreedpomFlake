@@ -6,13 +6,50 @@
 let
   cfg = config.ff.system.preservation;
 
-  enabledUserProgs = user: lib.attrNames (lib.filterAttrs (name: value: let result = builtins.tryEval (value.enable or false); in result.success && result.value) config.home-manager.users.${user}.programs);
-  preserveProgs = user: list: lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (enabledUserProgs user)) list);
+  enabledUserProgs =
+    user:
+    lib.attrNames (
+      lib.filterAttrs (
+        _name: value:
+        let
+          result = builtins.tryEval (value.enable or false);
+        in
+        result.success && result.value
+      ) config.home-manager.users.${user}.programs
+    );
+
+  preserveProgs =
+    user: list:
+    lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (enabledUserProgs user)) list));
+
   mkPreserveHome = user: {
-    directories = (preserveProgs user progDirs) ++ cfg.homeExtraDirs;
-    files = (preserveProgs user progFiles) ++ cfg.homeExtraFiles;
+    directories = (preserveProgs user progDirs) ++ homeDirs ++ cfg.homeExtraDirs;
+    files = (preserveProgs user progFiles) ++ homeFiles ++ cfg.homeExtraFiles;
   };
-  progDirs = { };
+
+  homeDirs = [
+    "Documents"
+    "Downloads"
+    "Music"
+    "Pictures"
+    "Videos"
+    ".ssh"
+    ".config/wivrn" # need to read system programs
+    ".local/share/steam"
+    ".stremio-server" # need to read home.packages
+    ".local/share/Smart Code ltd/Stremio"
+    {
+      directory = ".config/legcord";
+      configureParent = true;
+    }
+  ];
+  homeFiles = [ ];
+  progDirs = {
+    firefox = ".mozilla";
+    gh = ".config/gh";
+    librewolf = ".librewolf";
+    tidal-hifi = ".config/tidal-hifi";
+  };
   progFiles = { };
 
 in
@@ -30,7 +67,7 @@ in
       description = "Directory where persistent data will be stored";
     };
 
-    extraDirectories = lib.mkOption {
+    extraDirs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "Extra directories to be persisted";
@@ -38,6 +75,19 @@ in
     };
 
     extraFiles = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "Extra files to be persisted";
+    };
+
+    homeExtraDirs = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "Extra directories to be persisted";
+
+    };
+
+    homeExtraFiles = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "Extra files to be persisted";
@@ -54,14 +104,16 @@ in
           "/var/lib/systemd/coredump"
           "/var/lib/tailscale"
           "/etc/NetworkManager/system-connections"
-        ] ++ cfg.extraDirectories;
+        ] ++ cfg.extraDirs;
         files = [
           {
             file = "/etc/machine-id";
             inInitrd = true;
           }
         ] ++ cfg.extraFiles;
-        users = lib.mkif cfg.preserveHome lib.genAttrs (lib.attrNames config.home-manager.users) mkPreserveHome;
+        users = lib.mkIf cfg.preserveHome (
+          lib.genAttrs (lib.attrNames config.home-manager.users) mkPreserveHome
+        );
       };
     };
 
