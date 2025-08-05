@@ -1,9 +1,10 @@
-{ lib, config, ... }:
-let
-  cfg = config.ff.disks;
-in
 {
-
+  lib,
+  config,
+  ...
+}: let
+  cfg = config.ff.disks;
+in {
   # Import disk configuration modules
   imports = [
     ./home.nix

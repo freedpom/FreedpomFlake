@@ -2,14 +2,12 @@
   config,
   lib,
   ...
-}:
-let
-
+}: let
   cfg = config.ff.userConfig;
 
-  baseGroups = [ "networkmanager" ];
+  baseGroups = ["networkmanager"];
 
-  adminGroups = [ "wheel" ];
+  adminGroups = ["wheel"];
 
   # User configuration
   users = lib.attrNames cfg.users;
@@ -19,22 +17,20 @@ let
 
     isSystemUser = lib.mkIf (cfg.users.${user}.role == "system") true;
 
-    isNormalUser = lib.mkIf (
-      (cfg.users.${user}.role == "user") || (cfg.users.${user}.role == "admin")
-    ) true;
+    isNormalUser =
+      lib.mkIf (
+        (cfg.users.${user}.role == "user") || (cfg.users.${user}.role == "admin")
+      )
+      true;
 
     extraGroups =
       cfg.users.${user}.extraGroups
       ++ lib.optionals (cfg.users.${user}.role == "admin") adminGroups
       ++ lib.optionals (lib.elem "base" cfg.users.${user}.tags) baseGroups;
   };
-
-in
-
-{
+in {
   options = {
     ff.userConfig = {
-
       mutableUsers = lib.mkEnableOption "Allow users to be modified from the running system";
 
       users = lib.mkOption {
@@ -54,7 +50,7 @@ in
 
               tags = lib.mkOption {
                 type = lib.types.listOf lib.types.str;
-                default = [ ];
+                default = [];
                 example = "gaming";
                 description = "";
               };
@@ -74,7 +70,7 @@ in
 
               extraGroups = lib.mkOption {
                 type = lib.types.listOf lib.types.str;
-                default = [ ];
+                default = [];
                 example = [
                   "audio"
                   "video"
@@ -84,7 +80,7 @@ in
             };
           }
         );
-        default = { };
+        default = {};
       };
     };
   };

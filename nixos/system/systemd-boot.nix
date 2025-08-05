@@ -2,18 +2,15 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   cfg = config.ff.system.systemd-boot;
-in
-{
+in {
   options.ff.system.systemd-boot = {
     enable = lib.mkEnableOption "Enable systemd-boot";
   };
 
   config = lib.mkIf cfg.enable {
     boot = {
-
       plymouth = {
         enable = true;
       };
@@ -46,9 +43,7 @@ in
 
         verbose = false;
         systemd.enable = true;
-
       };
-
     };
   };
 }

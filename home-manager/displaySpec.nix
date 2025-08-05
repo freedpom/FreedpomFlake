@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+{lib, ...}: {
   options = {
     ff.hardware.videoPorts = lib.mkOption {
       type = lib.types.attrsOf (
@@ -74,7 +73,7 @@
             # Flexible tagging system for monitor designation
             tags = lib.mkOption {
               type = lib.types.listOf lib.types.str;
-              default = [ ];
+              default = [];
               description = "List of tags to categorize monitor usage";
               example = [
                 "primary"
@@ -90,7 +89,7 @@
             # Workspace assignment (for tiling WMs)
             workspaces = lib.mkOption {
               type = lib.types.listOf lib.types.str;
-              default = [ ];
+              default = [];
               description = "List of workspaces to assign to this monitor";
               example = [
                 "1"
@@ -98,11 +97,10 @@
                 "3"
               ];
             };
-
           };
         }
       );
-      default = { };
+      default = {};
       description = "Configuration for video ports and connected displays";
       example = {
         DP-1 = {

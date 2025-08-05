@@ -18,9 +18,8 @@ let
   };
 
   # Combine all user subvolumes into one attribute set
-  userSubvolumes = builtins.foldl' (acc: user: acc // mkUserSubvolume user) { } enabledUsers;
-in
-{
+  userSubvolumes = builtins.foldl' (acc: user: acc // mkUserSubvolume user) {} enabledUsers;
+in {
   # Home disk configuration
   disko.devices.disk.home = {
     type = "disk";
@@ -37,16 +36,18 @@ in
             };
             content = {
               type = "btrfs";
-              subvolumes = {
-                "/nix/home" = {
-                  mountpoint = "/nix/home";
-                  mountOptions = [
-                    "commit=60"
-                    "compress=zstd:5"
-                    "noatime"
-                  ];
-                };
-              } // userSubvolumes;
+              subvolumes =
+                {
+                  "/nix/home" = {
+                    mountpoint = "/nix/home";
+                    mountOptions = [
+                      "commit=60"
+                      "compress=zstd:5"
+                      "noatime"
+                    ];
+                  };
+                }
+                // userSubvolumes;
             };
           };
         };

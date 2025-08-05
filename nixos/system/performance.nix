@@ -2,11 +2,9 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   cfg = config.ff.system.performance;
-in
-{
+in {
   options.ff.system.performance = {
     enable = lib.mkEnableOption "Enable performance tweaks ";
   };
@@ -20,6 +18,5 @@ in
       };
       coredump.enable = false;
     };
-
   };
 }

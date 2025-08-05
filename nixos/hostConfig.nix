@@ -1,8 +1,4 @@
-{
-  lib,
-  ...
-}:
-{
+{lib, ...}: {
   options.ff.hostConf = {
     tags = {
       description = ''
@@ -52,7 +48,7 @@
             "server" # Server applications, databases, web services
           ]
         );
-        default = [ ];
+        default = [];
         example = [
           "development"
           "creative"
@@ -73,8 +69,8 @@
             "battery" # Maximize battery life on portable devices
           ]
         );
-        default = [ "efficiency" ];
-        example = [ "performance" ];
+        default = ["efficiency"];
+        example = ["performance"];
         description = ''
           Power profiles define how the system manages power and performance.
 
@@ -94,8 +90,8 @@
             "industrial" # Industrial/embedded environment
           ]
         );
-        default = [ "desktop" ];
-        example = [ "mobile" ];
+        default = ["desktop"];
+        example = ["mobile"];
         description = ''
           Environment profiles define the physical context and form factor.
 
@@ -114,8 +110,8 @@
             "realtime" # Realtime processing guarantees
           ]
         );
-        default = [ ];
-        example = [ "kiosk" ];
+        default = [];
+        example = ["kiosk"];
         description = ''
           Special profiles for specific use cases that require unique configurations.
 

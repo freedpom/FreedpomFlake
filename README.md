@@ -26,6 +26,7 @@ Freedom isn't just about choice, it's also about freeing your time. FreedpomFlak
 - **Minimal Overhead**: Eliminate unnecessary services and optimize resource usage
 
 ## Advanced Features
+
 - **Preservation Module**: Provides some defaults for ephemeral root and home, attempts to read system and home-manager configurations to preserve all necessary directories.
 - **Performance Tweaks**: Enables various options for program priority and scheduling, optimizes pipewire, even provides the cachyOS kernel!(eventually)
 - **Multi-Architecture**: Support for both x86_64 and aarch64 (hopefully but not yet) platforms
@@ -88,7 +89,6 @@ FreedpomFlake relies on the following:
 - **[flake-root](https://github.com/srid/flake-root)**: Root directory detection for flakes
 - **[fpFmt](https://github.com/freedpom/FreedpomFormatter)**: Formatter presets for consistent code formatting
 
-
 ## Security Notice
 
 Some options may change security defaults in favor of performance, please review configurations carefully for your specific use case.
@@ -97,6 +97,6 @@ Some options may change security defaults in favor of performance, please review
 
 FreedpomFlake is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
----
+______________________________________________________________________
 
 **FreedpomFlake**: Unleash your system's true potential through the power of NixOS and Home-Manager configuration.

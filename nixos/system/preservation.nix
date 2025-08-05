@@ -2,23 +2,20 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   cfg = config.ff.system.preservation;
 
   # Return a list of all normal users
   users = lib.attrNames (lib.filterAttrs (_n: v: v.isNormalUser) config.users.users);
 
   # Return a list of all packages installed on the system
-  parsePackages =
-    user:
+  parsePackages = user:
     lib.map (d: (builtins.parseDrvName d.name).name) (
       config.home-manager.users.${user}.home.packages ++ config.environment.systemPackages
     );
 
   # Compare list of parsed packages to progDirs or progFiles, output list of attribute values
-  preserveProgs =
-    user: pd:
+  preserveProgs = user: pd:
     lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (parsePackages user)) pd));
 
   # Return an attribute set of directories and files that must be preserved
@@ -55,7 +52,7 @@ let
   ];
 
   # Files in $HOME that should always be preserved
-  homeFiles = [ ];
+  homeFiles = [];
 
   # Directories in $HOME that should be preserved if a program is installed
   progDirs = {
@@ -73,7 +70,7 @@ let
   };
 
   # Files in $HOME that should be preserved if a program is installed
-  progFiles = { };
+  progFiles = {};
 
   # Some directories need tmpfiles rules otherwise they will be owned by root
   tmpRules = u: {
@@ -98,12 +95,8 @@ let
       mode = "0755";
     };
   };
-
-in
-{
-
+in {
   options.ff.system.preservation = {
-
     enable = lib.mkEnableOption "Enable preservation";
 
     preserveHome = lib.mkEnableOption "Preserve user directories on an ephemeral /home";
@@ -116,27 +109,25 @@ in
 
     extraDirs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Extra directories to be preserved";
-
     };
 
     extraFiles = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Extra files to be preserved";
     };
 
     homeExtraDirs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Extra $HOME directories to be preserved";
-
     };
 
     homeExtraFiles = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Extra $HOME files to be preserved";
     };
   };

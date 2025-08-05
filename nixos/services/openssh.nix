@@ -1,8 +1,10 @@
-{ config, lib, ... }:
-let
-  cfg = config.ff.services.openssh;
-in
 {
+  config,
+  lib,
+  ...
+}: let
+  cfg = config.ff.services.openssh;
+in {
   # Configuration options for OpenSSH service
   options.ff.services.openssh = {
     enable = lib.mkEnableOption "Enable the OpenSSH server";

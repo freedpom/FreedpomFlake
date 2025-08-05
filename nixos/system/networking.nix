@@ -2,11 +2,9 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   cfg = config.ff.network;
-in
-{
+in {
   options.ff.network = {
     containers.enable = lib.mkEnableOption "Enable";
     mesh = lib.mkEnableOption "Enable mesh";
@@ -20,8 +18,8 @@ in
       # Firewall settings
       firewall = {
         enable = true;
-        allowedTCPPorts = [ ];
-        allowedUDPPorts = [ ];
+        allowedTCPPorts = [];
+        allowedUDPPorts = [];
       };
 
       # NAT configuration for containers
@@ -30,7 +28,7 @@ in
         # Lazy IPv6 connectivity for the container
         enableIPv6 = true;
         externalInterface = "en01";
-        internalInterfaces = [ "ve-*" ];
+        internalInterfaces = ["ve-*"];
       };
 
       # NetworkManager settings

@@ -3,11 +3,9 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   cfg = config.ff.services.ananicy;
-in
-{
+in {
   # Configuration options for Ananicy service
   options.ff.services.ananicy = {
     enable = lib.mkEnableOption "Enable the ananicy service for process resource management with customized rules and settings";

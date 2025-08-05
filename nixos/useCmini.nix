@@ -2,16 +2,10 @@
   config,
   lib,
   ...
-}:
-let
-
+}: let
   cfg = config.ff.useCmini;
-
-in
-
-{
+in {
   options.ff.useCmini = {
-
     enableHM = lib.mkEnableOption "Enable home-manager";
 
     users = lib.mkOption {
@@ -27,7 +21,7 @@ in
           };
         }
       );
-      default = { };
+      default = {};
     };
   };
 

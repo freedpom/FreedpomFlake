@@ -3,12 +3,9 @@
   config,
   pkgs,
   ...
-}:
-let
+}: let
   cfg = config.ff.services.pipewire;
-in
-{
-
+in {
   options.ff.services.pipewire = {
     enable = lib.mkEnableOption "Enable PipeWire configuration to provide low-latency audio/video routing with pro-audio optimizations";
 
@@ -24,7 +21,7 @@ in
   config = lib.mkIf cfg.enable {
     # Enable threadirqs for better audio performance
     # https://github.com/musnix/musnix/blob/86ef22cbdd7551ef325bce88143be9f37da64c26/modules/base.nix#L76
-    boot = lib.mkIf config.services.pipewire.enable { kernelParams = [ "threadirqs" ]; };
+    boot = lib.mkIf config.services.pipewire.enable {kernelParams = ["threadirqs"];};
 
     environment.systemPackages = with pkgs; [
       alsa-utils
@@ -85,7 +82,7 @@ in
                 {
                   name = "libpipewire-module-protocol-pulse";
                   args = {
-                    server.address = [ "unix:native" ];
+                    server.address = ["unix:native"];
                     pulse.min = {
                       req = "32/48000";
                       quantum = "32/48000";
@@ -148,5 +145,4 @@ in
       rtkit.enable = true;
     };
   };
-
 }

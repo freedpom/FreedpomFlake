@@ -1,0 +1,21 @@
+jobs:
+  nix-flake-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository Code
+      uses: actions/checkout@v4
+    - name: Install Nix Package Manager
+      uses: DeterminateSystems/nix-installer-action@main
+    - name: Cache Nix Dependencies
+      uses: DeterminateSystems/magic-nix-cache-action@main
+    - name: Flake checker
+      uses: DeterminateSystems/flake-checker-action@main
+    timeout-minutes: 30
+name: 'Nix: Flake Check'
+'on':
+  push:
+    branches:
+    - master
+  workflow_dispatch: null
+permissions:
+  contents: read
