@@ -3,10 +3,10 @@
     ./font.nix
     ./networking.nix
     ./nix.nix
-    ./persistence.nix
+    ./performance.nix
+    ./preservation.nix
     ./sysctl.nix
     ./systemd-boot.nix
     ./userConfig.nix
-    ./performance.nix
   ];
 }

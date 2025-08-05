@@ -6,21 +6,45 @@
 let
   cfg = config.ff.system.preservation;
 
+  # Return a list of all normal users
+  users = lib.attrNames (lib.filterAttrs (_n: v: v.isNormalUser) config.users.users);
+
+  # Return a list of all packages installed on the system
   parsePackages =
     user:
     lib.map (d: (builtins.parseDrvName d.name).name) (
       config.home-manager.users.${user}.home.packages ++ config.environment.systemPackages
     );
 
+  # Compare list of parsed packages to progDirs or progFiles, output list of attribute values
   preserveProgs =
-    user: list:
-    lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (parsePackages user)) list));
+    user: pd:
+    lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (parsePackages user)) pd));
 
+  # Return an attribute set of directories and files that must be preserved
   mkPreserveHome = user: {
     directories = (preserveProgs user progDirs) ++ homeDirs ++ cfg.homeExtraDirs;
     files = (preserveProgs user progFiles) ++ homeFiles ++ cfg.homeExtraFiles;
   };
 
+  # Directories in / that should always be preserved
+  sysDirs = [
+    "/var/log"
+    "/var/lib/nixos"
+    "/var/lib/systemd/coredump"
+    "/var/lib/tailscale"
+    "/etc/NetworkManager/system-connections"
+  ];
+
+  # Files in / that should always be preserved
+  sysFiles = [
+    {
+      file = "/etc/machine-id";
+      inInitrd = true;
+    }
+  ];
+
+  # Directories in $HOME that should always be preserved
   homeDirs = [
     "Documents"
     "Downloads"
@@ -30,8 +54,10 @@ let
     ".ssh"
   ];
 
+  # Files in $HOME that should always be preserved
   homeFiles = [ ];
 
+  # Directories in $HOME that should be preserved if a program is installed
   progDirs = {
     firefox = ".mozilla";
     gh = ".config/gh";
@@ -46,6 +72,7 @@ let
     ];
   };
 
+  # Files in $HOME that should be preserved if a program is installed
   progFiles = { };
 
   # Some directories need tmpfiles rules otherwise they will be owned by root
@@ -77,7 +104,7 @@ in
 
   options.ff.system.preservation = {
 
-    enable = lib.mkEnableOption "Enable system persistence";
+    enable = lib.mkEnableOption "Enable preservation";
 
     preserveHome = lib.mkEnableOption "Preserve user directories on an ephemeral /home";
 
@@ -90,27 +117,27 @@ in
     extraDirs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "Extra directories to be persisted";
+      description = "Extra directories to be preserved";
 
     };
 
     extraFiles = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "Extra files to be persisted";
+      description = "Extra files to be preserved";
     };
 
     homeExtraDirs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "Extra directories to be persisted";
+      description = "Extra $HOME directories to be preserved";
 
     };
 
     homeExtraFiles = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "Extra files to be persisted";
+      description = "Extra $HOME files to be preserved";
     };
   };
 
@@ -118,22 +145,9 @@ in
     preservation = {
       enable = true;
       preserveAt.${cfg.storageDir} = {
-        directories = [
-          "/var/log"
-          "/var/lib/nixos"
-          "/var/lib/systemd/coredump"
-          "/var/lib/tailscale"
-          "/etc/NetworkManager/system-connections"
-        ] ++ cfg.extraDirs;
-        files = [
-          {
-            file = "/etc/machine-id";
-            inInitrd = true;
-          }
-        ] ++ cfg.extraFiles;
-        users = lib.mkIf cfg.preserveHome (
-          lib.genAttrs (lib.attrNames config.home-manager.users) mkPreserveHome
-        );
+        directories = sysDirs ++ cfg.extraDirs;
+        files = sysFiles ++ cfg.extraFiles;
+        users = lib.mkIf cfg.preserveHome (lib.genAttrs users mkPreserveHome);
       };
     };
 
@@ -149,9 +163,9 @@ in
           "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
         ];
       };
-      tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (
-        lib.mkMerge (lib.map tmpRules (lib.attrNames config.home-manager.users))
-      );
+
+      # Generate tmpfiles settings for each user
+      tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (lib.mkMerge (lib.map tmpRules users));
     };
   };
 }
