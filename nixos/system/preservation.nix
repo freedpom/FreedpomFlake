@@ -22,6 +22,9 @@
   mkPreserveHome = user: {
     directories = (preserveProgs user progDirs) ++ homeDirs ++ cfg.homeExtraDirs;
     files = (preserveProgs user progFiles) ++ homeFiles ++ cfg.homeExtraFiles;
+    commonMountOptions = [
+      "x-gvfs-hide"
+    ];
   };
 
   # Directories in / that should always be preserved
