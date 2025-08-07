@@ -75,28 +75,19 @@
   progFiles = {};
 
   # Some directories need tmpfiles rules otherwise they will be owned by root
-  tmpRules = u: {
-    "/home/${u}/.config".d = {
-      user = u;
+  tmpRules = u: let
+    defaults = {
       inherit (config.users.users.${u}) group;
+      user = u;
       mode = "0755";
     };
-    "/home/${u}/.local".d = {
-      user = u;
-      inherit (config.users.users.${u}) group;
-      mode = "0755";
-    };
-    "/home/${u}/.local/share".d = {
-      user = u;
-      inherit (config.users.users.${u}) group;
-      mode = "0755";
-    };
-    "/home/${u}/.local/state".d = {
-      user = u;
-      inherit (config.users.users.${u}) group;
-      mode = "0755";
-    };
+  in {
+    "/home/${u}/.config".d = defaults;
+    "/home/${u}/.local".d = defaults;
+    "/home/${u}/.local/share".d = defaults;
+    "/home/${u}/.local/state".d = defaults;
   };
+
 in {
   options.ff.system.preservation = {
     enable = lib.mkEnableOption "Enable preservation";
