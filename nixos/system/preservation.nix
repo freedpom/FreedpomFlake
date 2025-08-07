@@ -7,6 +7,7 @@
 
   # Return a list of all normal users
   users = lib.attrNames (lib.filterAttrs (_n: v: v.isNormalUser) config.users.users);
+  userAs = config.ff.userConfig.users;
 
   # Return a list of all packages installed on the system
   parsePackages = user:
@@ -20,11 +21,9 @@
 
   # Return an attribute set of directories and files that must be preserved
   mkPreserveHome = user: {
-    directories = (preserveProgs user progDirs) ++ homeDirs ++ cfg.homeExtraDirs;
-    files = (preserveProgs user progFiles) ++ homeFiles ++ cfg.homeExtraFiles;
-    commonMountOptions = [
-      "x-gvfs-hide"
-    ];
+    directories = (preserveProgs user progDirs) ++ homeDirs ++ userAs.${user}.preservation.directories;
+    files = (preserveProgs user progFiles) ++ homeFiles ++ userAs.${user}.preservation.files;
+    commonMountOptions = userAs.${user}.preservation.mountOptions;
   };
 
   # Directories in / that should always be preserved
