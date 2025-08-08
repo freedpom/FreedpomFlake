@@ -77,26 +77,6 @@ in {
                 ];
                 description = "Extra groups needed by the user";
               };
-
-              preservation = {
-                directories = lib.mkOption {
-                  type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
-                  description = "Extra directories for preservation module";
-                  default = [];
-                };
-
-                files = lib.mkOption {
-                  type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
-                  description = "Extra files for preservation module";
-                  default = [];
-                };
-
-                mountOptions = lib.mkOption {
-                  type = lib.types.listOf lib.types.str;
-                  description = "Mount options for user directories";
-                  default = ["x-gvfs-hide"];
-                };
-              };
             };
           }
         );

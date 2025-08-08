@@ -87,41 +87,56 @@
     "/home/${u}/.local/share".d = defaults;
     "/home/${u}/.local/state".d = defaults;
   };
-
 in {
-  options.ff.system.preservation = {
-    enable = lib.mkEnableOption "Enable preservation";
+  options.ff = {
+    system.preservation = {
+      enable = lib.mkEnableOption "Enable preservation";
 
-    preserveHome = lib.mkEnableOption "Preserve user directories on an ephemeral /home";
+      preserveHome = lib.mkEnableOption "Preserve user directories on an ephemeral /home";
 
-    storageDir = lib.mkOption {
-      type = lib.types.str;
-      default = "/nix/persist";
-      description = "Directory where persistent data will be stored";
+      storageDir = lib.mkOption {
+        type = lib.types.str;
+        default = "/nix/persist";
+        description = "Directory where persistent data will be stored";
+      };
+
+      extraDirs = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = "Extra directories to be preserved";
+      };
+
+      extraFiles = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = "Extra files to be preserved";
+      };
     };
 
-    extraDirs = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-      description = "Extra directories to be preserved";
-    };
+    userConfig.users = lib.mkOption {
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options.preservation = {
+            directories = lib.mkOption {
+              type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
+              description = "Extra directories for preservation module";
+              default = [];
+            };
 
-    extraFiles = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-      description = "Extra files to be preserved";
-    };
+            files = lib.mkOption {
+              type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
+              description = "Extra files for preservation module";
+              default = [];
+            };
 
-    homeExtraDirs = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-      description = "Extra $HOME directories to be preserved";
-    };
-
-    homeExtraFiles = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-      description = "Extra $HOME files to be preserved";
+            mountOptions = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              description = "Mount options for user directories";
+              default = ["x-gvfs-hide"];
+            };
+          };
+        }
+      );
     };
   };
 
@@ -149,7 +164,7 @@ in {
       };
 
       # Generate tmpfiles settings for each user
-      tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (lib.mkMerge (lib.map tmpRules users));
+      tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (lib.foldl' (r: u: r // tmpRules u) {} users);
     };
   };
 }
