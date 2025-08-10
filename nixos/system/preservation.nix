@@ -23,7 +23,7 @@
   mkPreserveHome = user: {
     directories = (preserveProgs user progDirs) ++ homeDirs ++ userAs.${user}.preservation.directories;
     files = (preserveProgs user progFiles) ++ homeFiles ++ userAs.${user}.preservation.files;
-    commonMountOptions = userAs.${user}.preservation.mountOptions;
+    # commonMountOptions = userAs.${user}.preservation.mountOptions;
   };
 
   # Directories in / that should always be preserved
