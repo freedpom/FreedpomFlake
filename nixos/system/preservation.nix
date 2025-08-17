@@ -23,7 +23,7 @@
   mkPreserveHome = user: {
     directories = (preserveProgs user progDirs) ++ homeDirs ++ userAs.${user}.preservation.directories;
     files = (preserveProgs user progFiles) ++ homeFiles ++ userAs.${user}.preservation.files;
-    # commonMountOptions = userAs.${user}.preservation.mountOptions;
+    commonMountOptions = ["x-gvfs-hide"] ++ userAs.${user}.preservation.mountOptions;
   };
 
   # Directories in / that should always be preserved
@@ -64,7 +64,7 @@
     librewolf = ".librewolf";
     tidal-hifi = ".config/tidal-hifi";
     wivrn = ".config/wivrn";
-    steam = ".steam";
+    steam = ".local/share/Steam";
     stremio-shell = [
       ".stremio-server"
       ".local/share/Smart Code ltd/Stremio"
@@ -132,7 +132,7 @@ in {
             mountOptions = lib.mkOption {
               type = lib.types.listOf lib.types.str;
               description = "Mount options for user directories";
-              default = ["x-gvfs-hide"];
+              default = [];
             };
           };
         }
