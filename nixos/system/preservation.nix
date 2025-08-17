@@ -64,7 +64,7 @@
     librewolf = ".librewolf";
     tidal-hifi = ".config/tidal-hifi";
     wivrn = ".config/wivrn";
-    steam = ".local/share/steam";
+    steam = ".steam";
     stremio-shell = [
       ".stremio-server"
       ".local/share/Smart Code ltd/Stremio"
