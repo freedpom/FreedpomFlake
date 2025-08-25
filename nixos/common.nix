@@ -1,7 +1,6 @@
 {
   config,
   hostname,
-  inputs,
   lib,
   modulesPath,
   pkgs,
@@ -42,15 +41,5 @@ in {
     };
 
     time.timeZone = "America/New_York";
-
-    # Home Manager Settings
-    home-manager = {
-      backupFileExtension = "bk";
-      extraSpecialArgs = {
-        inherit inputs;
-      };
-      useGlobalPkgs = true;
-      useUserPackages = true;
-    };
   };
 }
