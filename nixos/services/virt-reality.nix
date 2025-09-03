@@ -41,9 +41,9 @@ in {
         inherit (cfg) autoStart;
         inherit (cfg) openFirewall;
 
-        extraPackages = [
-          pkgs.opencomposite
-        ];
+        #extraPackages = [
+        #  pkgs.opencomposite
+        #];
 
         config = {
           enable = true;
