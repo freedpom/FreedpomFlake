@@ -6,6 +6,6 @@
     ./ollama.nix
     ./openssh.nix
     ./pipewire.nix
-    ./virt-reality.nix
+    #./virt-reality.nix
   ];
 }
