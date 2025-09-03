@@ -15,14 +15,14 @@
       config.home-manager.users.${user}.home.packages ++ config.environment.systemPackages
     );
 
-  # Compare list of parsed packages to progDirs or progFiles, output list of attribute values
+  # Compare list of parsed packages to homeProgDirs or homeProgFiles, output list of attribute values
   preserveProgs = user: pd:
     lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (parsePackages user)) pd));
 
   # Return an attribute set of directories and files that must be preserved
   mkPreserveHome = user: {
-    directories = (preserveProgs user progDirs) ++ homeDirs ++ userAs.${user}.preservation.directories;
-    files = (preserveProgs user progFiles) ++ homeFiles ++ userAs.${user}.preservation.files;
+    directories = (preserveProgs user homeProgDirs) ++ homeDirs ++ userAs.${user}.preservation.directories;
+    files = (preserveProgs user homeProgFiles) ++ homeFiles ++ userAs.${user}.preservation.files;
     commonMountOptions = ["x-gvfs-hide"] ++ userAs.${user}.preservation.mountOptions;
   };
 
@@ -31,7 +31,6 @@
     "/var/log"
     "/var/lib/nixos"
     "/var/lib/systemd/coredump"
-    "/var/lib/tailscale"
     "/etc/NetworkManager/system-connections"
   ];
 
@@ -41,6 +40,16 @@
       file = "/etc/machine-id";
       inInitrd = true;
     }
+  ];
+
+  # Directories in / that should be preserved if a program is enabled
+  sysProgDirs = [
+    (lib.optionals config.hardware.bluetooth.enable "/var/lib/bluetooth")
+    (lib.optionals config.services.tailscale.enable "/var/lib/tailscale")
+  ];
+
+  # Files in / that should be preserved if a program is enabled
+  sysProgFiles = [
   ];
 
   # Directories in $HOME that should always be preserved
@@ -57,7 +66,7 @@
   homeFiles = [];
 
   # Directories in $HOME that should be preserved if a program is installed
-  progDirs = {
+  homeProgDirs = {
     firefox = ".mozilla";
     gh = ".config/gh";
     legcord = ".config/legcord";
@@ -72,7 +81,7 @@
   };
 
   # Files in $HOME that should be preserved if a program is installed
-  progFiles = {};
+  homeProgFiles = {};
 
   # Some directories need tmpfiles rules otherwise they will be owned by root
   tmpRules = u: let
@@ -144,8 +153,8 @@ in {
     preservation = {
       enable = true;
       preserveAt.${cfg.storageDir} = {
-        directories = sysDirs ++ cfg.extraDirs;
-        files = sysFiles ++ cfg.extraFiles;
+        directories = sysDirs ++ sysProgDirs ++ cfg.extraDirs;
+        files = sysFiles ++ sysProgFiles ++ cfg.extraFiles;
         users = lib.mkIf cfg.preserveHome (lib.genAttrs users mkPreserveHome);
       };
     };
