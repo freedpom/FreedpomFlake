@@ -139,6 +139,32 @@ with lib; let
       wantedBy = ["multi-user.target"];
     };
 
+  createSpawnService = spec: let
+    parsed = parseTtySpec spec;
+    ttyNum = parsed.tty;
+    inherit (parsed) user;
+    spawnCfg = cfg.spawn.${spec};
+    cmd = getExe spawnCfg.package;
+    argsStr = concatStringsSep " " (map lib.escapeShellArg spawnCfg.args);
+  in
+    nameValuePair "spawn@tty${ttyNum}" {
+      enable = true;
+      serviceConfig = {
+        ExecStart = mkForce "${cmd} ${argsStr}";
+        StandardInput = "tty";
+        StandardOutput = "journal+console";
+        StandardError = "journal+console";
+        TTYPath = "/dev/tty${ttyNum}";
+        TTYReset = true;
+        TTYVHangup = true;
+        TTYVTDisallocate = true;
+        Restart = "always";
+        RestartSec = "1";
+        User = user;
+      };
+      wantedBy = ["multi-user.target"];
+    };
+
   # Validation functions
   validateTtyFormat = spec: extractTtyNum spec != null || throw "Invalid TTY format: ${spec}";
 
@@ -191,6 +217,41 @@ in {
         "user@tty1"
         "tty2"
       ];
+    };
+
+    spawn = mkOption {
+      type = types.attrsOf (
+        types.submodule {
+          options = {
+            package = mkOption {
+              type = types.package;
+              description = "Package to execute on this TTY (will use its main binary)";
+            };
+
+            args = mkOption {
+              type = types.listOf types.str;
+              default = [];
+              description = "Arguments to pass to the package binary";
+            };
+          };
+        }
+      );
+      default = {};
+      description = mdDoc ''
+        Run a package on a specific TTY instead of getty/kmscon.
+
+        The attribute name must be in the format `user@ttyN`.
+
+        Example:
+        ```nix
+        spawn = {
+          "myuser@tty7" = {
+            package = pkgs.hyprland;
+            args = [];
+          };
+        };
+        ```
+      '';
     };
 
     kmsconConfig = mkOption {
@@ -304,6 +365,7 @@ in {
     systemd.services =
       (listToAttrs (map createGettyService gettyTtys))
       // (listToAttrs (map createKmsconService kmsconTtys))
+      // (listToAttrs (map createSpawnService (attrNames cfg.spawn)))
       # Disable default getty services
       // {
         "autovt@".enable = false;
@@ -319,6 +381,15 @@ in {
           || length kmsconTtys == 0
           || length (intersectLists (map extractTtyNum gettyTtys) (map extractTtyNum kmsconTtys)) == 0;
         message = "Getty and kmscon cannot be configured on the same TTY";
+      }
+      {
+        assertion = all (
+          spec: let
+            tty = extractTtyNum spec;
+          in
+            !(elem "tty${tty}" gettyTtys || elem "tty${tty}" kmsconTtys)
+        ) (attrNames cfg.spawn);
+        message = "Spawned services cannot share TTYs with getty or kmscon";
       }
       {
         assertion = all validateTtyFormat allTtys;
