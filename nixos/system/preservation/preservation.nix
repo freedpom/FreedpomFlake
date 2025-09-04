@@ -1,6 +1,6 @@
 {
-  lib,
   config,
+  lib,
   ...
 }: let
   cfg = config.ff.system.preservation;
@@ -97,83 +97,29 @@
     "/home/${u}/.local/state".d = defaults;
   };
 in {
-  options.ff = {
-    system.preservation = {
-      enable = lib.mkEnableOption "Enable preservation";
-
-      preserveHome = lib.mkEnableOption "Preserve user directories on an ephemeral /home";
-
-      storageDir = lib.mkOption {
-        type = lib.types.str;
-        default = "/nix/persist";
-        description = "Directory where persistent data will be stored";
-      };
-
-      extraDirs = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [];
-        description = "Extra directories to be preserved";
-      };
-
-      extraFiles = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [];
-        description = "Extra files to be preserved";
-      };
-    };
-
-    userConfig.users = lib.mkOption {
-      type = lib.types.attrsOf (
-        lib.types.submodule {
-          options.preservation = {
-            directories = lib.mkOption {
-              type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
-              description = "Extra directories for preservation module";
-              default = [];
-            };
-
-            files = lib.mkOption {
-              type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
-              description = "Extra files for preservation module";
-              default = [];
-            };
-
-            mountOptions = lib.mkOption {
-              type = lib.types.listOf lib.types.str;
-              description = "Mount options for user directories";
-              default = [];
-            };
-          };
-        }
-      );
+  preservation = {
+    enable = true;
+    preserveAt.${cfg.storageDir} = {
+      directories = sysDirs ++ sysProgDirs ++ cfg.extraDirs;
+      files = sysFiles ++ sysProgFiles ++ cfg.extraFiles;
+      users = lib.mkIf cfg.preserveHome (lib.genAttrs users mkPreserveHome);
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    preservation = {
-      enable = true;
-      preserveAt.${cfg.storageDir} = {
-        directories = sysDirs ++ sysProgDirs ++ cfg.extraDirs;
-        files = sysFiles ++ sysProgFiles ++ cfg.extraFiles;
-        users = lib.mkIf cfg.preserveHome (lib.genAttrs users mkPreserveHome);
-      };
+  # Modify default machine-id service to use actual file location
+  systemd = {
+    services.systemd-machine-id-commit = {
+      unitConfig.ConditionPathIsMountPoint = [
+        ""
+        "/persistent/etc/machine-id"
+      ];
+      serviceConfig.ExecStart = [
+        ""
+        "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
+      ];
     };
 
-    # Modify default machine-id service to use actual file location
-    systemd = {
-      services.systemd-machine-id-commit = {
-        unitConfig.ConditionPathIsMountPoint = [
-          ""
-          "/persistent/etc/machine-id"
-        ];
-        serviceConfig.ExecStart = [
-          ""
-          "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
-        ];
-      };
-
-      # Generate tmpfiles settings for each user
-      tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (lib.foldl' (r: u: r // tmpRules u) {} users);
-    };
+    # Generate tmpfiles settings for each user
+    tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (lib.foldl' (r: u: r // tmpRules u) {} users);
   };
 }
