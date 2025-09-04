@@ -152,8 +152,8 @@ with lib; let
       serviceConfig = {
         ExecStart = mkForce "${cmd} ${argsStr}";
         StandardInput = "tty";
-        StandardOutput = "journal+console";
-        StandardError = "journal+console";
+        StandardOutput = "tty";
+        #StandardError = "journal+console";
         TTYPath = "/dev/tty${ttyNum}";
         TTYReset = true;
         TTYVHangup = true;
