@@ -43,7 +43,7 @@
   ];
 
   # Directories in / that should be preserved if a program is enabled
-  sysProgDirs = [
+  sysProgDirs = lib.flatten [
     (lib.optionals config.hardware.bluetooth.enable "/var/lib/bluetooth")
     (lib.optionals config.services.tailscale.enable "/var/lib/tailscale")
   ];
