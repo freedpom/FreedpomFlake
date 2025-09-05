@@ -153,7 +153,7 @@ with lib; let
         ExecStart = mkForce "${cmd} ${argsStr}";
         StandardInput = "tty";
         StandardOutput = "tty";
-        StandardError = "journal+console";
+        StandardError = "tty";
         TTYPath = "/dev/tty${ttyNum}";
         #TTYReset = true;
         #TTYVHangup = true;
