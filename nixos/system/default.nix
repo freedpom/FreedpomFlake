@@ -1,12 +1,3 @@
-{
-  imports = [
-    ./font.nix
-    ./networking.nix
-    ./nix.nix
-    ./performance.nix
-    ./sysctl.nix
-    ./systemd-boot.nix
-    ./userConfig.nix
-    ./preservation
-  ];
+{lib, ...}: {
+  imports = lib.map (n: ./. + /${n}) (lib.attrNames (lib.attrsets.filterAttrs (n: v: (((v == "directory") && (lib.hasAttr "default.nix" (builtins.readDir ./${n}))) || (lib.hasSuffix ".nix" n) && (n != "default.nix"))) (builtins.readDir ./.)));
 }

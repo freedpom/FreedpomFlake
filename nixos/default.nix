@@ -1,18 +1,3 @@
-{
-  inputs,
-  lib,
-  ...
-}: {
-  imports =
-    [
-      # Directory imports
-      ./security
-      ./services
-      ./system
-      ./programs
-
-      # Individual module imports
-      ./common.nix
-    ]
-    ++ lib.optionals (lib.hasAttr "home-manager" inputs) [./home-manager.nix];
+{lib, ...}: {
+  imports = lib.map (n: ./. + /${n}) (lib.attrNames (lib.attrsets.filterAttrs (n: v: (((v == "directory") && (lib.hasAttr "default.nix" (builtins.readDir ./${n}))) || (lib.hasSuffix ".nix" n) && (n != "default.nix"))) (builtins.readDir ./.)));
 }

@@ -1,11 +1,3 @@
-{
-  # Import service module configurations
-  imports = [
-    ./ananicy.nix
-    ./consoles.nix
-    ./ollama.nix
-    ./openssh.nix
-    ./pipewire.nix
-    #./virt-reality.nix
-  ];
+{lib, ...}: {
+  imports = lib.map (n: ./. + /${n}) (lib.attrNames (lib.attrsets.filterAttrs (n: v: (((v == "directory") && (lib.hasAttr "default.nix" (builtins.readDir ./${n}))) || (lib.hasSuffix ".nix" n) && (n != "default.nix"))) (builtins.readDir ./.)));
 }
