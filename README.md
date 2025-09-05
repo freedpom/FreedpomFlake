@@ -16,7 +16,7 @@
 
 FreedpomFlake is designed with convenience in mind, providing sane but slightly opinionated defaults for performance and security while still being configurable to meet the users needs.
 
-## Philosophy
+## Goals
 
 Freedom isn't just about choice, it's also about freeing your time. FreedpomFlake embraces the Nix philosophy of declarative configuration while focusing on:
 
@@ -27,8 +27,8 @@ Freedom isn't just about choice, it's also about freeing your time. FreedpomFlak
 
 ## Advanced Features
 
-- **Preservation Module**: Provides some defaults for ephemeral root and home, attempts to read system and home-manager configurations to preserve all necessary directories.
-- **Performance Tweaks**: Enables various options for program priority and scheduling, optimizes pipewire, even provides the cachyOS kernel!(eventually)
+- **Preservation Module**: Provides some defaults for ephemeral root and home, attempts to read system and home-manager configurations to preserve all necessary directories
+- **Performance Tweaks**: Enables various options for program priority and scheduling, optimizes pipewire, even provides the cachyOS kernel (eventually)
 - **Multi-Architecture**: Support for both x86_64 and aarch64 (hopefully but not yet) platforms
 
 ## Requirements
@@ -38,17 +38,10 @@ Freedom isn't just about choice, it's also about freeing your time. FreedpomFlak
 
 ## Installation
 
-### 1. Enable Flakes (if not already enabled)
+### 1. Add FreedpomFlake to your flake
 
-```nix # configuration.nix
-{
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-}
-```
-
-### 2. Add FreedpomFlake to your flake
-
-```nix # flake.nix
+flake.nix:
+```nix
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -66,17 +59,23 @@ Freedom isn't just about choice, it's also about freeing your time. FreedpomFlak
 }
 ```
 
-```nix # configuration.nix
+### 2. Import the module
+
+configuration.nix:
+```nix
 {
   imports = [ inputs.freedpomFlake.nixosModules.freedpomFlake ];
 }
 ```
 
-```nix # home.nix
+home.nix (if home manager):
+```nix
 {
   imports = [ inputs.freedpomFlake.homeModules.freedpomFlake ];
 }
 ```
+
+### 3. BE FREE!!
 
 ## Dependencies
 
@@ -85,7 +84,6 @@ FreedpomFlake relies on the following:
 - **[nixpkgs](https://github.com/NixOS/nixpkgs)**: The Nix packages collection
 - **[home-manager](https://github.com/nix-community/home-manager)**: User environment configuration management
 - **[flake-parts](https://github.com/hercules-ci/flake-parts)**: Modular flake composition for clean architecture
-- **[preservation](https://github.com/nix-community/preservation)**: Tools for ephemeral storage configurations
 - **[flake-root](https://github.com/srid/flake-root)**: Root directory detection for flakes
 - **[fpFmt](https://github.com/freedpom/FreedpomFormatter)**: Formatter presets for consistent code formatting
 
@@ -98,5 +96,3 @@ Some options may change security defaults in favor of performance, please review
 FreedpomFlake is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ______________________________________________________________________
-
-**FreedpomFlake**: Unleash your system's true potential through the power of NixOS and Home-Manager configuration.
