@@ -161,6 +161,7 @@ with lib; let
         #Restart = "always";
         #RestartSec = "1";
         User = user;
+        Environment = "XDG_RUNTIME_DIR=/run/user/${config.users.users.${user}.uid}";
       };
       wantedBy = ["multi-user.target"];
     };
