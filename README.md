@@ -41,6 +41,7 @@ Freedom isn't just about choice, it's also about freeing your time. FreedpomFlak
 ### 1. Add FreedpomFlake to your flake
 
 flake.nix:
+
 ```nix
 {
   inputs = {
@@ -62,6 +63,7 @@ flake.nix:
 ### 2. Import the module
 
 configuration.nix:
+
 ```nix
 {
   imports = [ inputs.freedpomFlake.nixosModules.freedpomFlake ];
@@ -69,6 +71,7 @@ configuration.nix:
 ```
 
 home.nix (if home manager):
+
 ```nix
 {
   imports = [ inputs.freedpomFlake.homeModules.freedpomFlake ];
