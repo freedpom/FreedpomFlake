@@ -11,23 +11,6 @@
 
   # User configuration
   users = lib.attrNames cfg.users;
-  mkUserCfg = user: {
-    inherit (cfg.users.${user}) hashedPassword;
-    uid = lib.mkIf (cfg.users.${user}.uid != null) cfg.users.${user}.uid;
-
-    isSystemUser = lib.mkIf (cfg.users.${user}.role == "system") true;
-
-    isNormalUser =
-      lib.mkIf (
-        (cfg.users.${user}.role == "user") || (cfg.users.${user}.role == "admin")
-      )
-      true;
-
-    extraGroups =
-      cfg.users.${user}.extraGroups
-      ++ lib.optionals (cfg.users.${user}.role == "admin") adminGroups
-      ++ lib.optionals (lib.elem "base" cfg.users.${user}.tags) baseGroups;
-  };
 in {
   options = {
     ff.userConfig = {
@@ -89,7 +72,23 @@ in {
   config = {
     users = {
       inherit (cfg) mutableUsers;
-      users = lib.genAttrs users mkUserCfg;
+      users = lib.genAttrs users (user: {
+        inherit (cfg.users.${user}) hashedPassword;
+        uid = lib.mkIf (cfg.users.${user}.uid != null) cfg.users.${user}.uid;
+
+        isSystemUser = lib.mkIf (cfg.users.${user}.role == "system") true;
+
+        isNormalUser =
+          lib.mkIf (
+            (cfg.users.${user}.role == "user") || (cfg.users.${user}.role == "admin")
+          )
+          true;
+
+        extraGroups =
+          cfg.users.${user}.extraGroups
+          ++ lib.optionals (cfg.users.${user}.role == "admin") adminGroups
+          ++ lib.optionals (lib.elem "base" cfg.users.${user}.tags) baseGroups;
+      });
     };
   };
 }
