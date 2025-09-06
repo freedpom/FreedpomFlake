@@ -12,9 +12,9 @@ in {
   config = lib.mkIf cfg.enable {
     services.irqbalance.enable = true;
     systemd = {
-      watchdog = {
-        runtimeTime = "30s";
-        rebootTime = "45s";
+      settings.Manager = {
+        RuntimeWatchdogSec = "30s";
+        RebootWatchdogSec = "45s";
       };
       coredump.enable = false;
     };
