@@ -54,11 +54,27 @@ in {
               extraGroups = lib.mkOption {
                 type = lib.types.listOf lib.types.str;
                 default = [];
-                example = [
-                  "audio"
-                  "video"
-                ];
+                example = ["audio"];
                 description = "Extra groups needed by the user";
+              };
+              preservation = {
+                directories = lib.mkOption {
+                  type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
+                  description = "Extra $HOME directories for preservation module";
+                  default = [];
+                };
+
+                files = lib.mkOption {
+                  type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
+                  description = "Extra $HOME files for preservation module";
+                  default = [];
+                };
+
+                mountOptions = lib.mkOption {
+                  type = lib.types.listOf lib.types.str;
+                  description = "Mount options for user directories";
+                  default = [];
+                };
               };
             };
           }

@@ -5,27 +5,6 @@
 }: let
   cfg = config.ff.system.preservation;
 
-  # Return a list of all normal users
-  users = lib.attrNames (lib.filterAttrs (_n: v: v.isNormalUser) config.users.users);
-  userAs = config.ff.userConfig.users;
-
-  # Return a list of all packages installed on the system
-  parsePackages = user:
-    lib.map (d: (builtins.parseDrvName d.name).name) (
-      config.home-manager.users.${user}.home.packages ++ config.environment.systemPackages
-    );
-
-  # Compare list of parsed packages to homeProgDirs or homeProgFiles, output list of attribute values
-  preserveProgs = user: pd:
-    lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (parsePackages user)) pd));
-
-  # Return an attribute set of directories and files that must be preserved
-  mkPreserveHome = user: {
-    directories = (preserveProgs user homeProgDirs) ++ homeDirs ++ userAs.${user}.preservation.directories;
-    files = (preserveProgs user homeProgFiles) ++ homeFiles ++ userAs.${user}.preservation.files;
-    commonMountOptions = ["x-gvfs-hide"] ++ userAs.${user}.preservation.mountOptions;
-  };
-
   # Directories in / that should always be preserved
   sysDirs = [
     "/var/log"
@@ -52,6 +31,9 @@
   sysProgFiles = [
   ];
 
+  # Directory for nix builds, will not be preserved if set to /tmp
+  build-dir = lib.optionals (cfg.build-dir != "/tmp") ["${cfg.build-dir}"];
+
   # Directories in $HOME that should always be preserved
   homeDirs = [
     "Documents"
@@ -65,23 +47,9 @@
   # Files in $HOME that should always be preserved
   homeFiles = [];
 
-  # Directories in $HOME that should be preserved if a program is installed
-  homeProgDirs = {
-    firefox = ".mozilla";
-    gh = ".config/gh";
-    legcord = ".config/legcord";
-    librewolf = ".librewolf";
-    tidal-hifi = ".config/tidal-hifi";
-    wivrn = ".config/wivrn";
-    steam = ".local/share/Steam";
-    stremio-shell = [
-      ".stremio-server"
-      ".local/share/Smart Code ltd/Stremio"
-    ];
-  };
-
-  # Files in $HOME that should be preserved if a program is installed
-  homeProgFiles = {};
+  # Directories and files in $HOME that should be preserved if a program is installed
+  homeProgDirs = (import ./homePaths.nix).directories;
+  homeProgFiles = (import ./homePaths.nix).files;
 
   # Some directories need tmpfiles rules otherwise they will be owned by root
   tmpRules = u: let
@@ -96,15 +64,40 @@
     "/home/${u}/.local/share".d = defaults;
     "/home/${u}/.local/state".d = defaults;
   };
+
+  # Return a list of all normal users
+  users = lib.attrNames (lib.filterAttrs (_n: v: v.isNormalUser) config.users.users);
+  userAs = config.ff.userConfig.users;
+
+  # Return a list of all packages installed on the system
+  parsePackages = user:
+    lib.map (d: (builtins.parseDrvName d.name).name) (
+      config.home-manager.users.${user}.home.packages ++ config.environment.systemPackages
+    );
+
+  # Compare list of parsed packages to homeProgDirs or homeProgFiles, output list of attribute values
+  preserveProgs = user: pd:
+    lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (parsePackages user)) pd));
+
+  # Return an attribute set of directories and files that must be preserved
+  mkPreserveHome = user: {
+    directories = (preserveProgs user homeProgDirs) ++ homeDirs ++ userAs.${user}.preservation.directories;
+    files = (preserveProgs user homeProgFiles) ++ homeFiles ++ userAs.${user}.preservation.files;
+    commonMountOptions = ["x-gvfs-hide"] ++ userAs.${user}.preservation.mountOptions;
+  };
 in {
+  # Preserve files and directories based on the above
   preservation = {
     enable = true;
     preserveAt.${cfg.storageDir} = {
-      directories = sysDirs ++ sysProgDirs ++ cfg.extraDirs;
-      files = sysFiles ++ sysProgFiles ++ cfg.extraFiles;
+      directories = sysDirs ++ sysProgDirs ++ cfg.directories ++ build-dir;
+      files = sysFiles ++ sysProgFiles ++ cfg.files;
       users = lib.mkIf cfg.preserveHome (lib.genAttrs users mkPreserveHome);
     };
   };
+
+  # Set nix build directory
+  nix.settings.build-dir = cfg.build-dir;
 
   # Modify default machine-id service to use actual file location
   systemd = {

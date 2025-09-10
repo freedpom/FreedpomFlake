@@ -4,6 +4,7 @@
   lib,
   ...
 }: {
+  # user options are in ./userConfig.nix
   options.ff = {
     system.preservation = {
       enable = lib.mkEnableOption "Enable preservation";
@@ -16,43 +17,27 @@
         description = "Directory where persistent data will be stored";
       };
 
-      extraDirs = lib.mkOption {
+      directories = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
         description = "Extra directories to be preserved";
       };
 
-      extraFiles = lib.mkOption {
+      files = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
         description = "Extra files to be preserved";
       };
-    };
 
-    userConfig.users = lib.mkOption {
-      type = lib.types.attrsOf (
-        lib.types.submodule {
-          options.preservation = {
-            directories = lib.mkOption {
-              type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
-              description = "Extra directories for preservation module";
-              default = [];
-            };
-
-            files = lib.mkOption {
-              type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
-              description = "Extra files for preservation module";
-              default = [];
-            };
-
-            mountOptions = lib.mkOption {
-              type = lib.types.listOf lib.types.str;
-              description = "Mount options for user directories";
-              default = [];
-            };
-          };
-        }
-      );
+      build-dir = lib.mkOption {
+        type = lib.types.str;
+        default = "/var/tmp";
+        description = ''
+          The default nix build directory /tmp will often fill the root tmpfs on large builds.
+          Changing this to a directory on a physical drive e.g. /var/tmp will fix this but may be undesirable
+          on systems that actually have enough memory to build in ram.
+        '';
+      };
     };
   };
 
@@ -63,8 +48,6 @@
     }
   ];
 
-  # Only import config if preservation inputs, lib.mkIf still evaluates disabled modules and builtin.tryEval would
-  # also catch errors from the user defined preservation config, pretty undesirable so this seems like the best option.
-  # Importing based on config would cause circular dependencies so we use inputs, can handle error conditions with asserts.
+  # Only import config if preservation inputs
   imports = lib.optionals (inputs ? preservation) [./preservation.nix];
 }
