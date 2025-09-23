@@ -25,6 +25,7 @@
   sysProgDirs = lib.flatten [
     (lib.mkIf config.hardware.bluetooth.enable "/var/lib/bluetooth")
     (lib.mkIf config.services.tailscale.enable "/var/lib/tailscale")
+    (lib.mkIf config.virtualisation.libvirtd.enable "/var/lib/libvirt")
   ];
 
   # Files in / that should be preserved if a program is enabled

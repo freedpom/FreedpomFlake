@@ -10,6 +10,10 @@
     tidal-hifi = ".config/tidal-hifi";
     wivrn = ".config/wivrn";
     steam = ".local/share/Steam";
+    r2modman = [
+      ".config/r2modman"
+      ".config/r2modmanPlus-local"
+    ];
     stremio-shell = [
       ".stremio-server"
       ".local/share/Smart Code ltd/Stremio"
