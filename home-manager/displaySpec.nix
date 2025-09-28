@@ -46,9 +46,9 @@
 
             transform = lib.mkOption {
               type = lib.types.int;
-              default = "0";
+              default = 0;
               description = "Rotate a monitor";
-              example = "1";
+              example = 1;
             };
 
             # Color depth
