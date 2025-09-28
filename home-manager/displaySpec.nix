@@ -44,17 +44,19 @@
               example = "3840x0";
             };
 
+            # Rotate a monitor
             transform = lib.mkOption {
               type = lib.types.int;
               default = 0;
-              description = "Rotate a monitor";
+              description = "Rotate a monitor (0=normal, 1=90°, 2=180°, etc.)";
               example = 1;
             };
 
-            # Color depth
+            # Color depth (8,16,24,32, or 10 for 10-bit)
             colorDepth = lib.mkOption {
               type = lib.types.enum [
                 8
+                10
                 16
                 24
                 32
@@ -63,25 +65,64 @@
               description = "Color depth in bits per pixel";
             };
 
-            # VRR/Adaptive Sync
+            # Enable variable refresh rate (FreeSync/G-Sync)
             variableRefreshRate = lib.mkOption {
               type = lib.types.bool;
               default = false;
-              description = "Enable variable refresh rate (FreeSync/G-Sync)";
+              description = "Enable variable refresh rate (VRR)";
             };
 
-            # HDR support
+            # HDR support flag
             hdr = lib.mkOption {
               type = lib.types.bool;
               default = false;
-              description = "Enable HDR if supported by monitor";
+              description = "Enable HDR if supported";
             };
 
-            # Flexible tagging system for monitor designation
+            # Mirror this monitor to another by name
+            mirror = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "Name of monitor to mirror this display to";
+            };
+
+            # Color management preset
+            cm = lib.mkOption {
+              type = lib.types.nullOr (
+                lib.types.enum [
+                  "auto"
+                  "srgb"
+                  "wide"
+                  "edid"
+                  "hdr"
+                  "hdredid"
+                ]
+              );
+              default = null;
+              description = "Color management preset for the monitor";
+            };
+
+            # SDR brightness multiplier (for HDR mode)
+            sdrbrightness = lib.mkOption {
+              type = lib.types.nullOr lib.types.float;
+              default = null;
+              description = "SDR brightness multiplier when HDR is enabled";
+              example = 1.2;
+            };
+
+            # SDR saturation multiplier (for HDR mode)
+            sdrsaturation = lib.mkOption {
+              type = lib.types.nullOr lib.types.float;
+              default = null;
+              description = "SDR saturation multiplier when HDR is enabled";
+              example = 0.98;
+            };
+
+            # Tags for categorizing monitor usage
             tags = lib.mkOption {
               type = lib.types.listOf lib.types.str;
               default = [];
-              description = "List of tags to categorize monitor usage";
+              description = "Tags to categorize monitor usage";
               example = [
                 "primary"
                 "gaming"
@@ -93,11 +134,11 @@
               ];
             };
 
-            # Workspace assignment (for tiling WMs)
+            # Workspaces assigned to this monitor
             workspaces = lib.mkOption {
               type = lib.types.listOf lib.types.str;
               default = [];
-              description = "List of workspaces to assign to this monitor";
+              description = "List of workspaces assigned to this monitor";
               example = [
                 "1"
                 "2"
@@ -129,6 +170,11 @@
             "2"
             "3"
           ];
+          mirror = null;
+          colorDepth = 10;
+          cm = "wide";
+          sdrbrightness = 1.2;
+          sdrsaturation = 0.98;
         };
       };
     };
