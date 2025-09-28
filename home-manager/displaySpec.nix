@@ -44,6 +44,13 @@
               example = "3840x0";
             };
 
+            transform = lib.mkOption {
+              type = lib.types.int;
+              default = "0";
+              description = "Rotate a monitor";
+              example = "1";
+            };
+
             # Color depth
             colorDepth = lib.mkOption {
               type = lib.types.enum [
