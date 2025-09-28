@@ -4,7 +4,6 @@
       type = lib.types.attrsOf (
         lib.types.submodule {
           options = {
-            # Display resolution configuration
             resolution = {
               width = lib.mkOption {
                 type = lib.types.int;
@@ -20,7 +19,6 @@
               };
             };
 
-            # Display refresh rate
             framerate = lib.mkOption {
               type = lib.types.int;
               default = 60;
@@ -28,7 +26,6 @@
               example = 144;
             };
 
-            # Display scaling factor
             scale = lib.mkOption {
               type = lib.types.either lib.types.int lib.types.float;
               default = 1.0;
@@ -36,7 +33,6 @@
               example = 1.25;
             };
 
-            # Monitor position in multi-monitor setup
             position = lib.mkOption {
               type = lib.types.str;
               default = "auto";
@@ -44,7 +40,6 @@
               example = "3840x0";
             };
 
-            # Rotate a monitor
             transform = lib.mkOption {
               type = lib.types.int;
               default = 0;
@@ -52,7 +47,6 @@
               example = 1;
             };
 
-            # Color depth (8,16,24,32, or 10 for 10-bit)
             colorDepth = lib.mkOption {
               type = lib.types.enum [
                 8
@@ -65,44 +59,24 @@
               description = "Color depth in bits per pixel";
             };
 
-            # Enable variable refresh rate (FreeSync/G-Sync)
             variableRefreshRate = lib.mkOption {
               type = lib.types.bool;
               default = false;
               description = "Enable variable refresh rate (VRR)";
             };
 
-            # HDR support flag
             hdr = lib.mkOption {
               type = lib.types.bool;
               default = false;
               description = "Enable HDR if supported";
             };
 
-            # Mirror this monitor to another by name
             mirror = lib.mkOption {
               type = lib.types.nullOr lib.types.str;
               default = null;
               description = "Name of monitor to mirror this display to";
             };
 
-            # Color management preset
-            cm = lib.mkOption {
-              type = lib.types.nullOr (
-                lib.types.enum [
-                  "auto"
-                  "srgb"
-                  "wide"
-                  "edid"
-                  "hdr"
-                  "hdredid"
-                ]
-              );
-              default = null;
-              description = "Color management preset for the monitor";
-            };
-
-            # SDR brightness multiplier (for HDR mode)
             sdrbrightness = lib.mkOption {
               type = lib.types.nullOr lib.types.float;
               default = null;
@@ -110,7 +84,6 @@
               example = 1.2;
             };
 
-            # SDR saturation multiplier (for HDR mode)
             sdrsaturation = lib.mkOption {
               type = lib.types.nullOr lib.types.float;
               default = null;
@@ -118,23 +91,6 @@
               example = 0.98;
             };
 
-            # Tags for categorizing monitor usage
-            tags = lib.mkOption {
-              type = lib.types.listOf lib.types.str;
-              default = [];
-              description = "Tags to categorize monitor usage";
-              example = [
-                "primary"
-                "gaming"
-                "media"
-                "communication"
-                "work"
-                "vertical"
-                "secondary"
-              ];
-            };
-
-            # Workspaces assigned to this monitor
             workspaces = lib.mkOption {
               type = lib.types.listOf lib.types.str;
               default = [];
@@ -158,23 +114,19 @@
           };
           framerate = 144;
           scale = 1.0;
-          tags = [
-            "primary"
-            "gaming"
-            "media"
-          ];
-          enable = true;
+          colorDepth = 10;
           variableRefreshRate = true;
+          hdr = true;
+          sdrbrightness = 1.2;
+          sdrsaturation = 0.98;
+          mirror = null;
           workspaces = [
             "1"
             "2"
             "3"
           ];
-          mirror = null;
-          colorDepth = 10;
-          cm = "wide";
-          sdrbrightness = 1.2;
-          sdrsaturation = 0.98;
+          position = "auto";
+          transform = 0;
         };
       };
     };
