@@ -65,16 +65,25 @@
               description = "Enable variable refresh rate (VRR)";
             };
 
-            hdr = lib.mkOption {
-              type = lib.types.bool;
-              default = false;
-              description = "Enable HDR if supported";
-            };
-
             mirror = lib.mkOption {
               type = lib.types.nullOr lib.types.str;
               default = null;
               description = "Name of monitor to mirror this display to";
+            };
+
+            cm = lib.mkOption {
+              type = lib.types.nullOr (
+                lib.types.enum [
+                  "auto"
+                  "srgb"
+                  "wide"
+                  "edid"
+                  "hdr"
+                  "hdredid"
+                ]
+              );
+              default = null;
+              description = "Color management preset for the monitor";
             };
 
             sdrbrightness = lib.mkOption {
@@ -114,19 +123,15 @@
           };
           framerate = 144;
           scale = 1.0;
-          colorDepth = 10;
           variableRefreshRate = true;
-          hdr = true;
+          cm = "hdr";
           sdrbrightness = 1.2;
           sdrsaturation = 0.98;
-          mirror = null;
           workspaces = [
             "1"
             "2"
             "3"
           ];
-          position = "auto";
-          transform = 0;
         };
       };
     };
