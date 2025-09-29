@@ -59,9 +59,14 @@
               description = "Color depth in bits per pixel";
             };
 
-            variableRefreshRate = lib.mkOption {
-              type = lib.types.bool;
-              default = false;
+            vrr = lib.mkOption {
+              type = lib.types.enum [
+                0
+                1
+                2
+                3
+              ];
+              default = 0;
               description = "Enable variable refresh rate (VRR)";
             };
 
