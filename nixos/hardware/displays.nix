@@ -1,4 +1,8 @@
-{lib, ...}: {
+{
+  lib,
+  config,
+  ...
+}: {
   options = {
     ff.hardware.displays = lib.mkOption {
       type = lib.types.attrsOf (
@@ -165,5 +169,19 @@
         };
       };
     };
+  };
+  config = {
+    system.kernelParams = lib.mkForce (
+      let
+        displays = config.ff.hardware.displays or {};
+        videoParams = builtins.attrValues (
+          lib.mapAttrs (
+            name: disp: "video=${name}:${toString disp.resolution.width}x${toString disp.resolution.height}@${toString disp.framerate}"
+          )
+          displays
+        );
+      in
+        videoParams ++ (config.system.kernelParams or [])
+    );
   };
 }
