@@ -171,7 +171,7 @@
     };
   };
   config = {
-    system.kernelParams = lib.mkForce (
+    boot.kernelParams = lib.mkForce (
       let
         displays = config.ff.hardware.displays or {};
         videoParams = builtins.attrValues (
