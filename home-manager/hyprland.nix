@@ -16,8 +16,8 @@
       )
     )
     {
-      wayland.windowManager.hyprland.settings.monitor = lib.mkDefault (
-        lib.mapAttrsToList (
+      wayland.windowManager.hyprland.settings = lib.mkDefault {
+        monitor = lib.mapAttrsToList (
           name: cfg: let
             opt = attr: pred: prefix: suffix:
               if (cfg ? ${attr}) && pred cfg.${attr}
@@ -46,13 +46,13 @@
             + sdrBrightnessStr
             + sdrSaturationStr
             + vrrStr
-        ) (lib.mkForce (lib.attrByPath ["ff" "hardware" "displays"] {} osConfig))
-      );
+        ) (lib.mkForce (lib.attrByPath ["ff" "hardware" "displays"] {} osConfig));
 
-      wayland.windowManager.hyprland.settings.workspace = lib.concatLists (
-        lib.mapAttrsToList (name: cfg: map (ws: "${ws}, monitor:${name}") cfg.workspaces) (
-          lib.mkForce (lib.attrByPath ["ff" "hardware" "displays"] {} osConfig)
-        )
-      );
+        workspace = lib.concatLists (
+          lib.mapAttrsToList (name: cfg: map (ws: "${ws}, monitor:${name}") cfg.workspaces) (
+            lib.mkForce (lib.attrByPath ["ff" "hardware" "displays"] {} osConfig)
+          )
+        );
+      };
     };
 }
