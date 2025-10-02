@@ -3,27 +3,17 @@
   osConfig,
   config,
   ...
-}: {
+}: let
+  displays = lib.mkForce (lib.attrByPath ["ff" "hardware" "displays"] {} osConfig);
+in {
   config =
     lib.mkIf
     (
-      (config.wayland.windowManager.hyprland.enable or false)
-      && (
-        lib.length (
-          lib.attrNames (lib.mkForce (lib.attrByPath ["ff" "hardware" "displays"] {} osConfig))
-        )
-        > 0
-      )
+      (config.wayland.windowManager.hyprland.enable or false) && (lib.length (lib.attrNames displays) > 0)
     )
-    (
-      let
-        displays = lib.mkForce (lib.attrByPath ["ff" "hardware" "displays"] {} osConfig);
-
-        # Should we set monitor?
-        setMonitor = !(config.wayland.windowManager.hyprland.settings ? monitor);
-        setWorkspace = !(config.wayland.windowManager.hyprland.settings ? workspace);
-
-        monitorSettings =
+    {
+      wayland.windowManager.hyprland.settings = {
+        monitor =
           lib.mapAttrsToList (
             name: cfg: let
               opt = attr: pred: prefix: suffix:
@@ -56,14 +46,9 @@
           )
           displays;
 
-        workspaceSettings = lib.concatLists (
+        workspace = lib.concatLists (
           lib.mapAttrsToList (name: cfg: map (ws: "${ws}, monitor:${name}") cfg.workspaces) displays
         );
-      in {
-        wayland.windowManager.hyprland.settings = {
-          monitor = lib.mkIf setMonitor monitorSettings;
-          workspace = lib.mkIf setWorkspace workspaceSettings;
-        };
-      }
-    );
+      };
+    };
 }
