@@ -176,7 +176,7 @@
         displays = config.ff.hardware.displays or {};
         videoParams = builtins.attrValues (
           lib.mapAttrs (
-            name: disp: "video=${name}:${toString disp.resolution.width}x${toString disp.resolution.height}@${toString disp.framerate}"
+            name: disp: "video=${name}:${toString disp.resolution.width}x${toString disp.resolution.height}@60"
           )
           displays
         );
