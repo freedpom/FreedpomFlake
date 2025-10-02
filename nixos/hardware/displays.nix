@@ -61,7 +61,7 @@
               example = 1;
             };
 
-            color_depth = lib.mkOption {
+            colorDepth = lib.mkOption {
               type = lib.types.enum [
                 8
                 10
@@ -96,7 +96,7 @@
               example = "HDMI-1";
             };
 
-            color_profile = lib.mkOption {
+            colorProfile = lib.mkOption {
               type = lib.types.nullOr (
                 lib.types.enum [
                   "auto"
@@ -112,14 +112,14 @@
               example = "hdr";
             };
 
-            sdr_brightness = lib.mkOption {
+            sdrBrightness = lib.mkOption {
               type = lib.types.nullOr lib.types.float;
               default = null;
               description = "SDR brightness multiplier when HDR is enabled.";
               example = 1.2;
             };
 
-            sdr_saturation = lib.mkOption {
+            sdrSaturation = lib.mkOption {
               type = lib.types.nullOr lib.types.float;
               default = null;
               description = "SDR saturation multiplier when HDR is enabled.";
@@ -154,9 +154,9 @@
           color_depth = 10;
           vrr = 1;
           mirror = null;
-          color_profile = "hdr";
-          sdr_brightness = 1.2;
-          sdr_saturation = 0.98;
+          colorProfile = "hdr";
+          sdrBrightness = 1.2;
+          sdrSaturation = 0.98;
           workspaces = [
             "1"
             "2"
