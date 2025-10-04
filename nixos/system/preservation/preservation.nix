@@ -68,12 +68,12 @@
 
   # Return a list of all normal users
   users = lib.attrNames (lib.filterAttrs (_n: v: v.isNormalUser) config.users.users);
-  userAs = config.ff.userConfig.users;
+  userCfg = config.ff.userConfig.users;
 
   # Return a list of all packages installed on the system
   parsePackages = user:
     lib.map (d: (builtins.parseDrvName d.name).name) (
-      config.home-manager.users.${user}.home.packages ++ config.environment.systemPackages
+      config.environment.systemPackages ++ config.users.users.${user}.packages ++ lib.optionals (config ? "home-manager") config.home-manager.users.${user}.home.packages
     );
 
   # Compare list of parsed packages to homeProgDirs or homeProgFiles, output list of attribute values
@@ -82,9 +82,9 @@
 
   # Return an attribute set of directories and files that must be preserved
   mkPreserveHome = user: {
-    directories = (preserveProgs user homeProgDirs) ++ homeDirs ++ userAs.${user}.preservation.directories;
-    files = (preserveProgs user homeProgFiles) ++ homeFiles ++ userAs.${user}.preservation.files;
-    commonMountOptions = ["x-gvfs-hide"] ++ userAs.${user}.preservation.mountOptions;
+    directories = (preserveProgs user homeProgDirs) ++ homeDirs ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.directories;
+    files = (preserveProgs user homeProgFiles) ++ homeFiles ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.files;
+    commonMountOptions = ["x-gvfs-hide"] ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.mountOptions;
   };
 in {
   # Preserve files and directories based on the above
