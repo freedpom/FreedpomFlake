@@ -8,6 +8,13 @@
       type = lib.types.attrsOf (
         lib.types.submodule {
           options = {
+            includeKernelParams = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+              description = "Whether to add a video= kernel parameter for this display";
+              example = true;
+            };
+
             resolution = lib.mkOption {
               type = lib.types.submodule {
                 options = {
@@ -147,6 +154,7 @@
       description = "Configuration for each connected display.";
       example = {
         "DP-1" = {
+          includeKernelParams = true;
           resolution = {
             width = 2560;
             height = 1440;
@@ -171,17 +179,22 @@
     };
   };
   config = {
-    boot.kernelParams = lib.mkForce (
-      let
-        displays = config.ff.hardware.displays or {};
-        videoParams = builtins.attrValues (
-          lib.mapAttrs (
-            name: disp: "video=${name}:${toString disp.resolution.width}x${toString disp.resolution.height}@60"
-          )
-          displays
-        );
-      in
-        videoParams ++ (config.system.kernelParams or [])
-    );
+    boot.kernelParams = let
+      displays = config.ff.hardware.displays or {};
+      videoParams = lib.flatten (
+        lib.mapAttrsToList (
+          name: disp:
+            if disp.includeKernelParams
+            then let
+              width = toString (disp.resolution.width or 1920);
+              height = toString (disp.resolution.height or 1080);
+              rate = toString (disp.framerate or 60);
+            in ["video=${name}:${width}x${height}@${rate}"]
+            else []
+        )
+        displays
+      );
+    in
+      videoParams;
   };
 }
