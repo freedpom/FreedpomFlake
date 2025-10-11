@@ -73,7 +73,7 @@
   # Return a list of all packages installed on the system
   parsePackages = user:
     lib.map (d: (builtins.parseDrvName d.name).name) (
-      config.environment.systemPackages ++ config.users.users.${user}.packages ++ lib.optionals (config ? "home-manager") config.home-manager.users.${user}.home.packages
+      config.environment.systemPackages ++ config.users.users.${user}.packages ++ lib.optionals (config ? "home-manager" && config.home-manager.users ? user) config.home-manager.users.${user}.home.packages
     );
 
   # Compare list of parsed packages to homeProgDirs or homeProgFiles, output list of attribute values
@@ -87,7 +87,7 @@
     commonMountOptions = ["x-gvfs-hide"] ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.mountOptions;
   };
 in {
-  # Preserve files and directories based on the above
+  ### Preserve files and directories based on the above
   preservation = {
     enable = true;
     preserveAt.${cfg.storageDir} = {

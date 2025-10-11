@@ -4,7 +4,7 @@
   lib,
   ...
 }: {
-  # user options are in ./userConfig.nix
+  # user options are in ../userConfig.nix
   options.ff = {
     system.preservation = {
       enable = lib.mkEnableOption "Enable preservation";
@@ -31,7 +31,7 @@
 
       build-dir = lib.mkOption {
         type = lib.types.str;
-        default = "/var/tmp";
+        default = "/var/tmp/nix";
         description = ''
           The default nix build directory /tmp will often fill the root tmpfs on large builds.
           Changing this to a directory on a physical drive e.g. /var/tmp will fix this but may be undesirable
@@ -44,7 +44,7 @@
   config.assertions = [
     {
       assertion = config.ff.system.preservation.enable -> (inputs ? preservation);
-      message = "Preservation module is required to enable preservation, please install it and try again.";
+      message = "Preservation is required as a flake input to enable our preservation helper, please add it.";
     }
   ];
 

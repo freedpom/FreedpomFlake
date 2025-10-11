@@ -46,7 +46,15 @@ in {
               };
 
               hashedPassword = lib.mkOption {
-                type = lib.types.str;
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                example = "$6$i8pqqPIplhh3zxt1$bUH178Go8y5y6HeWKIlyjMUklE2x/8Vy9d3KiCD1WN61EtHlrpWrGJxphqu7kB6AERg6sphGLonDeJvS/WC730";
+                description = "hashed password of the specified user";
+              };
+
+              hashedPasswordFile = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
                 example = "$6$i8pqqPIplhh3zxt1$bUH178Go8y5y6HeWKIlyjMUklE2x/8Vy9d3KiCD1WN61EtHlrpWrGJxphqu7kB6AERg6sphGLonDeJvS/WC730";
                 description = "hashed password of the specified user";
               };
@@ -89,7 +97,7 @@ in {
     users = {
       inherit (cfg) mutableUsers;
       users = lib.genAttrs users (user: {
-        inherit (cfg.users.${user}) hashedPassword;
+        inherit (cfg.users.${user}) hashedPassword hashedPasswordFile;
         uid = lib.mkIf (cfg.users.${user}.uid != null) cfg.users.${user}.uid;
 
         isSystemUser = lib.mkIf (cfg.users.${user}.role == "system") true;
