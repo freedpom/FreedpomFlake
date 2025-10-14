@@ -23,18 +23,22 @@ in {
             {
               mode = "nts";
               address = "virginia.time.system76.com";
+              ntp-version = "auto";
             }
             {
               mode = "nts";
               address = "oregon.time.system76.com";
+              ntp-version = "auto";
             }
             {
               mode = "nts";
               address = "ohio.time.system76.com";
+              ntp-version = "auto";
             }
             {
               mode = "nts";
               address = "time.txryan.com";
+              ntp-version = "auto";
             }
           ];
         };
