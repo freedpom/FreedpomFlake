@@ -33,9 +33,10 @@
         type = lib.types.str;
         default = "/var/tmp/nix";
         description = ''
-          The default nix build directory /tmp will often fill the root tmpfs on large builds.
-          Changing this to a directory on a physical drive e.g. /var/tmp will fix this but may be undesirable
-          on systems that actually have enough memory to build in ram.
+          The default nix build directory /tmp will often fill the root tmpfs on large builds. Changing
+          this to a directory on a physical drive e.g. /var/tmp will fix this but may be undesirable on
+          systems that actually have enough memory to build in ram. Setting back to the nix default /tmp
+          will disable automatic bind mount generation for the directory.
         '';
       };
     };
@@ -48,7 +49,7 @@
     }
   ];
 
-  imports = [
+  imports = lib.optionals (inputs ? "preservation") [
     ./preservation.nix
   ];
 }

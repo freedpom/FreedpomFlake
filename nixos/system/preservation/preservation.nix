@@ -1,12 +1,9 @@
 {
   config,
   lib,
-  inputs,
   ...
 }: let
   cfg = config.ff.system.preservation;
-  preservationEnabled = config.ff.system.preservation.enable;
-  inputAvailable = inputs ? preservation;
 
   # Directories in / that should always be preserved
   sysDirs = [
@@ -52,8 +49,7 @@
   homeFiles = [];
 
   # Directories and files in $HOME that should be preserved if a program is installed
-  homeProgDirs = (import ./homePaths.nix).directories;
-  homeProgFiles = (import ./homePaths.nix).files;
+  homePaths = import ./homePaths.nix;
 
   # Some directories need tmpfiles rules otherwise they will be owned by root
   tmpRules = u: let
@@ -84,18 +80,18 @@
       config.home-manager.users.${user}.home.packages
     );
 
-  # Compare list of parsed packages to homeProgDirs or homeProgFiles, output list of attribute values
+  # Compare list of parsed packages to an attribute set of package names and directories, output list of attribute values
   preserveProgs = user: pd:
     lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (parsePackages user)) pd));
 
   # Return an attribute set of directories and files that must be preserved
   mkPreserveHome = user: {
     directories =
-      (preserveProgs user homeProgDirs)
+      (preserveProgs user homePaths.directories)
       ++ homeDirs
       ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.directories;
     files =
-      (preserveProgs user homeProgFiles)
+      (preserveProgs user homePaths.files)
       ++ homeFiles
       ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.files;
     commonMountOptions =
@@ -105,7 +101,7 @@
       ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.mountOptions;
   };
 in {
-  config = lib.mkIf (preservationEnabled && inputAvailable) {
+  config = lib.mkIf cfg.enable {
     ### Preserve files and directories based on the above
     preservation = {
       enable = true;
