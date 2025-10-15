@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  inputs,
   ...
 }: let
   cfg = config.ff.system.preservation;
@@ -73,7 +74,12 @@
   # Return a list of all packages installed on the system
   parsePackages = user:
     lib.map (d: (builtins.parseDrvName d.name).name) (
-      config.environment.systemPackages ++ config.users.users.${user}.packages ++ lib.optionals (config ? "home-manager" && config.home-manager.users ? ${user}) config.home-manager.users.${user}.home.packages
+      config.environment.systemPackages
+      ++ config.users.users.${user}.packages
+      ++ lib.optionals (
+        config ? "home-manager" && config.home-manager.users ? ${user}
+      )
+      config.home-manager.users.${user}.home.packages
     );
 
   # Compare list of parsed packages to homeProgDirs or homeProgFiles, output list of attribute values
@@ -82,38 +88,54 @@
 
   # Return an attribute set of directories and files that must be preserved
   mkPreserveHome = user: {
-    directories = (preserveProgs user homeProgDirs) ++ homeDirs ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.directories;
-    files = (preserveProgs user homeProgFiles) ++ homeFiles ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.files;
-    commonMountOptions = ["x-gvfs-hide"] ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.mountOptions;
+    directories =
+      (preserveProgs user homeProgDirs)
+      ++ homeDirs
+      ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.directories;
+    files =
+      (preserveProgs user homeProgFiles)
+      ++ homeFiles
+      ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.files;
+    commonMountOptions =
+      [
+        "x-gvfs-hide"
+      ]
+      ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.mountOptions;
   };
 in {
-  ### Preserve files and directories based on the above
-  preservation = {
-    enable = true;
-    preserveAt.${cfg.storageDir} = {
-      directories = sysDirs ++ sysProgDirs ++ cfg.directories ++ build-dir;
-      files = sysFiles ++ sysProgFiles ++ cfg.files;
-      users = lib.mkIf cfg.preserveHome (lib.genAttrs users mkPreserveHome);
+  config =
+    config.ff.system.preservation.enable
+    && (inputs ? preservation) {
+      ### Preserve files and directories based on the above
+      preservation = {
+        enable = true;
+        preserveAt.${cfg.storageDir} = {
+          directories = sysDirs ++ sysProgDirs ++ cfg.directories ++ build-dir;
+          files = sysFiles ++ sysProgFiles ++ cfg.files;
+          users = lib.mkIf cfg.preserveHome (lib.genAttrs users mkPreserveHome);
+        };
+      };
+
+      # Set nix build directory
+      nix.settings.build-dir = cfg.build-dir;
+
+      # Modify default machine-id service to use actual file location
+      systemd = {
+        services.systemd-machine-id-commit = {
+          unitConfig.ConditionPathIsMountPoint = [
+            ""
+            "/persistent/etc/machine-id"
+          ];
+          serviceConfig.ExecStart = [
+            ""
+            "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
+          ];
+        };
+
+        # Generate tmpfiles settings for each user
+        tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (
+          lib.foldl' (r: u: r // tmpRules u) {} users
+        );
+      };
     };
-  };
-
-  # Set nix build directory
-  nix.settings.build-dir = cfg.build-dir;
-
-  # Modify default machine-id service to use actual file location
-  systemd = {
-    services.systemd-machine-id-commit = {
-      unitConfig.ConditionPathIsMountPoint = [
-        ""
-        "/persistent/etc/machine-id"
-      ];
-      serviceConfig.ExecStart = [
-        ""
-        "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
-      ];
-    };
-
-    # Generate tmpfiles settings for each user
-    tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (lib.foldl' (r: u: r // tmpRules u) {} users);
-  };
 }

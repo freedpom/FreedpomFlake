@@ -48,7 +48,7 @@
     }
   ];
 
-  imports = lib.optionals (config.ff.system.preservation.enable && (inputs ? preservation)) [
+  imports = [
     ./preservation.nix
   ];
 }
