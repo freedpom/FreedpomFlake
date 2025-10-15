@@ -5,6 +5,8 @@
   ...
 }: let
   cfg = config.ff.system.preservation;
+  preservationEnabled = config.ff.system.preservation.enable;
+  inputAvailable = inputs ? preservation;
 
   # Directories in / that should always be preserved
   sysDirs = [
@@ -103,39 +105,37 @@
       ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.mountOptions;
   };
 in {
-  config =
-    config.ff.system.preservation.enable
-    && (inputs ? preservation) {
-      ### Preserve files and directories based on the above
-      preservation = {
-        enable = true;
-        preserveAt.${cfg.storageDir} = {
-          directories = sysDirs ++ sysProgDirs ++ cfg.directories ++ build-dir;
-          files = sysFiles ++ sysProgFiles ++ cfg.files;
-          users = lib.mkIf cfg.preserveHome (lib.genAttrs users mkPreserveHome);
-        };
-      };
-
-      # Set nix build directory
-      nix.settings.build-dir = cfg.build-dir;
-
-      # Modify default machine-id service to use actual file location
-      systemd = {
-        services.systemd-machine-id-commit = {
-          unitConfig.ConditionPathIsMountPoint = [
-            ""
-            "/persistent/etc/machine-id"
-          ];
-          serviceConfig.ExecStart = [
-            ""
-            "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
-          ];
-        };
-
-        # Generate tmpfiles settings for each user
-        tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (
-          lib.foldl' (r: u: r // tmpRules u) {} users
-        );
+  config = lib.mkIf (preservationEnabled && inputAvailable) {
+    ### Preserve files and directories based on the above
+    preservation = {
+      enable = true;
+      preserveAt.${cfg.storageDir} = {
+        directories = sysDirs ++ sysProgDirs ++ cfg.directories ++ build-dir;
+        files = sysFiles ++ sysProgFiles ++ cfg.files;
+        users = lib.mkIf cfg.preserveHome (lib.genAttrs users mkPreserveHome);
       };
     };
+
+    # Set nix build directory
+    nix.settings.build-dir = cfg.build-dir;
+
+    # Modify default machine-id service to use actual file location
+    systemd = {
+      services.systemd-machine-id-commit = {
+        unitConfig.ConditionPathIsMountPoint = [
+          ""
+          "/persistent/etc/machine-id"
+        ];
+        serviceConfig.ExecStart = [
+          ""
+          "systemd-machine-id-setup --commit --root ${cfg.storageDir}"
+        ];
+      };
+
+      # Generate tmpfiles settings for each user
+      tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (
+        lib.foldl' (r: u: r // tmpRules u) {} users
+      );
+    };
+  };
 }
