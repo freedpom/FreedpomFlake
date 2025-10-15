@@ -43,11 +43,12 @@
 
   config.assertions = [
     {
-      assertion = config.ff.system.preservation.enable -> (inputs ? preservation);
+      assertion = (!config.ff.system.preservation.enable) || (inputs ? preservation);
       message = "Preservation is required as a flake input to enable our preservation helper, please add it.";
     }
   ];
 
-  # Only import config if preservation inputs
-  imports = lib.optionals (inputs ? preservation) [./preservation.nix];
+  imports = lib.optionals (config.ff.system.preservation.enable && (inputs ? preservation)) [
+    ./preservation.nix
+  ];
 }
