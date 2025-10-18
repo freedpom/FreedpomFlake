@@ -33,7 +33,12 @@
   ];
 
   # Directory for nix builds, will not be preserved if set to /tmp
-  build-dir = lib.optionals (cfg.build-dir != "/tmp") ["${cfg.build-dir}"];
+  build-dir = lib.optionals (cfg.build-dir != "/tmp") [
+    {
+      directory = "${cfg.build-dir}";
+      mode = "0755";
+    }
+  ];
 
   # Directories in $HOME that should always be preserved
   homeDirs = [
