@@ -62,17 +62,9 @@ in {
               {
                 encoder = "vaapi";
                 codec = "h265";
-                width = 0.125;
+                width = 0.5;
                 height = 1.0;
                 offset_x = 0.0;
-                offset_y = 0.0;
-              }
-              {
-                encoder = "vaapi";
-                codec = "h265";
-                width = 0.375;
-                height = 1.0;
-                offset_x = 0.125;
                 offset_y = 0.0;
               }
               {
