@@ -9,6 +9,13 @@ in {
   # Configuration options for Ananicy service
   options.ff.services.virt-reality = {
     enable = lib.mkEnableOption "Enable the virtual reality";
+    wivrnPkg = lib.mkOption {
+      type = lib.types.pkgs;
+      default = pkgs.wivrn;
+      description = ''
+        Wivrn package to use
+      '';
+    };
     autoStart = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -36,6 +43,7 @@ in {
     services = {
       wivrn = {
         enable = true;
+        package = cfg.wivrnPkg;
         defaultRuntime = true;
 
         inherit (cfg) autoStart;
