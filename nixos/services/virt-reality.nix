@@ -43,7 +43,7 @@ in {
     services = {
       wivrn = {
         enable = true;
-        package = cfg.wivrnPkg;
+        package = lib.mkDefault cfg.wivrnPkg;
         defaultRuntime = true;
 
         inherit (cfg) autoStart;
