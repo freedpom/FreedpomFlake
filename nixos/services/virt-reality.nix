@@ -10,7 +10,7 @@ in {
   options.ff.services.virt-reality = {
     enable = lib.mkEnableOption "Enable the virtual reality";
     wivrnPkg = lib.mkOption {
-      type = lib.types.pkg;
+      type = lib.types.package;
       default = pkgs.wivrn;
       description = ''
         Wivrn package to use
