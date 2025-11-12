@@ -100,10 +100,10 @@ in {
         inherit (cfg.users.${user}) hashedPassword hashedPasswordFile;
         uid = lib.mkIf (cfg.users.${user}.uid != null) cfg.users.${user}.uid;
 
-        isSystemUser = (cfg.users.${user}.role == "system");
+        isSystemUser = cfg.users.${user}.role == "system";
 
-        isNormalUser = (cfg.users.${user}.role != "system");
-        createHome = (cfg.users.${user}.role != "system");
+        isNormalUser = cfg.users.${user}.role != "system";
+        createHome = cfg.users.${user}.role != "system";
 
         extraGroups =
           cfg.users.${user}.extraGroups
