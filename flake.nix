@@ -32,10 +32,10 @@
         flake = {
           inherit fmtModule;
           homeModules = {
-            freedpomFlake = ./home-manager;
+            freedpomFlake = ./modules/home-manager;
           };
           nixosModules = {
-            freedpomFlake = ./nixos;
+            freedpomFlake = ./modules/nixos;
           };
         };
       }
