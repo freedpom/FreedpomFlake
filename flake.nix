@@ -15,9 +15,10 @@
   outputs =
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } (
+      { withSystem, ... }:
       let
         inherit (flake-parts.lib) importApply;
-        fmtModule = importApply ./fmt-module.nix;
+        fmtModule = importApply ./fmt-module.nix { inherit withSystem inputs; };
       in
       {
         systems = [
