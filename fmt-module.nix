@@ -1,9 +1,12 @@
-localFlake:
-{ ... }:
+_localFlake:
+{
+  inputs,
+  ...
+}:
 {
   imports = [
-    localFlake.inputs.flake-root.flakeModule
-    localFlake.inputs.treefmt-nix.flakeModule
+    inputs.flake-root.flakeModule
+    inputs.treefmt-nix.flakeModule
   ];
 
   perSystem =
