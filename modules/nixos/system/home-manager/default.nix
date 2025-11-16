@@ -1,5 +1,6 @@
 {
   lib,
+  inputs,
   ...
 }:
 {
@@ -8,5 +9,5 @@
     default = true;
     description = "Default system configs for home-manager, can be disabled.";
   };
-  #imports = lib.optionals (inputs ? home-manager) [./home-manager.nix];
+  imports = lib.optionals (inputs ? home-manager) [ ./home-manager.nix ];
 }
