@@ -6,19 +6,14 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-root.url = "github:srid/flake-root";
     treefmt-nix.url = "github:numtide/treefmt-nix";
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      { withSystem, ... }:
+      _:
       let
-        inherit (flake-parts.lib) importApply;
-        fmtModule = importApply ./fmt-module.nix { inherit withSystem inputs; };
+        fmtModule = flake-parts.lib.importApply ./modules/flake/fmt-module.nix { inherit inputs; };
       in
       {
         systems = [
@@ -28,7 +23,6 @@
 
         imports = [
           fmtModule
-          inputs.home-manager.flakeModules.home-manager
         ];
         flake = {
           inherit fmtModule;
