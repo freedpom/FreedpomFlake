@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.ff.system.preservation;
 
   # Directories in / that should always be preserved
@@ -51,42 +52,46 @@
   ];
 
   # Files in $HOME that should always be preserved
-  homeFiles = [];
+  homeFiles = [ ];
 
   # Directories and files in $HOME that should be preserved if a program is installed
   homePaths = import ./homePaths.nix;
 
   # Some directories need tmpfiles rules otherwise they will be owned by root
-  tmpRules = u: let
-    defaults = {
-      inherit (config.users.users.${u}) group;
-      user = u;
-      mode = "0755";
+  tmpRules =
+    u:
+    let
+      defaults = {
+        inherit (config.users.users.${u}) group;
+        user = u;
+        mode = "0755";
+      };
+    in
+    {
+      "/home/${u}/.config".d = defaults;
+      "/home/${u}/.local".d = defaults;
+      "/home/${u}/.local/share".d = defaults;
+      "/home/${u}/.local/state".d = defaults;
     };
-  in {
-    "/home/${u}/.config".d = defaults;
-    "/home/${u}/.local".d = defaults;
-    "/home/${u}/.local/share".d = defaults;
-    "/home/${u}/.local/state".d = defaults;
-  };
 
   # Return a list of all normal users
   users = lib.attrNames (lib.filterAttrs (_n: v: v.isNormalUser) config.users.users);
   userCfg = config.ff.userConfig.users;
 
   # Return a list of all packages installed on the system
-  parsePackages = user:
+  parsePackages =
+    user:
     lib.map (d: (builtins.parseDrvName d.name).name) (
       config.environment.systemPackages
       ++ config.users.users.${user}.packages
       ++ lib.optionals (
         config ? "home-manager" && config.home-manager.users ? ${user}
-      )
-      config.home-manager.users.${user}.home.packages
+      ) config.home-manager.users.${user}.home.packages
     );
 
   # Compare list of parsed packages to an attribute set of package names and directories, output list of attribute values
-  preserveProgs = user: pd:
+  preserveProgs =
+    user: pd:
     lib.flatten (lib.attrValues (lib.filterAttrs (n: _v: lib.elem n (parsePackages user)) pd));
 
   # Return an attribute set of directories and files that must be preserved
@@ -99,13 +104,13 @@
       (preserveProgs user homePaths.files)
       ++ homeFiles
       ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.files;
-    commonMountOptions =
-      [
-        "x-gvfs-hide"
-      ]
-      ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.mountOptions;
+    commonMountOptions = [
+      "x-gvfs-hide"
+    ]
+    ++ lib.optionals (userCfg ? ${user}) userCfg.${user}.preservation.mountOptions;
   };
-in {
+in
+{
   config = lib.mkIf cfg.enable {
     ### Preserve files and directories based on the above
     preservation = {
@@ -135,7 +140,7 @@ in {
 
       # Generate tmpfiles settings for each user
       tmpfiles.settings.preservation = lib.mkIf cfg.preserveHome (
-        lib.foldl' (r: u: r // tmpRules u) {} users
+        lib.foldl' (r: u: r // tmpRules u) { } users
       );
     };
   };

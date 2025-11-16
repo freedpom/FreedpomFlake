@@ -2,9 +2,11 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   cfg = config.ff.system.sysctl;
-in {
+in
+{
   options.ff.system.sysctl = {
     cachyos = lib.mkOption {
       type = lib.types.bool;

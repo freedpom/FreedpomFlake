@@ -2,9 +2,11 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.ff.services.ntp;
-in {
+in
+{
   # Configuration options for Ananicy service
   options.ff.services.ntp = {
     enable = lib.mkEnableOption "Whether to enable Network Time Service (ntpd-rs)";
@@ -44,6 +46,6 @@ in {
         };
       };
     };
-    networking.timeServers = [];
+    networking.timeServers = [ ];
   };
 }

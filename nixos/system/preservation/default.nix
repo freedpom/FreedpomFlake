@@ -3,7 +3,8 @@
   inputs,
   lib,
   ...
-}: {
+}:
+{
   # user options are in ../userConfig.nix
   options.ff = {
     system.preservation = {
@@ -19,13 +20,13 @@
 
       directories = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [];
+        default = [ ];
         description = "Extra directories to be preserved";
       };
 
       files = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [];
+        default = [ ];
         description = "Extra files to be preserved";
       };
 

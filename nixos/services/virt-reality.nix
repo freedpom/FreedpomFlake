@@ -3,9 +3,11 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   cfg = config.ff.services.virt-reality;
-in {
+in
+{
   # Configuration options for Ananicy service
   options.ff.services.virt-reality = {
     enable = lib.mkEnableOption "Enable the virtual reality";
@@ -76,7 +78,7 @@ in {
                 offset_y = 0.0;
               }
             ];
-            application = [pkgs.wlx-overlay-s];
+            application = [ pkgs.wlx-overlay-s ];
           };
         };
       };

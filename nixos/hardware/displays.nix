@@ -2,7 +2,8 @@
   lib,
   config,
   ...
-}: {
+}:
+{
   options = {
     ff.hardware.displays = lib.mkOption {
       type = lib.types.attrsOf (
@@ -32,7 +33,7 @@
                   };
                 };
               };
-              default = {};
+              default = { };
               description = "Display resolution.";
             };
 
@@ -139,7 +140,7 @@
 
             workspaces = lib.mkOption {
               type = lib.types.listOf lib.types.str;
-              default = [];
+              default = [ ];
               description = "Workspaces assigned to this display.";
               example = [
                 "1"
@@ -150,7 +151,7 @@
           };
         }
       );
-      default = {};
+      default = { };
       description = "Configuration for each connected display.";
       example = {
         "DP-1" = {
@@ -179,22 +180,24 @@
     };
   };
   config = {
-    boot.kernelParams = let
-      displays = config.ff.hardware.displays or {};
-      videoParams = lib.flatten (
-        lib.mapAttrsToList (
-          name: disp:
-            if disp.includeKernelParams
-            then let
-              width = toString (disp.resolution.width or 1920);
-              height = toString (disp.resolution.height or 1080);
-              rate = toString (disp.framerate or 60);
-            in ["video=${name}:${width}x${height}@${rate}"]
-            else []
-        )
-        displays
-      );
-    in
+    boot.kernelParams =
+      let
+        displays = config.ff.hardware.displays or { };
+        videoParams = lib.flatten (
+          lib.mapAttrsToList (
+            name: disp:
+            if disp.includeKernelParams then
+              let
+                width = toString (disp.resolution.width or 1920);
+                height = toString (disp.resolution.height or 1080);
+                rate = toString (disp.framerate or 60);
+              in
+              [ "video=${name}:${width}x${height}@${rate}" ]
+            else
+              [ ]
+          ) displays
+        );
+      in
       videoParams;
   };
 }

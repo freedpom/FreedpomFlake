@@ -20,5 +20,5 @@
     ];
   };
   # Same as above but files
-  files = {};
+  files = { };
 }

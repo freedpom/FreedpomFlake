@@ -2,16 +2,18 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.ff.userConfig;
 
-  baseGroups = ["networkmanager"];
+  baseGroups = [ "networkmanager" ];
 
-  adminGroups = ["wheel"];
+  adminGroups = [ "wheel" ];
 
   # User configuration
   users = lib.attrNames cfg.users;
-in {
+in
+{
   options = {
     ff.userConfig = {
       mutableUsers = lib.mkEnableOption "Allow users to be modified from the running system";
@@ -33,7 +35,7 @@ in {
 
               tags = lib.mkOption {
                 type = lib.types.listOf lib.types.str;
-                default = [];
+                default = [ ];
                 example = "gaming";
                 description = "";
               };
@@ -61,33 +63,33 @@ in {
 
               extraGroups = lib.mkOption {
                 type = lib.types.listOf lib.types.str;
-                default = [];
-                example = ["audio"];
+                default = [ ];
+                example = [ "audio" ];
                 description = "Extra groups needed by the user";
               };
               preservation = {
                 directories = lib.mkOption {
                   type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
                   description = "Extra $HOME directories for preservation module";
-                  default = [];
+                  default = [ ];
                 };
 
                 files = lib.mkOption {
                   type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
                   description = "Extra $HOME files for preservation module";
-                  default = [];
+                  default = [ ];
                 };
 
                 mountOptions = lib.mkOption {
                   type = lib.types.listOf lib.types.str;
                   description = "Mount options for user directories";
-                  default = [];
+                  default = [ ];
                 };
               };
             };
           }
         );
-        default = {};
+        default = { };
       };
     };
   };

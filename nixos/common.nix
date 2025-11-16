@@ -5,9 +5,11 @@
   modulesPath,
   pkgs,
   ...
-}: let
+}:
+let
   cfg = config.ff.common;
-in {
+in
+{
   # Import necessary modules
   imports = [
     (modulesPath + "/profiles/minimal.nix")
@@ -28,7 +30,7 @@ in {
     console = {
       earlySetup = true;
       font = "${pkgs.terminus_font}/share/consolefonts/ter-120n.psf.gz";
-      packages = with pkgs; [terminus_font];
+      packages = with pkgs; [ terminus_font ];
     };
 
     # System Settings

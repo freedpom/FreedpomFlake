@@ -2,9 +2,11 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   cfg = config.ff.security.sudo-rs;
-in {
+in
+{
   # Configuration options for sudo-rs
   options.ff.security.sudo-rs = {
     enable = lib.mkOption {

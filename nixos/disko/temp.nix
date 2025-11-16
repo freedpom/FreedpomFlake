@@ -15,18 +15,18 @@ let
     };
   };
 
-  userTmpfsConfigs = builtins.foldl' (acc: user: acc // mkUserTmpfs user) {} enabledUsers;
-in {
+  userTmpfsConfigs = builtins.foldl' (acc: user: acc // mkUserTmpfs user) { } enabledUsers;
+in
+{
   # Temporary filesystem configurations
-  disko.devices.nodev =
-    {
-      "/home" = {
-        fsType = "tmpfs";
-        mountOptions = [
-          "mode=755"
-          "size=256M"
-        ];
-      };
-    }
-    // userTmpfsConfigs;
+  disko.devices.nodev = {
+    "/home" = {
+      fsType = "tmpfs";
+      mountOptions = [
+        "mode=755"
+        "size=256M"
+      ];
+    };
+  }
+  // userTmpfsConfigs;
 }
