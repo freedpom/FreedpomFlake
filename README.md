@@ -8,8 +8,8 @@
 
 # FreedpomFlake
 
-![nix-lock-update-status](https://img.shields.io/github/actions/workflow/status/freedpom/FreedpomFlake/nix-lock-update.yml?logo=nixos&logoColor=white&label=Lock%20Update&labelColor=%23779ECB)
-![nix-flake-check-status](https://img.shields.io/github/actions/workflow/status/freedpom/FreedpomFlake/nix-flake-check.yml?logo=nixos&logoColor=white&label=Flake%20Check&labelColor=%23779ECB)
+![nix-lock-update-status](https://img.shields.io/github/actions/workflow/status/freedpom/FreedpomFlake/nix-flake-lock.yaml?logo=nixos&logoColor=white&label=Lock%20Update&labelColor=%23779ECB)
+![nix-flake-check-status](https://img.shields.io/github/actions/workflow/status/freedpom/FreedpomFlake/nix-flake-check.yaml?logo=nixos&logoColor=white&label=Flake%20Check&labelColor=%23779ECB)
 ![NixOS Version](https://img.shields.io/badge/NixOS-unstable-blue?logo=nixos&logoColor=white)
 ![License](https://img.shields.io/github/license/freedpom/FreedpomFlake?logo=opensourceinitiative&logoColor=white)
 ![Last Commit](https://img.shields.io/github/last-commit/freedpom/FreedpomFlake?logo=git&logoColor=white)
