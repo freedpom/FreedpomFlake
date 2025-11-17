@@ -8,9 +8,12 @@
 
 # FreedpomFlake
 
-[![NixOS Unstable](https://img.shields.io/badge/NixOS-unstable-blue.svg)](https://nixos.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Platforms](https://img.shields.io/badge/platforms-aarch64%7Cx86__64-brightgreen)](https://github.com/freedpom/FreedpomFlake)
+![nix-lock-update-status](https://img.shields.io/github/actions/workflow/status/freedpom/FreedpomFlake/nix-lock-update.yml?logo=nixos&logoColor=white&label=Lock%20Update&labelColor=%23779ECB)
+![nix-flake-check-status](https://img.shields.io/github/actions/workflow/status/freedpom/FreedpomFlake/nix-flake-check.yml?logo=nixos&logoColor=white&label=Flake%20Check&labelColor=%23779ECB)
+![NixOS Version](https://img.shields.io/badge/NixOS-unstable-blue?logo=nixos&logoColor=white)
+![License](https://img.shields.io/github/license/freedpom/FreedpomFlake?logo=opensourceinitiative&logoColor=white)
+![Last Commit](https://img.shields.io/github/last-commit/freedpom/FreedpomFlake?logo=git&logoColor=white)
+![Repo Size](https://img.shields.io/github/repo-size/freedpom/FreedpomFlake?logo=github&logoColor=white)
 
 **The Freedom to Nix**
 
@@ -31,11 +34,6 @@ Freedom isn't just about choice, it's also about freeing your time. FreedpomFlak
 - **Performance Tweaks**: Enables various options for program priority and scheduling, optimizes pipewire, even provides the cachyOS kernel (eventually)
 - **Multi-Architecture**: Support for both x86_64 and aarch64 (hopefully but not yet) platforms
 
-## Requirements
-
-- NixOS 23.11 or later (unstable branch recommended)
-- Flakes enabled in your Nix configuration
-
 ## Installation
 
 ### 1. Add FreedpomFlake to your flake
@@ -46,23 +44,32 @@ flake.nix:
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
-    freedpomFlake = {
-      url = "github:freedpom/FreedpomFlake";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    freedpomFlake = {
+      url = "github:freedpom/FreedpomFlake";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
   };
 }
 ```
 
-### 2. Import the module
+### 2. Import the modules
 
-configuration.nix:
+flake-parts(formatter):
+
+```nix
+{
+  imports = [ inputs.freedpomFlake.fmtModule ];
+}
+```
+
+nixos:
 
 ```nix
 {
@@ -70,7 +77,7 @@ configuration.nix:
 }
 ```
 
-home.nix (if home manager):
+home-manager:
 
 ```nix
 {
@@ -79,16 +86,6 @@ home.nix (if home manager):
 ```
 
 ### 3. BE FREE!!
-
-## Dependencies
-
-FreedpomFlake relies on the following:
-
-- **[nixpkgs](https://github.com/NixOS/nixpkgs)**: The Nix packages collection
-- **[home-manager](https://github.com/nix-community/home-manager)**: User environment configuration management
-- **[flake-parts](https://github.com/hercules-ci/flake-parts)**: Modular flake composition for clean architecture
-- **[flake-root](https://github.com/srid/flake-root)**: Root directory detection for flakes
-- **[fpFmt](https://github.com/freedpom/FreedpomFormatter)**: Formatter presets for consistent code formatting
 
 ## Security Notice
 
