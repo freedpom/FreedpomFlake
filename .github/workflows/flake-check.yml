@@ -6,21 +6,21 @@ on:
   workflow_dispatch: null
 jobs:
   flake-check:
-    name: Flake Health
+    name: Flake Check
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@latest
+        uses: actions/checkout@v5.0.1
       - name: Install Nix
-        uses: nixbuild/nix-quick-install-action@latest
+        uses: nixbuild/nix-quick-install-action@v34
       - name: Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
+        uses: DeterminateSystems/magic-nix-cache-action@v13
         with:
           diagnostic-endpoint: ""
       - name: Flake checker
-        uses: DeterminateSystems/flake-checker-action@main
+        uses: DeterminateSystems/flake-checker-action@v12
         with:
           fail-mode: true
           send-statistics: false
