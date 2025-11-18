@@ -1,6 +1,7 @@
 {
   lib,
   inputs,
+  config,
   ...
 }:
 {
@@ -9,7 +10,7 @@
     default = true;
     description = "Default system configs for home-manager, can be disabled.";
   };
-  imports = lib.optionals (inputs ? home-manager) [
+  imports = lib.optionals (config.ff.system.home-manager.enable && inputs ? home-manager) [
     inputs.home-manager.nixosModules.home-manager
     ./home-manager.nix
   ];
