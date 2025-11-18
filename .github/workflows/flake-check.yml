@@ -19,6 +19,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v13
         with:
           diagnostic-endpoint: ""
+          use-flakehub: false
       - name: Flake checker
         uses: DeterminateSystems/flake-checker-action@v12
         with:
