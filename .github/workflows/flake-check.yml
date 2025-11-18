@@ -1,0 +1,28 @@
+name: Flake Check
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: null
+jobs:
+  flake-check:
+    name: Flake Health
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@latest
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@latest
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          diagnostic-endpoint: ""
+      - name: Flake checker
+        uses: DeterminateSystems/flake-checker-action@main
+        with:
+          fail-mode: true
+          send-statistics: false
+      - name: Run `nix flake check`
+        run: nix flake check .
