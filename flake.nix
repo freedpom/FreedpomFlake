@@ -23,14 +23,12 @@
 
         imports = [
           fmtModule
+          ./modules/nixos
         ];
         flake = {
           inherit fmtModule;
           homeModules = {
             freedpomFlake = ./modules/home-manager;
-          };
-          nixosModules = {
-            freedpomFlake = ./modules/nixos;
           };
         };
       }

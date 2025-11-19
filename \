@@ -1,6 +1,5 @@
-# Files/directories in this directory will be individually output as nixos modules
-# Files/directories can be marked as disabled (or just not auto imported) by prefixing with "_" or suffixing with anything other than ".nix"
-
+# Files/Directories in this directory will be individually output as nixos modules
+# Files can be marked as disabled by prefixing with "_" or suffixing with anything other than ".nix"
 { lib, ... }:
 let
   # List module files in the current directory

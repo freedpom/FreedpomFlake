@@ -1,6 +1,0 @@
-{ ... }:
-{
-  imports = [
-    ./displays.nix
-  ];
-}

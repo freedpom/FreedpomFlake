@@ -2,17 +2,19 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   cfg = config.ff.disks;
-in {
+in
+{
   # Import disk configuration modules
-    imports = [
-      ./home.nix
-      ./nix-store.nix
-      ./temp.nix
-    ];
+  imports = [
+    ./home.nix
+    ./nix-store.nix
+    ./temp.nix
+  ];
 
-  Disk configuration options
+  # Disk configuration options
   options.ff.disks = {
     enable = lib.mkEnableOption "Enable disk configurations";
 
