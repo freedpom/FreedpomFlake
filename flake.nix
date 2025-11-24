@@ -11,7 +11,6 @@
   outputs =
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      _:
       let
         fmtModule = flake-parts.lib.importApply ./modules/flake/fmt-module.nix { inherit inputs; };
       in
