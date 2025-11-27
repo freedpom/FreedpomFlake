@@ -10,21 +10,23 @@ in
 {
   options.ff.system.boot = {
     enable = lib.mkEnableOption "Enable the bootloader module.";
-    quiet = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Enable quiet boot with reduced kernel and system logs.";
+
+    verbosity = lib.mkOption {
+      type = lib.types.enum [
+        "quiet"
+        "normal"
+        "verbose"
+      ];
+      default = "quiet";
+      description = "Controls boot verbosity level: quiet, normal, or verbose.";
     };
-    verbose = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "Enable verbose boot with full kernel and system logs.";
-    };
+
     splash = lib.mkOption {
       type = lib.types.bool;
       default = true;
       description = "Enable the graphical splash screen.";
     };
+
     firmware = lib.mkOption {
       type = lib.types.enum [
         "uefi"
@@ -33,15 +35,32 @@ in
       default = "uefi";
       description = "Select the firmware mode used for booting.";
     };
+
+    loaderEntries = lib.mkOption {
+      type = lib.types.int;
+      default = 9;
+      description = "Maximum number of loader entries to keep.";
+    };
+
+    editor = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Enable or disable the boot editor.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
     boot.loader.grub.enable = lib.mkForce false;
-
     boot.plymouth.enable = cfg.splash;
 
     boot.loader = {
-      timeout = lib.mkDefault 0;
+      timeout =
+        if cfg.verbosity == "quiet" then
+          0
+        else if cfg.verbosity == "normal" then
+          3
+        else
+          6;
 
       efi = lib.mkIf (cfg.firmware == "uefi") {
         efiSysMountPoint = "/boot";
@@ -50,26 +69,29 @@ in
 
       limine = lib.mkIf (cfg.firmware == "bios") {
         enable = true;
+        enableEditor = cfg.editor;
+        maxGenerations = cfg.loaderEntries;
+        biosSupport = true;
       };
 
       systemd-boot = lib.mkIf (cfg.firmware == "uefi") {
         enable = true;
-        editor = lib.mkForce false;
+        inherit (cfg) editor;
         consoleMode = "auto";
         graceful = lib.mkDefault true;
-        configurationLimit = lib.mkDefault 10;
+        configurationLimit = cfg.loaderEntries;
       };
     };
 
     boot.kernelParams =
-      (lib.optionals cfg.quiet [
+      (lib.optionals (cfg.verbosity == "quiet") [
         "quiet"
         "loglevel=3"
         "rd.udev.log_level=3"
         "udev.log_priority=3"
         "systemd.show_status=auto"
       ])
-      ++ (lib.optionals cfg.verbose [
+      ++ (lib.optionals (cfg.verbosity == "verbose") [
         "loglevel=7"
         "systemd.show_status=1"
       ])
@@ -80,11 +102,11 @@ in
         "boot.shell_on_fail"
       ];
 
-    boot.consoleLogLevel = if cfg.quiet then lib.mkForce 0 else lib.mkForce 7;
+    boot.consoleLogLevel = if cfg.verbosity == "quiet" then lib.mkForce 0 else lib.mkForce 7;
 
     boot.initrd = {
       includeDefaultModules = lib.mkDefault false;
-      inherit (cfg) verbose;
+      verbose = cfg.verbosity == "verbose";
       systemd.enable = true;
     };
   };
