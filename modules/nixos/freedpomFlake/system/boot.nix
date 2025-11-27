@@ -5,7 +5,7 @@
 }:
 
 let
-  cfg = config.ff.boot;
+  cfg = config.ff.system.boot;
 in
 {
   options.ff.system.boot = {
