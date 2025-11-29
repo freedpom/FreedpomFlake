@@ -14,7 +14,6 @@
   };
 
   config = lib.mkIf config.ff.gpg.enable {
-    services.pcscd.enable = true;
     services.gpg-agent = {
       enable = true;
       pinentry.package = pkgs.pinentry-curses;
