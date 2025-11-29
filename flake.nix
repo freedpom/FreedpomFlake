@@ -6,6 +6,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-root.url = "github:srid/flake-root";
     treefmt-nix.url = "github:numtide/treefmt-nix";
+    nix2container.url = "github:nlewo/nix2container";
   };
 
   outputs =
@@ -23,6 +24,7 @@
         imports = [
           fmtModule
           ./modules/nixos
+          ./packages
         ];
         flake = {
           inherit fmtModule;
