@@ -11,7 +11,7 @@ let
     ttyname $GPG_TTY
     default-cache-ttl 60
     max-cache-ttl 120
-    pinentry-program ${pkgs.pinentry.curses}/bin/pinentry
+    pinentry-program ${pkgs.pinentry-curses}/bin/pinentry
   '';
 
   gpgConf = pkgs.writeText "gpg.conf" ''
