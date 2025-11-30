@@ -88,7 +88,7 @@ home-manager:
 
 ## Security Notice
 
-Some options may change security defaults in favor of performance, please review configurations carefully for your specific use case. 
+Some options may change security defaults in favor of performance, please review configurations carefully for your specific use case.
 
 ## License
 
