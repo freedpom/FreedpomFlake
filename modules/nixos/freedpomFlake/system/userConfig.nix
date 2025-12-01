@@ -8,7 +8,12 @@ let
 
   userNames = lib.attrNames cfg.users;
 
-  standardGroups = [ "networkmanager" ];
+  standardGroups =
+    lib.optional config.networking.networkmanager.enable "networkmanager"
+    ++ lib.optional config.security.rtkit.enable "rtkit"
+    ++ lib.optional config.services.pipewire.enable "audio"
+    ++ lib.optional config.hardware.i2c.enable "i2c";
+
   administratorGroups = [ "wheel" ];
 
   isSystemUser = role: role == "system";
