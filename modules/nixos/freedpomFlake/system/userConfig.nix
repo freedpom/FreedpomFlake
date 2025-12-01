@@ -17,7 +17,7 @@ let
 
   buildUserGroups =
     userConfig:
-    userConfig.extraGroups
+    userConfig.userOptions.extraGroups
     ++ lib.optionals (isAdministrator userConfig.role) administratorGroups
     ++ lib.optionals (hasBaseTag userConfig.tags) standardGroups;
 
