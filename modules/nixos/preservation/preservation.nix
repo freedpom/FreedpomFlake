@@ -82,13 +82,21 @@ let
   # Return a list of all packages installed on the system
   parsePackages =
     user:
-    lib.map (d: (builtins.parseDrvName d.name).name) (
-      config.environment.systemPackages
-      ++ config.users.users.${user}.packages
-      ++ lib.optionals (
-        config ? "home-manager" && config.home-manager.users ? ${user}
-      ) config.home-manager.users.${user}.home.packages
-    );
+    lib.map
+      (
+        d:
+        let
+          result = builtins.tryEval (builtins.parseDrvName d.name or "unknown").name;
+        in
+        lib.optionalString result.success result.value
+      )
+      (
+        config.environment.systemPackages
+        ++ config.users.users.${user}.packages
+        ++ lib.optionals (
+          config ? "home-manager" && config.home-manager.users ? ${user}
+        ) config.home-manager.users.${user}.home.packages
+      );
 
   # Compare list of parsed packages to an attribute set of package names and directories, output list of attribute values
   preserveProgs =
