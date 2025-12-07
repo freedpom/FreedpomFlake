@@ -21,7 +21,7 @@
       defaultCacheTtlSsh = 60;
       maxCacheTtl = 120;
       maxCacheTtlSsh = 120;
-      #enableSshSupport = true;
+      enableSshSupport = false;
     };
     programs.gpg = {
       enable = true;

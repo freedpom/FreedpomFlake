@@ -27,6 +27,12 @@ in
       description = "Enable the graphical splash screen.";
     };
 
+    nvme-nopower = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "When enabled, this will disable nvme APST and ACPI (power management features).";
+    };
+
     firmware = lib.mkOption {
       type = lib.types.enum [
         "uefi"
@@ -94,13 +100,15 @@ in
       ++ (lib.optionals (cfg.verbosity == "verbose") [
         "loglevel=7"
         "systemd.show_status=1"
+        "boot.shell_on_fail"
       ])
       ++ (lib.optionals cfg.splash [
         "splash"
       ])
-      ++ [
-        "boot.shell_on_fail"
-      ];
+      ++ (lib.optionals cfg.nvme-nopower [
+        "nvme.noacpi=1"
+        "nvme_core.default_ps_max_latency_us=0"
+      ]);
 
     boot.consoleLogLevel = if cfg.verbosity == "quiet" then lib.mkForce 0 else lib.mkForce 7;
 
