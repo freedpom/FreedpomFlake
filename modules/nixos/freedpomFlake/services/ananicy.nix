@@ -15,14 +15,11 @@ in
 
   config = lib.mkIf cfg.enable {
     services = {
-      irqbalance.enable = true;
       ananicy = {
-        # Core service configuration
         enable = true;
+        package = pkgs.ananicy-cpp;
         rulesProvider = pkgs.ananicy-rules-cachyos;
         settings = {
-          # Core timing and logging settings
-          ## Ananicy 2.X configuration
           # Ananicy run full system scan every "check_freq" seconds
           # supported values 0.01..86400
           # values which have sense: 1..60
@@ -45,10 +42,7 @@ in
           apply_oom_score_adj = true;
           apply_sched = true;
 
-          # Advanced settings
-          # It tries to move realtime task to root cgroup to be able to move it to the ananicy-cpp controlled one
-          # NOTE: may introduce issues, for example with polkit
-          cgroup_realtime_workaround = lib.mkForce false;
+          check_disks_schedulers = true;
         };
       };
     };
