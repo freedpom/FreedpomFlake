@@ -22,8 +22,7 @@ let
 
 in
 {
-
-  options.wayland.windowManager.niri = {
+  options.ff.wayland.windowManager.niri = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
