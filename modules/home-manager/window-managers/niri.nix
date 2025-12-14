@@ -155,14 +155,14 @@ in
 
   config = lib.mkIf cfg.enable {
     assertions = [
-      (lib.hm.assertions.assertPlatform "wayland.windowManager.niri" pkgs lib.platforms.linux)
+      (lib.hm.assertions.assertPlatform "ff.wayland.windowManager.niri" pkgs lib.platforms.linux)
     ];
 
     home.packages = lib.mkIf (cfg.package != null) (
       [ cfg.package ] ++ lib.optional cfg.xwayland.enable pkgs.xwayland-satellite
     );
 
-    wayland.windowManager.niri = lib.mkMerge [
+    ff.wayland.windowManager.niri = lib.mkMerge [
       (lib.mkIf cfg.xwayland.enable {
         spawnAtStartup = [ "xwayland-satellite" ];
       })
