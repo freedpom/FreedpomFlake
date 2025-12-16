@@ -12,14 +12,11 @@ let
   mkOutputKDL =
     outputs:
     lib.concatStringsSep "\n" (
-      lib.mapAttrsToList (
-        name: body:
-        toKDL {
-          output = [
-            ({ inherit name; } // body)
-          ];
-        }
-      ) outputs
+      lib.mapAttrsToList (name: body: ''
+                output "${name}" {
+        ${toKDL body}
+                }
+      '') outputs
     );
 
   outputKDL = if cfg.settings ? output then mkOutputKDL cfg.settings.output else "";
