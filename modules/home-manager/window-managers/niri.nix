@@ -1,17 +1,35 @@
 {
-  # 100% stolen from https://github.com/terlar/nix-config/blob/d501a681/modules/home/services/window-managers/niri.nix
   config,
   lib,
   pkgs,
   ...
 }:
+
 let
-  toKDL = lib.hm.generators.toKDL { };
   cfg = config.ff.wayland.windowManager.niri;
+  toKDL = lib.hm.generators.toKDL { };
+
+  mkOutputKDL =
+    outputs:
+    lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (
+        name: body:
+        toKDL {
+          output = [
+            ({ inherit name; } // body)
+          ];
+        }
+      ) outputs
+    );
+
   configFile = pkgs.writeText "niri-config.kdl" (
     lib.concatStringsSep "\n" (
-      (lib.optional (cfg.settings != { }) (toKDL cfg.settings))
-      ++ (lib.optional (cfg.extraConfig != "") cfg.extraConfig)
+      [ ]
+      ++ lib.optional (cfg.settings != { }) (toKDL (builtins.removeAttrs cfg.settings [ "output" ]))
+      ++ lib.optional (cfg.settings ? output && cfg.settings.output != { }) (
+        mkOutputKDL cfg.settings.output
+      )
+      ++ lib.optional (cfg.extraConfig != "") cfg.extraConfig
     )
   );
 
@@ -23,25 +41,11 @@ let
 in
 {
   options.ff.wayland.windowManager.niri = {
-    enable = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = ''
-        Whether to enable configuration for Niri, a scrollable-tiling Wayland
-        compositor.
 
-        ::: {.note}
-        This module configures Niri and adds it to your user's {env}`PATH`,
-        but does not make certain system-level changes. NixOS users should
-        enable the NixOS module with {option}`programs.niri.enable`, which
-        makes system-level changes such as adding a desktop session entry.
-        :::
-      '';
-    };
+    enable = lib.mkEnableOption "Niri Wayland compositor configuration";
 
     package = lib.mkPackageOption pkgs "niri" {
       nullable = true;
-      extraDescription = "Set this to null if you use the NixOS module to install Niri.";
     };
 
     portalPackage = lib.mkPackageOption pkgs "xdg-desktop-portal-gnome" {
@@ -55,105 +59,40 @@ in
     settings = lib.mkOption {
       type = lib.types.attrsOf lib.types.anything;
       default = { };
+
       example = lib.literalExpression ''
         {
-          input = {
-            keyboard = {
-              xkb.options = "ctrl:nocaps";
-              repeat-delay = 500;
-              repeat-rate = 33;
-            };
-            touchpad = {
-              tap = [ ];
-              natural-scroll = [ ];
-            };
-          };
+          input = { };
+          binds = { };
+          layout = { };
 
-          spawn-at-startup = "waybar";
-
-          binds = {
-            "Mod+Space".spawn = "fuzzel";
-            "Super+Alt+L".spawn = "swaylock";
-            "Ctrl+Alt+Delete".quit = [ ];
+          output = {
+            "eDP-1" = { };
           };
         }
       '';
+
       description = ''
-        Configuration written to
-        {file}`$XDG_CONFIG_HOME/niri/config.kdl`.
-
-        See <https://github.com/YaLTeR/niri/wiki/Configuration:-Overview> for the full
-        list of options.
-      '';
-    };
-
-    spawnAtStartup = lib.mkOption {
-      type =
-        with lib.types;
-        listOf (oneOf [
-          str
-          (listOf str)
-        ]);
-      default = [ ];
-      apply = lib.unique;
-      example = lib.literalExpression ''
-        [
-          "waybar"
-          [ "fcitx5" "-d" ]
-        ]
-      '';
-      description = "Processes to spawn at niri startup.";
-    };
-
-    windowRules = lib.mkOption {
-      type = with lib.types; listOf (attrsOf anything);
-      default = [ ];
-      example = lib.literalExpression ''
-        [
-          {
-            match._props = {
-              app-id = "firefox$"
-              title = "^Picture-in-Picture$"
-            };
-            open-floating = true
-          }
-        ]
-      '';
-      description = ''
-        Window rules to adjust behavior for individual windows.
+        Structured Niri configuration.
+        Keys map directly to top-level KDL nodes.
       '';
     };
 
     extraConfig = lib.mkOption {
       type = lib.types.lines;
       default = "";
-      example = ''
-        input {
-            keyboard {
-                xkb {
-                    options "ctrl:nocaps"
-                }
-            }
-            touchpad {
-                tap
-                natural-scroll
-            }
-        }
 
-        binds {
-            Mod+Shift+Slash { show-hotkey-overlay; }
-            Mod+T hotkey-overlay-title="Open a Terminal: alacritty" { spawn "alacritty"; }
-            Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
-            Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
-        }
+      example = ''
+        window-rule { }
+        include "other.kdl"
       '';
-      description = ''
-        Extra configuration lines to add to {file}`$XDG_CONFIG_HOME/niri/config.kdl`.
-      '';
+
+      description = "Raw KDL appended to the generated configuration.";
     };
   };
 
   config = lib.mkIf cfg.enable {
+
     assertions = [
       (lib.hm.assertions.assertPlatform "ff.wayland.windowManager.niri" pkgs lib.platforms.linux)
     ];
@@ -162,33 +101,13 @@ in
       [ cfg.package ] ++ lib.optional cfg.xwayland.enable pkgs.xwayland-satellite
     );
 
-    ff.wayland.windowManager.niri = lib.mkMerge [
-      (lib.mkIf cfg.xwayland.enable {
-        spawnAtStartup = [ "xwayland-satellite" ];
-      })
-
-      (lib.mkIf (cfg.spawnAtStartup != [ ]) {
-        extraConfig = lib.pipe cfg.spawnAtStartup [
-          (map (spawn-at-startup: toKDL { inherit spawn-at-startup; }))
-          (builtins.concatStringsSep "\n")
-        ];
-      })
-
-      (lib.mkIf (cfg.windowRules != [ ]) {
-        extraConfig = lib.pipe cfg.windowRules [
-          (map (window-rule: toKDL { inherit window-rule; }))
-          (builtins.concatStringsSep "\n")
-        ];
-      })
-    ];
-
-    xdg.configFile."niri/config.kdl" = lib.mkIf (cfg.settings != { } || cfg.extraConfig != "") {
-      source = checkNiriConfig;
-    };
+    xdg.configFile."niri/config.kdl".source = checkNiriConfig;
 
     xdg.portal = {
       enable = lib.mkIf (cfg.portalPackage != null) (lib.mkOverride 500 true);
+
       extraPortals = lib.mkIf (cfg.portalPackage != null) [ cfg.portalPackage ];
+
       configPackages = lib.mkIf (cfg.package != null) (lib.mkDefault [ cfg.package ]);
     };
   };
