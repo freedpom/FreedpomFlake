@@ -22,13 +22,13 @@ let
       ) outputs
     );
 
+  outputKDL = if cfg.settings ? output then mkOutputKDL cfg.settings.output else "";
+
   configFile = pkgs.writeText "niri-config.kdl" (
     lib.concatStringsSep "\n" (
       [ ]
       ++ lib.optional (cfg.settings != { }) (toKDL (builtins.removeAttrs cfg.settings [ "output" ]))
-      ++ lib.optional (cfg.settings ? output && cfg.settings.output != { }) (
-        mkOutputKDL cfg.settings.output
-      )
+      ++ lib.optional (outputKDL != "") outputKDL
       ++ lib.optional (cfg.extraConfig != "") cfg.extraConfig
     )
   );
@@ -42,7 +42,7 @@ in
 {
   options.ff.wayland.windowManager.niri = {
 
-    enable = lib.mkEnableOption "Niri Wayland compositor configuration";
+    enable = lib.mkEnableOption "Niri configuration";
 
     package = lib.mkPackageOption pkgs "niri" {
       nullable = true;
@@ -64,18 +64,15 @@ in
         {
           input = { };
           binds = { };
-          layout = { };
 
           output = {
             "eDP-1" = { };
+            "DP-2" = { };
           };
         }
       '';
 
-      description = ''
-        Structured Niri configuration.
-        Keys map directly to top-level KDL nodes.
-      '';
+      description = "Structured Niri configuration.";
     };
 
     extraConfig = lib.mkOption {
@@ -87,7 +84,7 @@ in
         include "other.kdl"
       '';
 
-      description = "Raw KDL appended to the generated configuration.";
+      description = "Raw KDL appended to the config.";
     };
   };
 
@@ -95,6 +92,14 @@ in
 
     assertions = [
       (lib.hm.assertions.assertPlatform "ff.wayland.windowManager.niri" pkgs lib.platforms.linux)
+
+      {
+        assertion = !(cfg.settings ? output) || lib.isAttrs cfg.settings.output;
+        message = ''
+          ff.wayland.windowManager.niri.settings.output
+          must be an attribute set mapping output names to blocks.
+        '';
+      }
     ];
 
     home.packages = lib.mkIf (cfg.package != null) (
