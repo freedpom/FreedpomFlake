@@ -187,7 +187,7 @@ in
     };
 
     xdg.portal = {
-      enable = lib.mkIf (cfg.portalPackage != null) lib.mkOverride 500 true;
+      enable = lib.mkIf (cfg.portalPackage != null) (lib.mkOverride 500 true);
       extraPortals = lib.mkIf (cfg.portalPackage != null) [ cfg.portalPackage ];
       configPackages = lib.mkIf (cfg.package != null) (lib.mkDefault [ cfg.package ]);
     };
