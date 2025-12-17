@@ -18,6 +18,7 @@
         typeOf
         replaceStrings
         elem
+        listToAttrs
         ;
 
       indentStrings =
