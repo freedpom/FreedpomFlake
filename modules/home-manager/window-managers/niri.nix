@@ -12,7 +12,8 @@ let
 
   configFile = pkgs.writeText "niri-config.kdl" (
     lib.concatStringsSep "\n" (
-      lib.optional (cfg.settings != { }) toKDL ++ lib.optional (cfg.extraConfig != "") cfg.extraConfig
+      lib.optional (cfg.settings != { }) (toKDL cfg.settings)
+      ++ lib.optional (cfg.extraConfig != "") cfg.extraConfig
     )
   );
 
