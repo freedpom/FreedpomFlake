@@ -7,7 +7,7 @@
 
 let
   cfg = config.ff.wayland.windowManager.niri;
-  toKDL = lib.hm.generators.toKDL { };
+  inherit (import ./toNiri.nix { inherit lib; }) toKDL;
 
   mkOutputKDL =
     outputs:
@@ -23,8 +23,7 @@ let
 
   configFile = pkgs.writeText "niri-config.kdl" (
     lib.concatStringsSep "\n" (
-      [ ]
-      ++ lib.optional (cfg.settings != { }) (toKDL (builtins.removeAttrs cfg.settings [ "output" ]))
+      lib.optional (cfg.settings != { }) (toKDL (builtins.removeAttrs cfg.settings [ "output" ]))
       ++ lib.optional (outputKDL != "") outputKDL
       ++ lib.optional (cfg.extraConfig != "") cfg.extraConfig
     )
