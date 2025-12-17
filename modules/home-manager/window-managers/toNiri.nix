@@ -1,5 +1,4 @@
 { lib }:
-
 {
   toKDL =
     _:
@@ -15,8 +14,11 @@
         optional
         throwIfNot
         ;
-
-      inherit (builtins) typeOf replaceStrings elem;
+      inherit (builtins)
+        typeOf
+        replaceStrings
+        elem
+        ;
 
       indentStrings =
         strings:
@@ -53,40 +55,32 @@
           );
 
       convertAttrsToKDL =
-        name: attrs: firstArg:
+        name: attrs:
         let
-          arg =
-            if firstArg != null then
-              literalValueToString firstArg
-            else if attrs.name != null then
-              literalValueToString attrs.name
-            else
-              null;
-
-          # remove keys that are special or already used
-          childAttrs = builtins.removeAttrs attrs [
-            "name"
-            "_args"
-            "_props"
-            "_children"
+          optArgs = map literalValueToString (attrs._args or [ ]);
+          optProps = mapAttrsToList (k: v: "${k}=${literalValueToString v}") (attrs._props or { });
+          orderedChildren = pipe (attrs._children or [ ]) [
+            (map (child: mapAttrsToList convertAttributeToKDL child))
+            flatten
           ];
-
-          # convert any _children first
-          orderedChildren = flatten (
-            map (child: mapAttrsToList convertAttributeToKDL child) (attrs._children or [ ])
-          );
-
-          # convert remaining attributes
-          unorderedChildren = mapAttrsToList convertAttributeToKDL childAttrs;
-
+          unorderedChildren = pipe attrs [
+            (filterAttrs (
+              k: _:
+              !(elem k [
+                "_args"
+                "_props"
+                "_children"
+              ])
+            ))
+            (mapAttrsToList convertAttributeToKDL)
+          ];
           children = orderedChildren ++ unorderedChildren;
-
           optChildren = optional (children != [ ]) ''
             {
             ${indentStrings children}
-            } '';
+            }'';
         in
-        concatStringsSep " " ([ name ] ++ (if arg != null then [ arg ] else [ ]) ++ [ optChildren ]);
+        concatStringsSep " " ([ name ] ++ optArgs ++ optProps ++ optChildren);
 
       convertListToKDL =
         name: list:
@@ -126,14 +120,23 @@
         then
           "${name} ${literalValueToString value}"
         else if t == "set" then
-          # Treat key as name, value as children if it's a set
           convertAttrsToKDL name value
         else if t == "list" then
           convertListToKDL name value
         else
           throw "Cannot convert type `${t}` to KDL: ${name} = ${toString value}";
 
+      convertTop =
+        value:
+        let
+          t = typeOf value;
+        in
+        if t == "set" then
+          mapAttrsToList convertAttributeToKDL value
+        else if t == "list" then
+          map convertTop value # recurse for nested lists if needed
+        else
+          throw "Top-level must be attrset or list, got ${t}";
     in
-    attrs: concatStringsSep "\n" (mapAttrsToList convertAttributeToKDL attrs);
-
+    top: concatStringsSep "\n" (flatten (convertTop top));
 }
