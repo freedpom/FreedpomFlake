@@ -53,37 +53,40 @@
           );
 
       convertAttrsToKDL =
-        name: attrs:
+        name: attrs: firstArg:
         let
-          optArgs = map literalValueToString (attrs._args or [ ]);
+          arg =
+            if firstArg != null then
+              literalValueToString firstArg
+            else if attrs.name != null then
+              literalValueToString attrs.name
+            else
+              null;
 
-          optProps = mapAttrsToList (k: v: "${k}=${literalValueToString v}") (attrs._props or { });
-
-          orderedChildren = pipe (attrs._children or [ ]) [
-            (map (child: mapAttrsToList convertAttributeToKDL child))
-            flatten
+          # remove keys that are special or already used
+          childAttrs = builtins.removeAttrs attrs [
+            "name"
+            "_args"
+            "_props"
+            "_children"
           ];
 
-          unorderedChildren = pipe attrs [
-            (filterAttrs (
-              k: _:
-              !(elem k [
-                "_args"
-                "_props"
-                "_children"
-              ])
-            ))
-            (mapAttrsToList convertAttributeToKDL)
-          ];
+          # convert any _children first
+          orderedChildren = flatten (
+            map (child: mapAttrsToList convertAttributeToKDL child) (attrs._children or [ ])
+          );
+
+          # convert remaining attributes
+          unorderedChildren = mapAttrsToList convertAttributeToKDL childAttrs;
 
           children = orderedChildren ++ unorderedChildren;
 
           optChildren = optional (children != [ ]) ''
             {
             ${indentStrings children}
-            }'';
+            } '';
         in
-        concatStringsSep " " ([ name ] ++ optArgs ++ optProps ++ optChildren);
+        concatStringsSep " " ([ name ] ++ (if arg != null then [ arg ] else [ ]) ++ [ optChildren ]);
 
       convertListToKDL =
         name: list:
