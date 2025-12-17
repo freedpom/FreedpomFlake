@@ -123,14 +123,13 @@
         then
           "${name} ${literalValueToString value}"
         else if t == "set" then
+          # Treat key as name, value as children if it's a set
           convertAttrsToKDL name value
         else if t == "list" then
           convertListToKDL name value
         else
-          throw ''
-            Cannot convert type `${t}` to KDL:
-              ${name} = ${toString value}
-          '';
+          throw "Cannot convert type `${t}` to KDL: ${name} = ${toString value}";
+
     in
     attrs: concatStringsSep "\n" (mapAttrsToList convertAttributeToKDL attrs);
 
