@@ -44,10 +44,8 @@
           (
             if t == "null" then
               "null"
-            else if value then
-              "true"
-            else if !value then
-              "false"
+            else if t == "bool" then
+              if value then "true" else "false"
             else if t == "string" then
               ''"${sanitizeString value}"''
             else
