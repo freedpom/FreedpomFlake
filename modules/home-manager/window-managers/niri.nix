@@ -10,23 +10,9 @@ let
   kdl = import ./toNiri.nix { inherit lib; };
   toKDL = kdl.toKDL { };
 
-  mkOutputKDL =
-    outputs:
-    lib.concatStringsSep "\n" (
-      lib.mapAttrsToList (name: body: ''
-                output "${name}" {
-        ${toKDL body}
-                }
-      '') outputs
-    );
-
-  outputKDL = if cfg.settings ? output then mkOutputKDL cfg.settings.output else "";
-
   configFile = pkgs.writeText "niri-config.kdl" (
     lib.concatStringsSep "\n" (
-      lib.optional (cfg.settings != { }) (toKDL (builtins.removeAttrs cfg.settings [ "output" ]))
-      ++ lib.optional (outputKDL != "") outputKDL
-      ++ lib.optional (cfg.extraConfig != "") cfg.extraConfig
+      lib.optional (cfg.settings != { }) toKDL ++ lib.optional (cfg.extraConfig != "") cfg.extraConfig
     )
   );
 
