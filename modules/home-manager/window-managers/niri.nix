@@ -7,7 +7,8 @@
 
 let
   cfg = config.ff.wayland.windowManager.niri;
-  inherit (import ./toNiri.nix { inherit lib; }) toKDL;
+  kdl = import ./kdl.nix { inherit lib; };
+  toKDL = kdl.toKDL { };
 
   mkOutputKDL =
     outputs:
