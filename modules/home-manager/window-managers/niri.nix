@@ -57,30 +57,22 @@ in
       default = { };
       example = lib.literalExpression ''
         {
-          input.mouse = {
+        output = {
+          "DP-2" = {
+            mode = "2560x1440@179.960";
+            focus-at-startup = { };
+          };
+        };
+        binds = {
+          "Super+R".spawn = "fuzzle";
+          "Super+Return".spawn = "foot";
+        };
+        input = {
+          mouse = {
             accel-profile = "flat";
             accel-speed = 0.0;
           };
-
-          output = {
-            "eDP-1" = {
-              mode = "1920x1080@120";
-              scale = 2.0;
-            };
-            "DP-2" = {
-              mode = "2560x1440@144";
-            };
-          };
-
-          binds = {
-            "Super+Return".spawn = "alacritty";
-            "Super+Q".close-window = true;
-          };
-
-          layout = {
-            gaps = 8;
-            focus-ring.width = 2;
-          };
+        };
         }
       '';
       description = ''
