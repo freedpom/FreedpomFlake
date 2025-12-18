@@ -7,7 +7,7 @@
 
 let
   cfg = config.ff.wayland.windowManager.niri;
-  kdl = import ./toNiri.nix { inherit lib; };
+  kdl = import ./toKDL.nix { inherit lib; };
   toKDL = kdl.toKDL { };
 
   configFile = pkgs.writeText "niri-config.kdl" (
@@ -73,6 +73,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+
+    ff.wayland.windowManager.niri.settings.output._expand = true;
 
     assertions = [
       (lib.hm.assertions.assertPlatform "ff.wayland.windowManager.niri" pkgs lib.platforms.linux)
