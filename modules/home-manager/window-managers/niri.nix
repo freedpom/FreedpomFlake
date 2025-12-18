@@ -102,11 +102,7 @@ in
   };
   config = lib.mkIf cfg.enable {
     # Automatically set _expand for output
-    ff.wayland.windowManager.niri.settings =
-      lib.mkIf (cfg.settings ? output && lib.isAttrs cfg.settings.output)
-        {
-          output._expand = lib.mkDefault true;
-        };
+    ff.wayland.windowManager.niri.settings.output._expand = true;
     assertions = [
       (lib.hm.assertions.assertPlatform "ff.wayland.windowManager.niri" pkgs lib.platforms.linux)
       {
