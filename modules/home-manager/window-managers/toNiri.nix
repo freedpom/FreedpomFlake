@@ -13,6 +13,7 @@
         filterAttrs
         optional
         throwIfNot
+        hasAttr
         ;
       inherit (builtins)
         typeOf
@@ -109,6 +110,13 @@
         else
           # For non-flat lists, convert each element as a separate node with the parent name
           concatStringsSep "\n" (map (v: convertAttributeToKDL name v) list);
+
+      # Check if an attrset should be "expanded" (each key becomes a separate parent node)
+      shouldExpand =
+        attrs:
+        # Only expand if explicitly requested
+        attrs._expand or false;
+
       convertAttributeToKDL =
         name: value:
         let
@@ -125,7 +133,20 @@
         then
           "${name} ${literalValueToString value}"
         else if t == "set" then
-          convertAttrsToKDL name value
+          # Check if this attrset should be expanded
+          if shouldExpand value then
+            let
+              filteredAttrs = filterAttrs (k: _: k != "_expand") value;
+            in
+            concatStringsSep "\n" (
+              mapAttrsToList (
+                k: v:
+                # Each key becomes a positional arg for a new node with the parent name
+                convertAttrsToKDL name (v // { _args = [ k ]; })
+              ) filteredAttrs
+            )
+          else
+            convertAttrsToKDL name value
         else if t == "list" then
           convertListToKDL name value
         else
@@ -142,5 +163,5 @@
         else
           throw "Top-level must be attrset or list, got ${t}. Cannot convert: ${toString value}";
     in
-    top: concatStringsSep "\n" (flatten (convertTop top));
+    top: concatStringsSep "\n\n" (flatten (convertTop top));
 }
