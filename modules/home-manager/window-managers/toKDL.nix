@@ -13,13 +13,11 @@
         filterAttrs
         optional
         throwIfNot
-        hasAttr
         ;
       inherit (builtins)
         typeOf
         replaceStrings
         elem
-        listToAttrs
         ;
       indentStrings =
         strings:
