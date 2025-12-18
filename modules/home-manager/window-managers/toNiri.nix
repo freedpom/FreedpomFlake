@@ -19,17 +19,16 @@
         replaceStrings
         elem
         listToAttrs
+        head
+        attrNames
         ;
-
       indentStrings =
         strings:
         let
           lines = splitString "\n" (concatStringsSep "\n" strings);
         in
         concatStringsSep "\n" (map (l: "\t" + l) lines);
-
       sanitizeString = replaceStrings [ "\\" "\n" ''"'' ] [ "\\\\" "\\n" ''\"'' ];
-
       literalValueToString =
         value:
         let
@@ -54,20 +53,20 @@
             else
               toString value
           );
-
       convertAttrsToKDL =
         name: attrs:
         let
-          optArgs = map literalValueToString (attrs._args or [ ]);
+          # Extract special _name field if it exists (for use as argument)
+          argFromName = optional (attrs ? _name) (literalValueToString attrs._name);
+          optArgs = argFromName ++ (map literalValueToString (attrs._args or [ ]));
+
           optProps = mapAttrsToList (k: v: "${k}=${literalValueToString v}") (attrs._props or { });
-          orderedChildren = pipe (attrs._children or [ ]) [
-            (map (child: mapAttrsToList convertAttributeToKDL child))
-            flatten
-          ];
+
           unorderedChildren = pipe attrs [
             (filterAttrs (
               k: _:
               !(elem k [
+                "_name"
                 "_args"
                 "_props"
                 "_children"
@@ -75,7 +74,8 @@
             ))
             (mapAttrsToList convertAttributeToKDL)
           ];
-          children = orderedChildren ++ unorderedChildren;
+
+          children = unorderedChildren;
           optChildren = optional (children != [ ]) ''
             {
             ${indentStrings children}
@@ -100,10 +100,8 @@
         if elementsAreFlat then
           "${name} ${concatStringsSep " " (map literalValueToString list)}"
         else
-          ''
-            ${name} {
-            ${indentStrings (map (v: convertAttributeToKDL "-" v) list)}
-            }'';
+          # List of attrsets = repeated nodes with same name
+          concatStringsSep "\n" (map (item: convertAttrsToKDL name item) list);
 
       convertAttributeToKDL =
         name: value:
@@ -126,7 +124,6 @@
           convertListToKDL name value
         else
           throw "Cannot convert type `${t}` to KDL: ${name} = ${toString value}";
-
       convertTop =
         value:
         let
@@ -135,7 +132,7 @@
         if t == "set" then
           mapAttrsToList convertAttributeToKDL value
         else if t == "list" then
-          map convertTop value # recurse for nested lists if needed
+          map convertTop value
         else
           throw "Top-level must be attrset or list, got ${t}";
     in
