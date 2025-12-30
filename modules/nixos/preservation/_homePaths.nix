@@ -1,15 +1,20 @@
 {
   # Directories that should be preserved if a package matching the key is installed.
-  # Uses derivation name so may not exactly match nixpkgs name.
+  # Matches the derivations pname so check pkgs.<package>.pname for the actual match.
 
   directories = {
     firefox = ".mozilla";
     gh = ".config/gh";
     legcord = ".config/legcord";
     librewolf = ".librewolf";
+    prismlauncher = ".local/share/PrismLauncher";
     tidal-hifi = ".config/tidal-hifi";
     wivrn = ".config/wivrn";
     steam = ".local/share/Steam";
+    flatpak = [
+      ".var/app"
+      ".local/share/flatpak"
+    ];
     r2modman = [
       ".config/r2modman"
       ".config/r2modmanPlus-local"

@@ -9,10 +9,11 @@ let
 
   # Directories in / that should always be preserved
   sysDirs = [
-    "/var/log"
+    "/etc/NetworkManager/system-connections"
+    "/etc/ssh"
     "/var/lib/nixos"
     "/var/lib/systemd/coredump"
-    "/etc/NetworkManager/system-connections"
+    "/var/log"
   ];
 
   # Files in / that should always be preserved
@@ -28,6 +29,7 @@ let
     (lib.mkIf config.hardware.bluetooth.enable "/var/lib/bluetooth")
     (lib.mkIf config.services.tailscale.enable "/var/lib/tailscale")
     (lib.mkIf config.virtualisation.libvirtd.enable "/var/lib/libvirt")
+    (lib.mkIf config.services.flatpak.enable "/var/lib/flatpak")
   ];
 
   # Files in / that should be preserved if a program is enabled
@@ -124,13 +126,13 @@ in
     };
 
     directories = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
+      type = lib.types.listOf (lib.types.either lib.types.attrs lib.types.str);
       default = [ ];
       description = "Extra directories to be preserved";
     };
 
     files = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
+      type = lib.types.listOf (lib.types.either lib.types.attrs lib.types.str);
       default = [ ];
       description = "Extra files to be preserved";
     };
