@@ -1,10 +1,11 @@
-{ withSystem, wm-hypr, ... }:
+{ withSystem, ... }:
 {
   flake.nixosModules.windowManagers =
     {
       pkgs,
       lib,
       config,
+      inputs,
       ...
     }:
     let
@@ -21,14 +22,15 @@
           hyprland = {
             enable = true;
             withUWSM = true;
-            package = wm-hypr.packages.${withSystem pkgs.stdenv.hostPlatform.system}.hyprland;
+            package = inputs.wm-hypr.packages.${withSystem pkgs.stdenv.hostPlatform.system}.hyprland;
             portalPackage =
-              wm-hypr.packages.${withSystem pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
+              inputs.wm-hypr.packages.${withSystem pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
           };
         };
         hardware.graphics =
           let
-            hyprpkgs = wm-hypr.inputs.nixpkgs.legacyPackages.${withSystem pkgs.stdenv.hostPlatform.system};
+            hyprpkgs =
+              inputs.wm-hypr.inputs.nixpkgs.legacyPackages.${withSystem pkgs.stdenv.hostPlatform.system};
           in
           {
             package = lib.mkForce hyprpkgs.mesa;
