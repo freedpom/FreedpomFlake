@@ -9,10 +9,10 @@
       ...
     }:
     let
-      cfg = config.qm.programs.hyprland;
+      cfg = config.fm.programs.hyprland;
     in
     {
-      options.qm.programs.hyprland = {
+      options.fm.programs.hyprland = {
         enable = lib.mkEnableOption "Enable Hyprland";
       };
 
@@ -46,10 +46,10 @@
       ...
     }:
     let
-      cfg = config.qm.desktop.hypr.land;
+      cfg = config.fm.desktop.hypr.land;
     in
     {
-      options.qm.desktop.hypr.land = {
+      options.fm.desktop.hypr.land = {
         enable = lib.mkEnableOption "Enable Hyprland configuration";
       };
       config = lib.mkIf cfg.enable {
