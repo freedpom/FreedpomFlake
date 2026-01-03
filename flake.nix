@@ -28,6 +28,7 @@
           fmtModule
           inputs.home-manager.flakeModules.home-manager
           ./modules/home-manager
+          ./modules/flake/flib.nix
           ./modules/nixos
           ./packages
           ./modules/flake/windowManagers
