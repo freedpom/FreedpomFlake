@@ -30,7 +30,7 @@
           ./modules/home-manager
           ./modules/nixos
           ./packages
-          ./modules/flake/windowManagers/hyprland
+          ./modules/flake/windowManagers
         ];
         flake = {
           inherit fmtModule;

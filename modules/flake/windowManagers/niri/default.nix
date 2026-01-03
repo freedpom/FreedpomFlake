@@ -1,8 +1,5 @@
 { inputs, ... }:
 {
-  imports = [
-    ./monitors.nix
-  ];
   flake.nixosModules.windowManagers =
     {
       pkgs,
@@ -11,11 +8,11 @@
       ...
     }:
     let
-      cfg = config.ff.programs.hyprland;
+      cfg = config.ff.programs.niri;
     in
     {
-      options.ff.programs.hyprland = {
-        enable = lib.mkEnableOption "Enable Hyprland";
+      options.ff.programs.niri = {
+        enable = lib.mkEnableOption "Enable Niri";
       };
 
       config = lib.mkIf cfg.enable {
@@ -48,10 +45,10 @@
       ...
     }:
     let
-      cfg = config.ff.desktop.hypr.land;
+      cfg = config.ff.desktop.niri;
     in
     {
-      options.ff.desktop.hypr.land = {
+      options.ff.desktop.niri = {
         enable = lib.mkEnableOption "Enable Hyprland configuration";
       };
       config = lib.mkIf cfg.enable {
