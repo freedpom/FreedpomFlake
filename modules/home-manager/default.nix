@@ -1,3 +1,3 @@
 {
-  flake.homeModules.default = ./programs;
+  flake.homeModules.ff = ./programs;
 }
