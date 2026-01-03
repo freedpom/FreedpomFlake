@@ -21,15 +21,14 @@
           hyprland = {
             enable = true;
             withUWSM = true;
-            package = inputs.wm-hypr.packages.${withSystem pkgs.stdenv.hostPlatform.system}.hyprland;
+            package = inputs.wm-hypr.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
             portalPackage =
-              inputs.wm-hypr.packages.${withSystem pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
+              inputs.wm-hypr.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
           };
         };
         hardware.graphics =
           let
-            hyprpkgs =
-              inputs.wm-hypr.inputs.nixpkgs.legacyPackages.${withSystem pkgs.stdenv.hostPlatform.system};
+            hyprpkgs = inputs.wm-hypr.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
           in
           {
             package = lib.mkForce hyprpkgs.mesa;
