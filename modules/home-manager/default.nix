@@ -1,7 +1,3 @@
 {
-  # Import program-specific home-manager configurations
-  imports = [
-    ./programs
-    ./window-managers
-  ];
+  flake.homeModules.default = ./programs;
 }

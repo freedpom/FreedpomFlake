@@ -7,6 +7,9 @@
     flake-root.url = "github:srid/flake-root";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     nix2container.url = "github:nlewo/nix2container";
+    wm-hypr.url = "github:hyprwm/Hyprland?ref=v0.53.1";
+    wm-niri.url = "github:sodiboo/niri-flake";
+    home-manager.url = "github:nix-community/home-manager";
   };
 
   outputs =
@@ -23,14 +26,14 @@
 
         imports = [
           fmtModule
+          inputs.home-manager.flakeModules.home-manager
+          ./modules/home-manager
           ./modules/nixos
           ./packages
+          ./modules/flake/windowManagers/hyprland
         ];
         flake = {
           inherit fmtModule;
-          homeModules = {
-            freedpomFlake = ./modules/home-manager;
-          };
         };
       }
     );
