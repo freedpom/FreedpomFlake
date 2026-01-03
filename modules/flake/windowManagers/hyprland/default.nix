@@ -1,18 +1,17 @@
-{ withSystem, ... }:
+{ withSystem, wm-hypr, ... }:
 {
   flake.nixosModules.windowManagers =
     {
       pkgs,
       lib,
       config,
-      wm-hypr,
       ...
     }:
     let
-      cfg = config.fm.programs.hyprland;
+      cfg = config.ff.programs.hyprland;
     in
     {
-      options.fm.programs.hyprland = {
+      options.ff.programs.hyprland = {
         enable = lib.mkEnableOption "Enable Hyprland";
       };
 
@@ -46,10 +45,10 @@
       ...
     }:
     let
-      cfg = config.fm.desktop.hypr.land;
+      cfg = config.ff.desktop.hypr.land;
     in
     {
-      options.fm.desktop.hypr.land = {
+      options.ff.desktop.hypr.land = {
         enable = lib.mkEnableOption "Enable Hyprland configuration";
       };
       config = lib.mkIf cfg.enable {
