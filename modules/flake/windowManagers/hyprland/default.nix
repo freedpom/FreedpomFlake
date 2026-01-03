@@ -1,11 +1,10 @@
-{ withSystem, ... }:
+{ withSystem, inputs, ... }:
 {
   flake.nixosModules.windowManagers =
     {
       pkgs,
       lib,
       config,
-      inputs,
       ...
     }:
     let
