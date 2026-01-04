@@ -95,7 +95,7 @@ let
       enable = true;
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${pkgs.bottom}/bin/btm";
+        ExecStart = mkForce "${cmd} ${argsStr}";
         ExecStop = "/bin/kill -HUP \${MAINPID}";
         StandardInput = "tty";
         StandardOutput = "tty";
@@ -258,7 +258,7 @@ in
         ```nix
         spawn = {
           "myuser@tty7" = {
-            package = pkgs.hyprland;
+            package = pkgs.bottom;
             args = [];
           };
         };
@@ -392,6 +392,16 @@ in
           || length kmsconTtys == 0
           || length (intersectLists (map extractTtyNum gettyTtys) (map extractTtyNum kmsconTtys)) == 0;
         message = "Getty and kmscon cannot be configured on the same TTY";
+      }
+      {
+        assertion = all (
+          spec:
+          let
+            tty = extractTtyNum spec;
+          in
+          !(elem "tty${tty}" gettyTtys || elem "tty${tty}" kmsconTtys)
+        ) (attrNames cfg.spawn);
+        message = "Spawned services cannot share TTYs with getty or kmscon";
       }
       {
         assertion = all validateTtyFormat allTtys;
