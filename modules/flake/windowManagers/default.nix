@@ -31,8 +31,8 @@
           Service = {
             Type = "simple";
             Environment = "PATH=/run/wrappers/bin:/var/lib/flatpak/exports/bin:/nix/profile/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin";
-            ExecStartPre = "/run/current-system/sw/bin/uwsm check may-start";
-            ExecStart = "/run/current-system/sw/bin/uwsm select";
+            #ExecStartPre = "/run/current-system/sw/bin/uwsm check may-start";
+            ExecStart = "/run/current-system/sw/bin/uwsm select && uwsm start default";
             Restart = "no";
           };
         };
