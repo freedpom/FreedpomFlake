@@ -88,14 +88,13 @@ let
       ttyNum = parsed.tty;
       inherit (parsed) user;
       spawnCfg = cfg.spawn.${spec};
-      cmd = getExe spawnCfg.package;
-      argsStr = concatStringsSep " " (map lib.escapeShellArg spawnCfg.args);
+      execStart = spawnCfg.execStart;
     in
     nameValuePair "spawn@tty${ttyNum}" {
       enable = true;
       serviceConfig = {
         Type = "simple";
-        ExecStart = mkForce "${cmd} ${argsStr}";
+        ExecStart = mkForce "${execStart}";
         ExecStop = "/bin/kill -HUP \${MAINPID}";
         StandardInput = "tty";
         StandardOutput = "tty";
@@ -236,15 +235,8 @@ in
       type = types.attrsOf (
         types.submodule {
           options = {
-            package = mkOption {
-              type = types.package;
-              description = "Package to execute on this TTY (will use its main binary)";
-            };
-
-            args = mkOption {
-              type = types.listOf types.str;
-              default = [ ];
-              description = "Arguments to pass to the package binary";
+            execStart = mkOption {
+              type = types.str;
             };
           };
         }
