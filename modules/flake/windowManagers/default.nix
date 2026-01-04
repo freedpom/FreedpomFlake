@@ -19,8 +19,8 @@
           default = false;
         };
       };
-      config = {
-        systemd.user.services.uwsm-start = lib.mkIf cfg.autoStart {
+      config = lib.mkIf cfg.autoStart {
+        systemd.user.services.uwsm-start = {
           Unit = {
             Description = "Start UWSM.";
             After = "graphical-session-pre.target";
