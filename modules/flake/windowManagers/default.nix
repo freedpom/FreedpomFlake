@@ -25,12 +25,15 @@
           Unit = {
             Description = "Start uwsm session";
           };
+
+          Service = {
+            ExecStart = "${pkgs.bash}/bin/bash -lc ''if uwsm check may-start && uwsm select; then exec uwsm start default; fi''";
+
+            Type = "simple";
+          };
+
           Install = {
             WantedBy = [ "default.target" ];
-          };
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.bash}/bin/bash -lc ''if uwsm check may-start && uwsm select; then exec uwsm start default; fi''";
           };
         };
       };

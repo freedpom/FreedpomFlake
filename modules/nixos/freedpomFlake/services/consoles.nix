@@ -81,6 +81,36 @@ let
       wantedBy = [ "multi-user.target" ];
     };
 
+  createSpawnService =
+    spec:
+    let
+      parsed = parseTtySpec spec;
+      ttyNum = parsed.tty;
+      inherit (parsed) user;
+      spawnCfg = cfg.spawn.${spec};
+      cmd = getExe spawnCfg.package;
+      argsStr = concatStringsSep " " (map lib.escapeShellArg spawnCfg.args);
+    in
+    nameValuePair "spawn@tty${ttyNum}" {
+      enable = true;
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = "${pkgs.bottom}/bin/btm";
+        ExecStop = "/bin/kill -HUP \${MAINPID}";
+        StandardInput = "tty";
+        StandardOutput = "tty";
+        TTYPath = "/dev/tty${ttyNum}";
+        #TTYReset = true;
+        #TTYVHangup = true;
+        #TTYVTDisallocate = true;
+        Restart = "always";
+        RestartSec = "2";
+        User = user;
+        Environment = "XDG_RUNTIME_DIR=/run/user/${toString config.users.users.${user}.uid}";
+      };
+      wantedBy = [ "getty.target" ];
+    };
+
   # TODO: Implement Stylix color integration
   # HINT: Convert hex colors to RGB tuples for kmscon palette
   # HINT: Use format "--palette-black=255, 255, 255" for RGB values
@@ -202,6 +232,40 @@ in
       ];
     };
 
+    spawn = mkOption {
+      type = types.attrsOf (
+        types.submodule {
+          options = {
+            package = mkOption {
+              type = types.package;
+              description = "Package to execute on this TTY (will use its main binary)";
+            };
+
+            args = mkOption {
+              type = types.listOf types.str;
+              default = [ ];
+              description = "Arguments to pass to the package binary";
+            };
+          };
+        }
+      );
+      default = { };
+      description = mdDoc ''
+        Run a package on a specific TTY instead of getty/kmscon.
+        The attribute name must be in the format `user@ttyN`.
+
+        Example:
+        ```nix
+        spawn = {
+          "myuser@tty7" = {
+            package = pkgs.hyprland;
+            args = [];
+          };
+        };
+        ```
+      '';
+    };
+
     kmsconConfig = mkOption {
       type = types.submodule {
         options = {
@@ -313,6 +377,7 @@ in
     systemd.services =
       (listToAttrs (map createGettyService gettyTtys))
       // (listToAttrs (map createKmsconService kmsconTtys))
+      // (listToAttrs (map createSpawnService (attrNames cfg.spawn)))
       # Disable default getty services
       // {
         "autovt@".enable = false;
