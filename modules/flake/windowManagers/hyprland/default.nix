@@ -11,10 +11,10 @@
       ...
     }:
     let
-      cfg = config.ff.programs.hyprland;
+      cfg = config.ff.windowManagers.hyprland;
     in
     {
-      options.ff.programs.hyprland = {
+      options.ff.windowManagers.hyprland = {
         enable = lib.mkEnableOption "Enable Hyprland";
       };
 
@@ -34,9 +34,9 @@
             hyprpkgs = inputs.wm-hypr.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
           in
           {
-            package = lib.mkForce hyprpkgs.mesa;
-            enable32Bit = lib.mkForce true;
-            package32 = lib.mkForce hyprpkgs.pkgsi686Linux.mesa;
+            package = hyprpkgs.mesa;
+            enable32Bit = true;
+            package32 = hyprpkgs.pkgsi686Linux.mesa;
           };
       };
     };
@@ -48,19 +48,17 @@
       ...
     }:
     let
-      cfg = config.ff.desktop.hypr.land;
+      cfg = config.ff.windowManagers.hyprland;
     in
     {
-      options.ff.desktop.hypr.land = {
+      options.ff.windowManagers.hyprland = {
         enable = lib.mkEnableOption "Enable Hyprland configuration";
       };
       config = lib.mkIf cfg.enable {
 
         home.pointerCursor.hyprcursor.enable = true;
         home.packages = with pkgs; [
-          wl-clipboard
           hyprpolkitagent
-          hyprland-qtutils
         ];
 
         wayland = {
