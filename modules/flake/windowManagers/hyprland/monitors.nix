@@ -6,6 +6,15 @@
       config,
       ...
     }:
+    let
+      # Change attribute names from displaySpec to monitor descriptions if they exist
+      monitors = lib.mapAttrs' (
+        name: cfg:
+        lib.nameValuePair (
+          if cfg.identifiers.description != null then "desc:${cfg.identifiers.description}" else name
+        ) cfg
+      ) osConfig.ff.hardware.displays;
+    in
     {
       wayland.windowManager.hyprland.settings = lib.mkIf config.ff.windowManagers.hyprland.enable {
         monitor = lib.mapAttrsToList (
@@ -36,12 +45,10 @@
             vrr = lib.optionalString (cfg.vrr != null) ", vrr, ${toString cfg.vrr}";
           in
           base + transform + mirror + bitdepth + cm + sdrbright + sdrsat + vrr
-        ) osConfig.ff.hardware.displays;
+        ) monitors;
 
         workspace = lib.concatLists (
-          lib.mapAttrsToList (
-            name: cfg: map (ws: "${ws}, monitor:${name}") cfg.workspaces
-          ) osConfig.ff.hardware.displays
+          lib.mapAttrsToList (name: cfg: map (ws: "${ws}, monitor:${name}") cfg.workspaces) monitors
         );
       };
     };
