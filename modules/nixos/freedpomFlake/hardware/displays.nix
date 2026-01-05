@@ -148,35 +148,35 @@
                 "3"
               ];
             };
-          };
 
-          identifiers = {
-            description = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
-              description = "Description as listed by monitors EDID, used by some window managers for workspace/monitor config";
-              example = "ASUSTek COMPUTER INC ASUS VG32VQ1B 0x0003A472";
-            };
+            identifiers = {
+              description = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Description as listed by monitors EDID";
+                example = "ASUSTek COMPUTER INC ASUS VG32VQ1B 0x0003A472";
+              };
 
-            manufacturer = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
-              description = "Manufacturer as listed by monitors EDID, used by some window managers for workspace/monitor config";
-              example = "ASUSTek COMPUTER INC";
-            };
+              manufacturer = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Manufacturer as listed by monitors EDID";
+                example = "ASUSTek COMPUTER INC";
+              };
 
-            model = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
-              description = "Model number as listed by monitors EDID, used by some window managers for workspace/monitor config";
-              example = "ASUS VG32VQ1B";
-            };
+              model = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Model number as listed by monitors EDID";
+                example = "ASUS VG32VQ1B";
+              };
 
-            serial = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
-              description = "Serial number as listed by monitors EDID, used by some window managers for workspace/monitor config";
-              example = "0x0003A472";
+              serial = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Serial number as listed by monitors EDID";
+                example = "0x0003A472";
+              };
             };
           };
         }

@@ -17,33 +17,25 @@
 
             base = "${name}, ${resolution}, ${position}, ${scale}";
 
-            transform =
-              if (cfg ? transform) && (cfg.transform != null) && (cfg.transform != 0) then
-                ", transform, ${toString cfg.transform}"
-              else
-                "";
+            transform = lib.optionalString (cfg.transform != null) ", transform, ${toString cfg.transform}";
 
-            mirror = if (cfg ? mirror) && (cfg.mirror != null) then ", mirror, ${cfg.mirror}" else "";
+            mirror = lib.optionalString (cfg.mirror != null) ", mirror, ${cfg.mirror}";
 
-            bitdepth = if (cfg ? colorDepth) && (cfg.colorDepth == 10) then ", bitdepth, 10" else "";
+            bitdepth = lib.optionalString (cfg.colorDepth == 10) ", bitdepth, 10";
 
-            cm = if (cfg ? cm) && (cfg.cm != null) then ", cm, ${cfg.cm}" else "";
+            cm = lib.optionalString (cfg.colorProfile != null) ", cm, ${cfg.colorProfile}";
 
-            sdrbrightness =
-              if (cfg ? sdrbrightness) && (cfg.sdrbrightness != null) then
-                ", sdrbrightness, ${toString cfg.sdrbrightness}"
-              else
-                "";
+            sdrbright = lib.optionalString (
+              cfg.sdrBrightness != null
+            ) ", sdrbrightness, ${toString cfg.sdrBrightness}";
 
-            sdrsaturation =
-              if (cfg ? sdrsaturation) && (cfg.sdrsaturation != null) then
-                ", sdrsaturation, ${toString cfg.sdrsaturation}"
-              else
-                "";
+            sdrsat = lib.optionalString (
+              cfg.sdrSaturation != null
+            ) ", sdrsaturation, ${toString cfg.sdrSaturation}";
 
-            vrr = if (cfg ? vrr) && (cfg.vrr != null) then ", vrr, ${toString cfg.vrr}" else "";
+            vrr = lib.optionalString (cfg.vrr != null) ", vrr, ${toString cfg.vrr}";
           in
-          base + transform + mirror + bitdepth + cm + sdrbrightness + sdrsaturation + vrr
+          base + transform + mirror + bitdepth + cm + sdrbright + sdrsat + vrr
         ) osConfig.ff.hardware.displays;
 
         workspace = lib.concatLists (

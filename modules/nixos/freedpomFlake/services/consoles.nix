@@ -88,7 +88,7 @@ let
       ttyNum = parsed.tty;
       inherit (parsed) user;
       spawnCfg = cfg.spawn.${spec};
-      execStart = spawnCfg.execStart;
+      inherit (spawnCfg) execStart;
     in
     nameValuePair "spawn@tty${ttyNum}" {
       enable = true;
