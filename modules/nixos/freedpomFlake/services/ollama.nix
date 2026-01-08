@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -16,7 +17,7 @@ in
     services = {
       ollama = {
         enable = true;
-        acceleration = "rocm";
+        package = pkgs.ollama-rocm;
       };
       open-webui = {
         enable = true;
