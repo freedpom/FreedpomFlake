@@ -10,13 +10,17 @@
     wm-hypr.url = "github:hyprwm/Hyprland?ref=v0.53.1";
     wm-niri.url = "github:sodiboo/niri-flake";
     home-manager.url = "github:nix-community/home-manager";
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } (
       let
-        fmtModule = flake-parts.lib.importApply ./modules/flake/fmt-module.nix { inherit inputs; };
+        fmtModule = flake-parts.lib.importApply ./modules/flake/formatModule.nix { inherit inputs; };
       in
       {
         systems = [
@@ -27,11 +31,13 @@
         imports = [
           fmtModule
           inputs.home-manager.flakeModules.home-manager
+          inputs.flake-parts.flakeModules.easyOverlay
+          inputs.flake-parts.flakeModules.partitions
           ./modules/home-manager
           ./modules/nixos
           ./packages
           ./modules/flake/windowManagers
-          ./modules/flake/core
+          ./modules/flake/coreModule
         ];
         flake = {
           inherit fmtModule;
