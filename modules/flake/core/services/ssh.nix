@@ -1,8 +1,4 @@
-{ ... }:
 {
-  imports = [
-    ./monitors.nix
-  ];
   flake.nixosModules.core =
     {
       lib,
