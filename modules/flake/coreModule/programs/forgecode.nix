@@ -31,7 +31,10 @@
                 sha256 = "sha256-9vBkb7ut4WWE0npldU7nI5MuABIeJXvfqaDjdS/qv70=";
               };
 
-              nativeBuildInputs = [ pkgs.protobuf ];
+              nativeBuildInputs = [
+                pkgs.pkg-config
+                pkgs.protobuf
+              ];
               doCheck = false;
               cargoHash = "sha256-wok/WfOn6HtCVrE6K/J/43aqxXzPftQ+RlKQP8HZAgk=";
 
