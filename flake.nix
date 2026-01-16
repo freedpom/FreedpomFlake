@@ -37,7 +37,7 @@
           ./modules/nixos
           ./packages
           ./modules/flake/windowManagers
-          ./modules/flake/coreModule
+          ./modules/flake/default
         ];
         flake = {
           inherit fmtModule;

@@ -11,13 +11,14 @@
       ...
     }:
     let
-      cfg = config.ff.windowManagers;
+      cfg = config.freedpom.windowManagers;
     in
     {
-      options.ff.windowManagers = {
+      options.freedpom.windowManagers = {
         autoStart = lib.mkOption {
           type = lib.types.bool;
           default = false;
+          description = "Whether to automatically start window manager session on user login";
         };
       };
       config = lib.mkIf cfg.autoStart {

@@ -13,10 +13,10 @@
         lib.nameValuePair (
           if cfg.identifiers.description != null then "desc:${cfg.identifiers.description}" else name
         ) cfg
-      ) osConfig.ff.hardware.displays;
+      ) osConfig.freedpom.hardware.displays;
     in
     {
-      wayland.windowManager.hyprland.settings = lib.mkIf config.ff.windowManagers.hyprland.enable {
+      wayland.windowManager.hyprland.settings = lib.mkIf config.freedpom.windowManagers.hyprland.enable {
         monitor = lib.mapAttrsToList (
           name: cfg:
           let

@@ -6,11 +6,11 @@
       ...
     }:
     let
-      cfg = config.ff.core.services.openssh;
+      cfg = config.freedpom.default.services.ssh;
     in
     {
-      options.ff.core.services.openssh = {
-        enable = lib.mkEnableOption "Enable OpenSSH and Agent";
+      options.freedpom.default.services.ssh = {
+        enable = lib.mkEnableOption "OpenSSH server and client configuration";
       };
 
       config = lib.mkIf cfg.enable {
@@ -33,11 +33,11 @@
       ...
     }:
     let
-      cfg = config.ff.core.services.openssh;
+      cfg = config.freedpom.default.services.ssh;
     in
     {
-      options.ff.core.services.openssh = {
-        enable = lib.mkEnableOption "Enable OpenSSH and Agent";
+      options.freedpom.default.services.ssh = {
+        enable = lib.mkEnableOption "OpenSSH server and client configuration";
       };
       config = lib.mkIf cfg.enable {
         services.ssh-agent = {

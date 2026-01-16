@@ -3,15 +3,14 @@
     {
       lib,
       config,
-      pkgs,
       ...
     }:
     let
-      cfg = config.ff.core.programs.opencode;
+      cfg = config.freedpom.default.programs.opencode;
     in
     {
-      options.ff.core.programs.opencode = {
-        enable = lib.mkEnableOption "Enable opencode";
+      options.freedpom.default.programs.opencode = {
+        enable = lib.mkEnableOption "opencode AI coding assistant";
       };
 
       config = lib.mkIf cfg.enable {

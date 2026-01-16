@@ -11,11 +11,11 @@
       ...
     }:
     let
-      cfg = config.ff.windowManagers.hyprland;
+      cfg = config.freedpom.windowManagers.hyprland;
     in
     {
-      options.ff.windowManagers.hyprland = {
-        enable = lib.mkEnableOption "Enable Hyprland";
+      options.freedpom.windowManagers.hyprland = {
+        enable = lib.mkEnableOption "Hyprland dynamic tiling Wayland compositor";
       };
 
       config = lib.mkIf cfg.enable {
@@ -48,11 +48,11 @@
       ...
     }:
     let
-      cfg = config.ff.windowManagers.hyprland;
+      cfg = config.freedpom.windowManagers.hyprland;
     in
     {
-      options.ff.windowManagers.hyprland = {
-        enable = lib.mkEnableOption "Enable Hyprland configuration";
+      options.freedpom.windowManagers.hyprland = {
+        enable = lib.mkEnableOption "Hyprland user configuration";
       };
       config = lib.mkIf cfg.enable {
 

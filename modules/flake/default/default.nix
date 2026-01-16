@@ -6,7 +6,7 @@
     ./programs/opencode.nix
   ];
 
-  flake.nixosModules.core = {
+  flake.nixosModules.default = {
     nixpkgs.overlays = [ self.overlays.default ];
   };
 }

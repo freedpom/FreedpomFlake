@@ -55,11 +55,11 @@
       ...
     }:
     let
-      cfg = config.ff.core.programs.forgecode;
+      cfg = config.freedpom.default.programs.forgecode;
     in
     {
-      options.ff.core.programs.forgecode = {
-        enable = lib.mkEnableOption "Enable forgecode";
+      options.freedpom.default.programs.forgecode = {
+        enable = lib.mkEnableOption "forgecode AI development agent";
       };
 
       config = lib.mkIf cfg.enable {

@@ -8,11 +8,11 @@
       ...
     }:
     let
-      cfg = config.ff.programs.niri;
+      cfg = config.freedpom.windowManagers.niri;
     in
     {
-      options.ff.programs.niri = {
-        enable = lib.mkEnableOption "Enable Niri";
+      options.freedpom.windowManagers.niri = {
+        enable = lib.mkEnableOption "Niri scrollable tiling Wayland compositor";
       };
 
       config = lib.mkIf cfg.enable {
@@ -45,14 +45,13 @@
       ...
     }:
     let
-      cfg = config.ff.desktop.niri;
+      cfg = config.freedpom.windowManagers.niri;
     in
     {
-      options.ff.desktop.niri = {
-        enable = lib.mkEnableOption "Enable Hyprland configuration";
+      options.freedpom.windowManagers.niri = {
+        enable = lib.mkEnableOption "Niri user configuration";
       };
       config = lib.mkIf cfg.enable {
-
         home.pointerCursor.hyprcursor.enable = true;
         home.packages = with pkgs; [
           wl-clipboard
