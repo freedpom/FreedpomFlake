@@ -13,7 +13,7 @@
         lib.nameValuePair (
           if cfg.identifiers.description != null then "desc:${cfg.identifiers.description}" else name
         ) cfg
-      ) osConfig.freedpom.hardware.displays;
+      ) osConfig.ff.hardware.displays;
     in
     {
       wayland.windowManager.hyprland.settings = lib.mkIf config.freedpom.windowManagers.hyprland.enable {
