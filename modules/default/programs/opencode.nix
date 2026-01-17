@@ -1,5 +1,5 @@
 {
-  flake.homeModules.core =
+  flake.homeModules.default =
     {
       lib,
       config,

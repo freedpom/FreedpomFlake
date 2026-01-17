@@ -1,5 +1,5 @@
 {
-  flake.nixosModules.core =
+  flake.nixosModules.default =
     {
       lib,
       config,
@@ -26,7 +26,7 @@
         };
       };
     };
-  flake.homeModules.core =
+  flake.homeModules.default =
     {
       config,
       lib,
