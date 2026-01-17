@@ -20,7 +20,7 @@
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } (
       let
-        fmtModule = flake-parts.lib.importApply ./modules/formatModule.nix { inherit inputs; };
+        fmtModule = flake-parts.lib.importApply ./modules/_formatModule.nix { inherit inputs; };
       in
       {
         systems = [
@@ -35,9 +35,8 @@
           inputs.flake-parts.flakeModules.partitions
           ./modules/_legacy/home-manager
           ./modules/_legacy/nixos
+          ./modules
           ./packages
-          ./modules/windowManagers
-          ./modules/default
         ];
         flake = {
           inherit fmtModule;
