@@ -1,2 +1,30 @@
-# This file will contain the sudo-rs program module
-# Migrated from: modules/_legacy/nixos/freedpomFlake/system/rust-utils/sudo-rs.nix
+{
+  flake.nixosModules.default =
+    {
+      lib,
+      config,
+      ...
+    }:
+    let
+      cfg = config.freedpom.programs.sudo-rs;
+    in
+    {
+      options.freedpom.programs.sudo-rs = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Enable sudo-rs instead of regular sudo";
+        };
+      };
+
+      config = lib.mkIf cfg.enable {
+        security = {
+          sudo.enable = lib.mkForce false;
+          sudo-rs = {
+            enable = true;
+            execWheelOnly = true;
+          };
+        };
+      };
+    };
+}
