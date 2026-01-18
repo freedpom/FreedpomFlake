@@ -12,7 +12,7 @@
     {
       # Configuration options for VR service
       options.freedpom.services.vr = {
-        enable = lib.mkEnableOption "Enable virtual reality";
+        enable = lib.mkEnableOption "Virtual reality streaming via Wivrn for wireless PC VR with low-latency video encoding");
         wivrnPkg = lib.mkOption {
           type = lib.types.package;
           default = pkgs.wivrn;

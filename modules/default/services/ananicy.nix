@@ -12,7 +12,7 @@
     {
       # Configuration options for Ananicy service
       options.freedpom.services.ananicy = {
-        enable = lib.mkEnableOption "Enable ananicy service for process resource management with customized rules and settings";
+        enable = lib.mkEnableOption "Ananicy process management daemon with CachyOS rules for automatic CPU/IO priority optimization");
       };
 
       config = lib.mkIf cfg.enable {

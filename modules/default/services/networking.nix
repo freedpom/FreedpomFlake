@@ -10,8 +10,8 @@
     in
     {
       options.freedpom.services.networking = {
-        containers.enable = lib.mkEnableOption "Enable";
-        mesh = lib.mkEnableOption "Enable mesh";
+        containers.enable = lib.mkEnableOption "Network configuration with NAT for containers and privacy-focused NetworkManager settings");
+        mesh = lib.mkEnableOption "Mesh networking via Tailscale for secure peer-to-peer connectivity";
       };
 
       config = lib.mkIf cfg.containers.enable {

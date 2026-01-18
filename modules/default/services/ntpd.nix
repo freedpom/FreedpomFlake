@@ -11,7 +11,7 @@
     {
       # Configuration options for NTP service
       options.freedpom.services.ntpd = {
-        enable = lib.mkEnableOption "Whether to enable Network Time Service (ntpd-rs)";
+        enable = lib.mkEnableOption "Secure Network Time Protocol daemon with NTS support and multiple time servers for accurate system time";
       };
 
       config = lib.mkIf cfg.enable {

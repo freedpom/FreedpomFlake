@@ -10,7 +10,7 @@
     in
     {
       options.freedpom.hardware.audio = {
-        enable = lib.mkEnableOption "Enable audio hardware configuration for low-latency audio";
+        enable = lib.mkEnableOption "Audio hardware configuration for low-latency audio production with real-time priorities and memory optimization";
       };
 
       config = lib.mkIf cfg.enable {

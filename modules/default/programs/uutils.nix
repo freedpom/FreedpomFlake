@@ -13,7 +13,7 @@
       options.freedpom.programs.uutils.enable = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Enable uutils rust replacement of gnu coreutils";
+        description = "Cross-platform Rust implementation of GNU coreutils with consistent behavior and improved performance";
       };
 
       config = lib.mkIf cfg.enable {

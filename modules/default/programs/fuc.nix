@@ -13,7 +13,7 @@
       options.freedpom.programs.fuc.enable = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Enable Fast Unix Commands";
+        description = "Fast Unix Commands - modern CLI utilities with improved performance and usability";
       };
 
       config = lib.mkIf cfg.enable {

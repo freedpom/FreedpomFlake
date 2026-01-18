@@ -12,7 +12,7 @@
     {
       # Configuration options for Ollama service
       options.freedpom.services.ollama = {
-        enable = lib.mkEnableOption "Enable Ollama service for running large language models locally";
+        enable = lib.mkEnableOption "Ollama AI service for running large language models locally with ROCm GPU acceleration support");
       };
 
       config = lib.mkIf cfg.enable {

@@ -13,7 +13,7 @@
         enable = lib.mkOption {
           type = lib.types.bool;
           default = true;
-          description = "Enable sudo-rs instead of regular sudo";
+          description = "Memory-safe sudo implementation in Rust with enhanced security features and reduced attack surface";
         };
       };
 
