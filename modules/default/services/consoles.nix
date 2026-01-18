@@ -350,7 +350,6 @@
           description = "Kmscon configuration options";
         };
 
-
         # stylix = {
         #   enable = mkOption {
         #     type = types.bool;
