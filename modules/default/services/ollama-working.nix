@@ -7,10 +7,10 @@
       ...
     }:
     let
-      cfg = config.freedpom.services.vr;
+      cfg = config.freedpom.services.pipewire;
     in
     {
-      options.freedpom.services.vr = {
+      options.freedpom.services.pipewire = {
         enable = lib.mkEnableOption "Enable PipeWire configuration to provide low-latency audio/video routing with pro-audio optimizations";
 
         # Documentation about latency values:
@@ -25,7 +25,7 @@
       config = lib.mkIf cfg.enable {
         # Enable threadirqs for better audio performance
         # https://github.com/musnix/musnix/blob/86ef22cbdd7551ef325bce88143be9f37da64c26/modules/base.nix#L76
-        boot = lib.mkIf config.services.vr.enable { kernelParams = [ "threadirqs" ]; };
+        boot = lib.mkIf config.services.pipewire.enable { kernelParams = [ "threadirqs" ]; };
 
         environment.systemPackages = with pkgs; [
           alsa-utils
@@ -35,7 +35,7 @@
         ];
 
         services = {
-          vr = {
+          pipewire = {
             enable = true;
             audio.enable = true;
             # Audio subsystems
@@ -51,7 +51,7 @@
             };
 
             extraConfig = {
-              vr = {
+              pipewire = {
                 "10-clock-rate" = {
                   "context.properties" = {
                     "default.clock.rate" = 48000;
@@ -69,7 +69,7 @@
                 "11-modules" = {
                   "context.modules" = [
                     {
-                      name = "libvr-module-rtkit";
+                      name = "libpipewire-module-rtkit";
                       flags = [
                         "ifexists"
                         "nofail"
@@ -84,7 +84,7 @@
                       };
                     }
                     {
-                      name = "libvr-module-protocol-pulse";
+                      name = "libpipewire-module-protocol-pulse";
                       args = {
                         server.address = [ "unix:native" ];
                         pulse.min = {
