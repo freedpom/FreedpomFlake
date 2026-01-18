@@ -1,8 +1,6 @@
-{ inputs, ... }:
 {
   flake.nixosModules.windowManagers =
     {
-      pkgs,
       lib,
       config,
       ...
@@ -22,7 +20,7 @@
           };
           xwayland.enable = true;
         };
-        
+
         environment.sessionVariables = {
           NIXOS_OZONE_WL = "1";
         };
@@ -32,7 +30,7 @@
         # programs.niri.package = pkgs.niri-unstable;
       };
     };
-    
+
   flake.homeModules.windowManagers =
     {
       pkgs,
@@ -47,7 +45,7 @@
       options.freedpom.windowManagers.niri = {
         enable = lib.mkEnableOption "Niri user configuration";
       };
-      
+
       config = lib.mkIf cfg.enable {
         home.packages = with pkgs; [
           wl-clipboard
@@ -65,7 +63,10 @@
                 height = 1080;
                 refresh = 60.0;
               };
-              position = { x = 0; y = 0; };
+              position = {
+                x = 0;
+                y = 0;
+              };
             };
           };
 
@@ -75,13 +76,13 @@
               repeat-rate = 25;
               track-layout = "global";
             };
-            
+
             touchpad = {
               tap = true;
               dwt = true;
               natural-scroll = true;
             };
-            
+
             mouse = {
               accel-speed = 0.0;
             };
@@ -92,7 +93,7 @@
               enable = true;
               width = 4;
             };
-            
+
             border = {
               enable = true;
               width = 2;
