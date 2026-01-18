@@ -1,0 +1,49 @@
+{
+  flake.nixosModules.default =
+    {
+      lib,
+      config,
+      ...
+    }:
+    let
+      cfg = config.freedpom.services.networking;
+    in
+    {
+      options.freedpom.services.networking = {
+        containers.enable = lib.mkEnableOption "Network configuration with NAT for containers and privacy-focused NetworkManager settings";
+        mesh = lib.mkEnableOption "Mesh networking via Tailscale for secure peer-to-peer connectivity";
+      };
+
+      config = lib.mkIf cfg.containers.enable {
+        networking = {
+          nftables.enable = true;
+
+          firewall = {
+            enable = true;
+            allowedTCPPorts = [ ];
+            allowedUDPPorts = [ ];
+          };
+
+          nat = {
+            enable = true;
+            # Lazy IPv6 connectivity for the container
+            enableIPv6 = true;
+            externalInterface = "en01";
+            internalInterfaces = [ "ve-*" ];
+          };
+
+          # NetworkManager settings
+          networkmanager = {
+            # Enable IPv6 privacy extensions in NetworkManager.
+            connectionConfig."ipv6.ip6-privacy" = 2;
+            ethernet.macAddress = "random";
+            wifi = {
+              macAddress = "random";
+              scanRandMacAddress = true;
+            };
+          };
+        };
+        services.tailscale.enable = cfg.mesh;
+      };
+    };
+}
