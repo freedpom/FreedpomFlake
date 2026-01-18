@@ -13,18 +13,11 @@
       options.freedpom.services.pipewire = {
         enable = lib.mkEnableOption "Enable PipeWire configuration to provide low-latency audio/video routing with pro-audio optimizations";
 
-        # Documentation about latency values:
-        # 32/48000 = ~0.67ms latency
-        # 64/48000 = ~1.33ms latency
-        # 128/48000 = ~2.67ms latency
-        # 256/48000 = ~5.33ms latency
-        # 512/48000 = ~10.67ms latency
-        # 1024/48000 = ~21.33ms latency
+
       };
 
       config = lib.mkIf cfg.enable {
-        # Enable threadirqs for better audio performance
-        # https://github.com/musnix/musnix/blob/86ef22cbdd7551ef325bce88143be9f37da64c26/modules/base.nix#L76
+        # Thread IRQs required for real-time audio performance
         boot = lib.mkIf config.services.pipewire.enable { kernelParams = [ "threadirqs" ]; };
 
         environment.systemPackages = with pkgs; [

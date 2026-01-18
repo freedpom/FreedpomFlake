@@ -11,7 +11,7 @@
     in
     {
       options.freedpom.services.containers = {
-        enable = lib.mkEnableOption "Podman container runtime with Docker compatibility and included management tools");
+        enable = lib.mkEnableOption "Podman container runtime with Docker compatibility and included management tools";
       };
 
       config = lib.mkIf cfg.enable {

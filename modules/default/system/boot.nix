@@ -38,7 +38,7 @@
         hard = lib.mkOption {
           type = lib.types.bool;
           default = true;
-          description = "make kernel hard ;)";
+          description = "Apply kernel security hardening";
         };
 
         firmware = lib.mkOption {
@@ -47,7 +47,7 @@
             "bios"
           ];
           default = "uefi";
-          description = "Select firmware mode used for booting.";
+          description = "Select firmware mode: UEFI (modern) or BIOS (legacy)";
         };
 
         loaderEntries = lib.mkOption {

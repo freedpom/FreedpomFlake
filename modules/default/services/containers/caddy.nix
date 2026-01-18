@@ -10,7 +10,7 @@
     in
     {
       options.freedpom.services.containers.caddy = {
-        enable = lib.mkEnableOption "Caddy web server container for reverse proxy and static site hosting");
+        enable = lib.mkEnableOption "Caddy web server container for reverse proxy and static site hosting";
       };
 
       config = lib.mkIf cfg.enable {

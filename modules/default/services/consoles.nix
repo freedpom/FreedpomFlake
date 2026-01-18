@@ -113,17 +113,13 @@
         };
 
       # TODO: Implement Stylix color integration
-      # HINT: Convert hex colors to RGB tuples for kmscon palette
-      # HINT: Use format "--palette-black=255, 255, 255" for RGB values
-      # HINT: Map base16 colors: base00=black, base08=red, base0B=green, etc.
+      # Requires: Convert hex colors to RGB tuples for kmscon palette
+      # Example: "--palette-black=255, 255, 255" for RGB values
 
       # Build kmscon command arguments
       buildKmsconArgs =
         kmsconConfig:
         let
-          # TODO: Add Stylix font fallback
-          # HINT: Use stylixFonts.monospace.name for font name
-          # HINT: Use stylixFonts.sizes.terminal for font size
           fontName = kmsconConfig.font.name;
           fontSize = kmsconConfig.font.size;
         in
@@ -149,7 +145,7 @@
         ) "--render-engine=${kmsconConfig.video.renderEngine}")
         ++ (optional kmsconConfig.video.renderTiming "--render-timing")
         ++ (optional (!kmsconConfig.video.useOriginalMode) "--no-use-original-mode")
-        # TODO: Add Stylix color arguments here when implemented
+        # TODO: Add Stylix color arguments when integration is implemented
         ++ kmsconConfig.extraArgs;
 
       # Create systemd service for kmscon
@@ -354,7 +350,7 @@
           description = "Kmscon configuration options";
         };
 
-        # TODO: Re-implement Stylix integration
+
         # stylix = {
         #   enable = mkOption {
         #     type = types.bool;
