@@ -5,7 +5,7 @@
     ./hardware/displays.nix
     ./hardware/audio.nix
 
-    # System modules  
+    # System modules
     ./system/nix.nix
     ./system/performance.nix
     ./system/boot.nix
