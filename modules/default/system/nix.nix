@@ -11,7 +11,7 @@
     in
     {
       options.freedpom.system.nix = {
-        enable = lib.mkEnableOption "Enable nix system configuration";
+        enable = lib.mkEnableOption "Nix package manager with performance optimizations and flake registry configuration";
       };
 
       config = lib.mkIf cfg.enable {

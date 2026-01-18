@@ -10,7 +10,7 @@
     in
     {
       options.freedpom.system.performance = {
-        enable = lib.mkEnableOption "Enable performance tweaks ";
+        enable = lib.mkEnableOption "System performance optimizations including IRQ balancing and watchdog timers";
       };
 
       config = lib.mkIf cfg.enable {

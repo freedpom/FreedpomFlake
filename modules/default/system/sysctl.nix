@@ -14,16 +14,20 @@
           type = lib.types.bool;
           default = true;
           description = ''
-            Use sysctl with cachyos presets.
-            https://github.com/CachyOS/CachyOS-Settings/blob/e96d1e1dd253ed09e4104b096df543e6ecad08be/usr/lib/sysctl.d/99-cachyos-settings.conf
+            Apply CachyOS kernel parameter optimizations for improved system responsiveness, 
+            memory management, and network performance. Includes swappiness tuning, 
+            pressure optimizations, and TCP enhancement settings.
+            See: https://github.com/CachyOS/CachyOS-Settings
           '';
         };
         mineral = lib.mkOption {
           type = lib.types.bool;
           default = true;
           description = ''
-            Use sysctl with some nix-mineral presets.
-            https://github.com/cynicsketch/nix-mineral/blob/46bb9ac8b69c6afa86063d52298598db4a5d9bc0/nix-mineral.nix#L449
+            Apply nix-mineral security hardening settings for enhanced system protection 
+            and privacy. Includes kernel pointer restrictions, kexec disablement, 
+            and TCP security enhancements.
+            See: https://github.com/cynicsketch/nix-mineral
           '';
         };
       };

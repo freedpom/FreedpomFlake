@@ -11,7 +11,7 @@
     in
     {
       options.freedpom.system.boot = {
-        enable = lib.mkEnableOption "Enable bootloader module.";
+        enable = lib.mkEnableOption "Modern bootloader configuration with UEFI/BIOS support and security hardening";
 
         verbosity = lib.mkOption {
           type = lib.types.enum [
