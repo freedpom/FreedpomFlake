@@ -11,10 +11,8 @@
       cfg = config.freedpom.services.consoles;
       inherit (lib) concatStringsSep optional;
 
-      # TODO: Stylix integration
-      # HINT: Use config.lib.stylix.colors for color scheme
-      # HINT: Use config.stylix.fonts for font configuration
-      # HINT: Handle base16Scheme properly (might be string path to YAML)
+      # TODO: Integrate with Stylix for automatic color scheme and font application
+      # Will need: config.lib.stylix.colors conversion to RGB tuples for kmscon palette
 
       # Extract TTY number from string (e.g., "tty1" -> "1")
       extractTtyNum =
@@ -112,8 +110,7 @@
           wantedBy = [ "getty.target" ];
         };
 
-      # TODO: Implement Stylix color integration
-      # Requires: Convert hex colors to RGB tuples for kmscon palette
+      # TODO: Convert Stylix hex colors to RGB tuples for kmscon palette
       # Example: "--palette-black=255, 255, 255" for RGB values
 
       # Build kmscon command arguments
@@ -145,7 +142,7 @@
         ) "--render-engine=${kmsconConfig.video.renderEngine}")
         ++ (optional kmsconConfig.video.renderTiming "--render-timing")
         ++ (optional (!kmsconConfig.video.useOriginalMode) "--no-use-original-mode")
-        # TODO: Add Stylix color arguments when integration is implemented
+        # TODO: Add Stylix color arguments when integration is available
         ++ kmsconConfig.extraArgs;
 
       # Create systemd service for kmscon

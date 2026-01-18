@@ -16,17 +16,14 @@
 
       config = lib.mkIf cfg.containers.enable {
         networking = {
-          # Core network settings
           nftables.enable = true;
 
-          # Firewall settings
           firewall = {
             enable = true;
             allowedTCPPorts = [ ];
             allowedUDPPorts = [ ];
           };
 
-          # NAT configuration for containers
           nat = {
             enable = true;
             # Lazy IPv6 connectivity for the container
