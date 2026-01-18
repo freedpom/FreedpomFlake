@@ -79,7 +79,7 @@ let
 
   # Return a list of all normal users
   users = lib.attrNames (lib.filterAttrs (_n: v: v.isNormalUser) config.users.users);
-  userCfg = config.ff.userConfig.users;
+  userCfg = config.freedpom.system.users;
 
   # Return a list of all packages installed on the system
   parsePackages =

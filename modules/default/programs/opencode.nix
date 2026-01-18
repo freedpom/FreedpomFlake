@@ -6,10 +6,10 @@
       ...
     }:
     let
-      cfg = config.freedpom.default.programs.opencode;
+      cfg = config.freedpom.programs.opencode;
     in
     {
-      options.freedpom.default.programs.opencode = {
+      options.freedpom.programs.opencode = {
         enable = lib.mkEnableOption "opencode AI coding assistant";
       };
 

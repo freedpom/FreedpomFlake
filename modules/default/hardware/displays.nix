@@ -212,7 +212,7 @@
       config = {
         boot.kernelParams =
           let
-            displays = config.ff.hardware.displays or { };
+            displays = config.freedpom.hardware.displays or { };
             videoParams = lib.flatten (
               lib.mapAttrsToList (
                 name: disp:

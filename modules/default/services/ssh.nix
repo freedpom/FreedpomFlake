@@ -6,10 +6,10 @@
       ...
     }:
     let
-      cfg = config.freedpom.default.services.ssh;
+      cfg = config.freedpom.services.ssh;
     in
     {
-      options.freedpom.default.services.ssh = {
+      options.freedpom.services.ssh = {
         enable = lib.mkEnableOption "OpenSSH server and client configuration";
       };
 
@@ -33,10 +33,10 @@
       ...
     }:
     let
-      cfg = config.freedpom.default.services.ssh;
+      cfg = config.freedpom.services.ssh;
     in
     {
-      options.freedpom.default.services.ssh = {
+      options.freedpom.services.ssh = {
         enable = lib.mkEnableOption "OpenSSH server and client configuration";
       };
       config = lib.mkIf cfg.enable {

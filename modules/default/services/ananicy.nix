@@ -12,7 +12,7 @@
     {
       # Configuration options for Ananicy service
       options.freedpom.services.ananicy = {
-        enable = lib.mkEnableOption "Enable Ananicy process management";
+        enable = lib.mkEnableOption "Enable the ananicy service for process resource management with customized rules and settings";
       };
 
       config = lib.mkIf cfg.enable {

@@ -17,26 +17,22 @@
 
       config = lib.mkIf cfg.enable {
         programs = {
-          uwsm.enable = true;
-          hyprland = {
+          niri = {
             enable = true;
-            withUWSM = true;
-            package = inputs.wm-hypr.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
-            portalPackage =
-              inputs.wm-hypr.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
           };
+          xwayland.enable = true;
         };
-        hardware.graphics =
-          let
-            hyprpkgs = inputs.wm-hypr.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-          in
-          {
-            package = lib.mkForce hyprpkgs.mesa;
-            enable32Bit = lib.mkForce true;
-            package32 = lib.mkForce hyprpkgs.pkgsi686Linux.mesa;
-          };
+        
+        environment.sessionVariables = {
+          NIXOS_OZONE_WL = "1";
+        };
+
+        # Optional: Use overlay for niri-unstable if needed
+        # nixpkgs.overlays = [ inputs.niri.overlays.niri ];
+        # programs.niri.package = pkgs.niri-unstable;
       };
     };
+    
   flake.homeModules.windowManagers =
     {
       pkgs,
@@ -51,24 +47,65 @@
       options.freedpom.windowManagers.niri = {
         enable = lib.mkEnableOption "Niri user configuration";
       };
+      
       config = lib.mkIf cfg.enable {
-        home.pointerCursor.hyprcursor.enable = true;
         home.packages = with pkgs; [
           wl-clipboard
-          hyprpolkitagent
-          hyprland-qtutils
+          wofi
+          mako
+          waybar
         ];
 
-        wayland = {
-          windowManager.hyprland = {
-            enable = true;
-            package = null;
-            portalPackage = null;
-            systemd = {
-              enable = false;
-              enableXdgAutostart = false;
+        # Example Niri configuration
+        programs.niri.settings = {
+          outputs = {
+            "eDP-1" = {
+              mode = {
+                width = 1920;
+                height = 1080;
+                refresh = 60.0;
+              };
+              position = { x = 0; y = 0; };
             };
-            xwayland.enable = true;
+          };
+
+          input = {
+            keyboard = {
+              repeat-delay = 600;
+              repeat-rate = 25;
+              track-layout = "global";
+            };
+            
+            touchpad = {
+              tap = true;
+              dwt = true;
+              natural-scroll = true;
+            };
+            
+            mouse = {
+              accel-speed = 0.0;
+            };
+          };
+
+          layout = {
+            focus-ring = {
+              enable = true;
+              width = 4;
+            };
+            
+            border = {
+              enable = true;
+              width = 2;
+            };
+          };
+
+          prefer-no-csd = true;
+        };
+
+        wayland = {
+          windowManager.niri = {
+            enable = true;
+            settings = { };
           };
         };
       };

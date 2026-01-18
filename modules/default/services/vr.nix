@@ -10,98 +10,77 @@
       cfg = config.freedpom.services.vr;
     in
     {
+      # Configuration options for VR service
       options.freedpom.services.vr = {
-        enable = lib.mkEnableOption "Enable PipeWire configuration to provide low-latency audio/video routing with pro-audio optimizations";
-
-        # Documentation about latency values:
-        # 32/48000 = ~0.67ms latency
-        # 64/48000 = ~1.33ms latency
-        # 128/48000 = ~2.67ms latency
-        # 256/48000 = ~5.33ms latency
-        # 512/48000 = ~10.67ms latency
-        # 1024/48000 = ~21.33ms latency
+        enable = lib.mkEnableOption "Enable the virtual reality";
+        wivrnPkg = lib.mkOption {
+          type = lib.types.package;
+          default = pkgs.wivrn;
+          description = ''
+            Wivrn package to use
+          '';
+        };
+        autoStart = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            Auto start
+          '';
+        };
+        openFirewall = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            firewall
+          '';
+        };
+        bitrate = lib.mkOption {
+          type = lib.types.int;
+          default = 50000000;
+          description = ''
+            The Bitrate
+          '';
+        };
       };
 
       config = lib.mkIf cfg.enable {
-        # Enable threadirqs for better audio performance
-        # https://github.com/musnix/musnix/blob/86ef22cbdd7551ef325bce88143be9f37da64c26/modules/base.nix#L76
-        boot = lib.mkIf config.services.vr.enable { kernelParams = [ "threadirqs" ]; };
-
-        environment.systemPackages = with pkgs; [
-          alsa-utils
-          pavucontrol
-          playerctl
-          qpwgraph
-        ];
-
         services = {
-          vr = {
+          wivrn = {
             enable = true;
-            audio.enable = true;
-            # Audio subsystems
-            alsa = {
-              enable = true;
-              support32Bit = lib.mkForce config.hardware.graphics.enable32Bit;
-            };
-            jack.enable = true;
-            pulse.enable = true;
+            package = lib.mkDefault cfg.wivrnPkg;
+            defaultRuntime = true;
 
-            wireplumber = {
-              enable = true;
-            };
+            inherit (cfg) autoStart;
+            inherit (cfg) openFirewall;
 
-            extraConfig = {
-              vr = {
-                "10-clock-rate" = {
-                  "context.properties" = {
-                    "default.clock.rate" = 48000;
-                    "default.clock.allowed-rates" = [
-                      44100
-                      48000
-                      88200
-                      96000
-                    ];
-                    "default.clock.quantum" = 1024;
-                    "default.clock.min-quantum" = 32;
-                    "default.clock.max-quantum" = 8192;
-                  };
-                };
-                "11-modules" = {
-                  "context.modules" = [
-                    {
-                      name = "libvr-module-rtkit";
-                      flags = [
-                        "ifexists"
-                        "nofail"
-                      ];
-                      args = {
-                        nice.level = -15;
-                        rt = {
-                          prio = 88;
-                          time.soft = 200000;
-                          time.hard = 200000;
-                        };
-                      };
-                    }
-                    {
-                      name = "libvr-module-protocol-pulse";
-                      args = {
-                        server.address = [ "unix:native" ];
-                        pulse.min = {
-                          req = "32/48000";
-                          quantum = "32/48000";
-                          frag = "32/48000";
-                        };
-                      };
-                    }
-                  ];
-                };
-                "12-stream" = {
-                  "context.stream.properties" = {
-                    node.latency = "32/48000";
-                    resample.quality = 1;
-                  };
-                };
+            #extraPackages = [
+            #  pkgs.opencomposite
+            #];
+
+            config = {
+              enable = true;
+              json = {
+                scale = 1.0;
+                inherit (cfg) bitrate;
+                encoders = [
+                  {
+                    encoder = "vaapi";
+                    codec = "h265";
+                    width = 0.5;
+                    height = 1.0;
+                    offset_x = 0.0;
+                    offset_y = 0.0;
+                  }
+                  {
+                    encoder = "vaapi";
+                    codec = "h265";
+                    width = 0.5;
+                    height = 1.0;
+                    offset_x = 0.5;
+                    offset_y = 0.0;
+                  }
+                ];
+                application = [ pkgs.wlx-overlay-s ];
               };
             };
           };
