@@ -6,10 +6,8 @@
       pkgs,
       ...
     }:
-    with lib;
     let
       cfg = config.freedpom.services.consoles;
-      inherit (lib) concatStringsSep optional;
 
       # TODO: Integrate with Stylix for automatic color scheme and font application
       # Will need: config.lib.stylix.colors conversion to RGB tuples for kmscon palette
@@ -18,17 +16,17 @@
       extractTtyNum =
         ttyStr:
         let
-          match = builtins.match ".*tty([0-9]+).*" ttyStr;
+          tty = builtins.match ".*tty([0-9]+).*" ttyStr;
         in
-        if match != null then builtins.head match else null;
+        if tty != null then builtins.head tty else null;
 
       # Extract username from autologin string (e.g., "user@tty1" -> "user")
       extractUser =
         str:
         let
-          match = builtins.match "([^@]+)@.*" str;
+          user = builtins.match "([^@]+)@.*" str;
         in
-        if match != null then builtins.head match else null;
+        if user != null then builtins.head user else null;
 
       # Parse TTY specification into structured data
       parseTtySpec = spec: {
@@ -38,14 +36,14 @@
       };
 
       # Generate default TTY list when bool is true
-      generateDefaultTtys = count: map (i: "tty${toString i}") (range 1 count);
+      generateDefaultTtys = count: map (i: "tty${toString i}") (lib.range 1 count);
 
       # Normalize TTY configuration to list format
       normalizeTtyConfig =
         config:
-        if isBool config then
+        if lib.isBool config then
           if config then generateDefaultTtys 6 else [ ]
-        else if isList config then
+        else if lib.isList config then
           config
         else
           throw "Invalid TTY configuration type";
@@ -65,14 +63,14 @@
           ttyNum = parsed.tty;
           inherit (parsed) user;
         in
-        nameValuePair "getty@tty${ttyNum}" {
+        lib.nameValuePair "getty@tty${ttyNum}" {
           enable = true;
           serviceConfig = {
-            ExecStart = mkForce (
+            ExecStart = lib.mkForce (
               if parsed.autologin && user != null then
-                "${getExe' pkgs.util-linux "agetty"} --login-program ${pkgs.shadow}/bin/login --autologin ${user} --noclear %I $TERM"
+                "${lib.getExe' pkgs.util-linux "agetty"} --login-program ${pkgs.shadow}/bin/login --autologin ${user} --noclear %I $TERM"
               else
-                "${getExe' pkgs.util-linux "agetty"} --login-program ${pkgs.shadow}/bin/login --noclear %I $TERM"
+                "${lib.getExe' pkgs.util-linux "agetty"} --login-program ${pkgs.shadow}/bin/login --noclear %I $TERM"
             );
             Type = "idle";
             Restart = "always";
@@ -90,11 +88,11 @@
           spawnCfg = cfg.spawn.${spec};
           inherit (spawnCfg) execStart;
         in
-        nameValuePair "spawn@tty${ttyNum}" {
+        lib.nameValuePair "spawn@tty${ttyNum}" {
           enable = true;
           serviceConfig = {
             Type = "simple";
-            ExecStart = mkForce "${execStart}";
+            ExecStart = lib.mkForce "${execStart}";
             ExecStop = "/bin/kill -HUP \${MAINPID}";
             StandardInput = "tty";
             StandardOutput = "tty";
@@ -126,22 +124,22 @@
           "--no-switchvt"
           "--login"
         ]
-        ++ (optional (fontName != null) "--font-name=${fontName}")
-        ++ (optional (fontSize != null) "--font-size=${toString fontSize}")
-        ++ (optional (kmsconConfig.font.dpi != null) "--font-dpi=${toString kmsconConfig.font.dpi}")
-        ++ (optional (!kmsconConfig.hwaccel) "--no-hwaccel")
-        ++ (optional (!kmsconConfig.drm) "--no-drm")
-        ++ (optional (kmsconConfig.palette != "default") "--palette=${kmsconConfig.palette}")
-        ++ (optional (
+        ++ (lib.optional (fontName != null) "--font-name=${fontName}")
+        ++ (lib.optional (fontSize != null) "--font-size=${toString fontSize}")
+        ++ (lib.optional (kmsconConfig.font.dpi != null) "--font-dpi=${toString kmsconConfig.font.dpi}")
+        ++ (lib.optional (!kmsconConfig.hwaccel) "--no-hwaccel")
+        ++ (lib.optional (!kmsconConfig.drm) "--no-drm")
+        ++ (lib.optional (kmsconConfig.palette != "default") "--palette=${kmsconConfig.palette}")
+        ++ (lib.optional (
           kmsconConfig.scrollbackSize != null
         ) "--sb-size=${toString kmsconConfig.scrollbackSize}")
         # Video/Display options
-        ++ (optional (kmsconConfig.video.gpus != "all") "--gpus=${kmsconConfig.video.gpus}")
-        ++ (optional (
+        ++ (lib.optional (kmsconConfig.video.gpus != "all") "--gpus=${kmsconConfig.video.gpus}")
+        ++ (lib.optional (
           kmsconConfig.video.renderEngine != null
         ) "--render-engine=${kmsconConfig.video.renderEngine}")
-        ++ (optional kmsconConfig.video.renderTiming "--render-timing")
-        ++ (optional (!kmsconConfig.video.useOriginalMode) "--no-use-original-mode")
+        ++ (lib.optional kmsconConfig.video.renderTiming "--render-timing")
+        ++ (lib.optional (!kmsconConfig.video.useOriginalMode) "--no-use-original-mode")
         # TODO: Add Stylix color arguments when integration is available
         ++ kmsconConfig.extraArgs;
 
@@ -153,16 +151,16 @@
           ttyNum = parsed.tty;
           inherit (parsed) user;
           kmsconArgs = buildKmsconArgs cfg.kmsconConfig;
-          argsStr = concatStringsSep " " kmsconArgs;
+          argsStr = lib.concatStringsSep " " kmsconArgs;
         in
-        nameValuePair "kmsconvt@tty${ttyNum}" {
+        lib.nameValuePair "kmsconvt@tty${ttyNum}" {
           enable = true;
           serviceConfig = {
-            ExecStart = mkForce (
+            ExecStart = lib.mkForce (
               if parsed.autologin && user != null then
-                "${getExe pkgs.kmscon} ${argsStr} -- ${pkgs.shadow}/bin/login -f ${user}"
+                "${lib.getExe pkgs.kmscon} ${argsStr} -- ${pkgs.shadow}/bin/login -f ${user}"
               else
-                "${getExe pkgs.kmscon} ${argsStr} -- ${pkgs.shadow}/bin/login"
+                "${lib.getExe pkgs.kmscon} ${argsStr} -- ${pkgs.shadow}/bin/login"
             );
             Type = "simple";
             Restart = "always";
@@ -183,14 +181,14 @@
     in
     {
       options.freedpom.services.consoles = {
-        enable = mkEnableOption "console services configuration";
+        enable = lib.mkEnableOption "console services configuration";
 
-        getty = mkOption {
-          type = types.either types.bool (
-            types.listOf (types.strMatching "^(tty[0-9]+|[a-zA-Z0-9]+@tty[0-9]+)$")
+        getty = lib.mkOption {
+          type = lib.types.either lib.types.bool (
+            lib.types.listOf (lib.types.strMatching "^(tty[0-9]+|[a-zA-Z0-9]+@tty[0-9]+)$")
           );
           default = false;
-          description = mdDoc ''
+          description = lib.mdDoc ''
             Configure getty on TTYs.
 
             - `true`: Enable on tty1-tty6
@@ -206,12 +204,12 @@
           ];
         };
 
-        kmscon = mkOption {
-          type = types.either types.bool (
-            types.listOf (types.strMatching "^(tty[0-9]+|[a-zA-Z0-9]+@tty[0-9]+)$")
+        kmscon = lib.mkOption {
+          type = lib.types.either lib.types.bool (
+            lib.types.listOf (lib.types.strMatching "^(tty[0-9]+|[a-zA-Z0-9]+@tty[0-9]+)$")
           );
           default = false;
-          description = mdDoc ''
+          description = lib.mdDoc ''
             Configure kmscon on TTYs.
 
             - `true`: Enable on tty1-tty6
@@ -226,18 +224,18 @@
           ];
         };
 
-        spawn = mkOption {
-          type = types.attrsOf (
-            types.submodule {
+        spawn = lib.mkOption {
+          type = lib.types.attrsOf (
+            lib.types.submodule {
               options = {
-                execStart = mkOption {
-                  type = types.str;
+                execStart = lib.mkOption {
+                  type = lib.types.str;
                 };
               };
             }
           );
           default = { };
-          description = mdDoc ''
+          description = lib.mdDoc ''
             Run a package on a specific TTY instead of getty/kmscon.
             The attribute name must be in the format `user@ttyN`.
 
@@ -253,54 +251,54 @@
           '';
         };
 
-        kmsconConfig = mkOption {
-          type = types.submodule {
+        kmsconConfig = lib.mkOption {
+          type = lib.types.submodule {
             options = {
               font = {
-                name = mkOption {
-                  type = types.nullOr types.str;
+                name = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
                   default = null;
                   description = "Font name for kmscon";
                   example = "monospace";
                 };
-                size = mkOption {
-                  type = types.nullOr types.ints.positive;
+                size = lib.mkOption {
+                  type = lib.types.nullOr lib.types.ints.positive;
                   default = null;
                   description = "Font size in points";
                   example = 12;
                 };
-                dpi = mkOption {
-                  type = types.nullOr types.ints.positive;
+                dpi = lib.mkOption {
+                  type = lib.types.nullOr lib.types.ints.positive;
                   default = null;
                   description = "DPI value for fonts";
                   example = 96;
                 };
               };
-              hwaccel = mkOption {
-                type = types.bool;
+              hwaccel = lib.mkOption {
+                type = lib.types.bool;
                 default = false;
                 description = "Enable 3D hardware acceleration";
               };
-              drm = mkOption {
-                type = types.bool;
+              drm = lib.mkOption {
+                type = lib.types.bool;
                 default = true;
                 description = "Use DRM if available";
               };
-              palette = mkOption {
-                type = types.str;
+              palette = lib.mkOption {
+                type = lib.types.str;
                 default = "default";
                 description = "Color palette to use";
                 example = "solarized";
               };
-              scrollbackSize = mkOption {
-                type = types.nullOr types.ints.positive;
+              scrollbackSize = lib.mkOption {
+                type = lib.types.nullOr lib.types.ints.positive;
                 default = null;
                 description = "Scrollback buffer size in lines";
                 example = 1000;
               };
               video = {
-                gpus = mkOption {
-                  type = types.enum [
+                gpus = lib.mkOption {
+                  type = lib.types.enum [
                     "all"
                     "aux"
                     "primary"
@@ -308,27 +306,27 @@
                   default = "all";
                   description = "GPU selection mode";
                 };
-                renderEngine = mkOption {
-                  type = types.nullOr types.str;
+                renderEngine = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
                   default = null;
                   description = "Console renderer engine";
                   example = "gltex";
                 };
-                renderTiming = mkOption {
-                  type = types.bool;
+                renderTiming = lib.mkOption {
+                  type = lib.types.bool;
                   default = false;
                   description = "Print renderer timing information";
                 };
-                useOriginalMode = mkOption {
-                  type = types.bool;
+                useOriginalMode = lib.mkOption {
+                  type = lib.types.bool;
                   default = true;
                   description = "Use original KMS video mode";
                 };
               };
-              extraArgs = mkOption {
-                type = types.listOf types.str;
+              extraArgs = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
                 default = [ ];
-                description = mdDoc ''
+                description = lib.mdDoc ''
                   Additional arguments to pass to kmscon.
 
                   Useful for display-specific settings like:
@@ -356,14 +354,14 @@
         # };
       };
 
-      config = mkIf cfg.enable {
-        console.useXkbConfig = mkDefault true;
+      config = lib.mkIf cfg.enable {
+        console.useXkbConfig = lib.mkDefault true;
 
         # Create systemd services
         systemd.services =
-          (listToAttrs (map createGettyService gettyTtys))
-          // (listToAttrs (map createKmsconService kmsconTtys))
-          // (listToAttrs (map createSpawnService (attrNames cfg.spawn)))
+          (lib.listToAttrs (map createGettyService gettyTtys))
+          // (lib.listToAttrs (map createKmsconService kmsconTtys))
+          // (lib.listToAttrs (map createSpawnService (lib.attrNames cfg.spawn)))
           # Disable default getty services
           // {
             "autovt@".enable = false;
@@ -374,35 +372,36 @@
         assertions = [
           {
             assertion =
-              length gettyTtys == 0
-              || length kmsconTtys == 0
-              || length (intersectLists (map extractTtyNum gettyTtys) (map extractTtyNum kmsconTtys)) == 0;
+              lib.length gettyTtys == 0
+              || lib.length kmsconTtys == 0
+              ||
+                lib.length (lib.intersectLists (map extractTtyNum gettyTtys) (map extractTtyNum kmsconTtys)) == 0;
             message = "Getty and kmscon cannot be configured on same TTY";
           }
           {
-            assertion = all (
+            assertion = lib.all (
               spec:
               let
                 tty = extractTtyNum spec;
               in
-              !(elem "tty${tty}" gettyTtys || elem "tty${tty}" kmsconTtys)
-            ) (attrNames cfg.spawn);
+              !(lib.elem "tty${tty}" gettyTtys || lib.elem "tty${tty}" kmsconTtys)
+            ) (lib.attrNames cfg.spawn);
             message = "Spawned services cannot share TTYs with getty or kmscon";
           }
           {
-            assertion = all validateTtyFormat allTtys;
+            assertion = lib.all validateTtyFormat allTtys;
             message = "All TTY specifications must contain 'ttyN' format";
           }
           {
-            assertion = all validateUserExists allTtys;
+            assertion = lib.all validateUserExists allTtys;
             message = "Autologin specifications must have valid usernames";
           }
           {
-            assertion = !(isList cfg.getty && length cfg.getty == 0);
+            assertion = !(lib.isList cfg.getty && lib.length cfg.getty == 0);
             message = "Getty cannot be set to empty list";
           }
           {
-            assertion = !(isList cfg.kmscon && length cfg.kmscon == 0);
+            assertion = !(lib.isList cfg.kmscon && lib.length cfg.kmscon == 0);
             message = "Kmscon cannot be set to empty list";
           }
           {
