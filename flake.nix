@@ -35,6 +35,9 @@
           inputs.flake-parts.flakeModules.partitions
           ./modules
           ./packages
+          ./packages/containers/image-base.nix
+          ./packages/containers/authentik.nix
+          ./packages/containers/postgresql.nix
         ];
         flake = {
           inherit fmtModule;
