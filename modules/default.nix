@@ -1,6 +1,9 @@
 { lib, ... }:
 {
-  imports = lib.map (n: ./${n}) (
-    lib.filter (n: n != "default.nix" && !(lib.hasPrefix "_" n)) (lib.attrNames (builtins.readDir ./.))
+  # Import all files in this directory and subdirectories
+  # Ignores paths that contain an "_" at any level
+
+  imports = lib.filter (n: (!lib.hasInfix "_" (builtins.toString n) && (n != ./. + "/default.nix"))) (
+    lib.filesystem.listFilesRecursive ./.
   );
 }

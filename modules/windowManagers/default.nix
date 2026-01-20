@@ -1,8 +1,4 @@
 {
-  imports = [
-    ./hyprland
-  ];
-
   flake.homeModules.windowManagers =
     {
       config,

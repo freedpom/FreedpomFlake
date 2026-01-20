@@ -1,8 +1,5 @@
 { inputs, ... }:
 {
-  imports = [
-    ./monitors.nix
-  ];
   flake.nixosModules.windowManagers =
     {
       pkgs,
