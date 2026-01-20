@@ -12,19 +12,33 @@
       options.freedpom.services.networking = {
         containers.enable = lib.mkEnableOption "Network configuration with NAT for containers and privacy-focused NetworkManager settings";
         mesh = lib.mkEnableOption "Mesh networking via Tailscale for secure peer-to-peer connectivity";
+
+        hostName = lib.mkOption {
+          type = lib.types.str;
+          description = "System hostname";
+        };
+
+        hostId = lib.mkOption {
+          type = lib.types.str;
+          default = "00000000";
+          description = "System host ID for ZFS and other filesystems";
+        };
       };
 
-      config = lib.mkIf cfg.containers.enable {
+      config = lib.mkIf (cfg.containers.enable || cfg.hostName != null) {
         networking = {
-          nftables.enable = true;
+          hostName = lib.mkIf (cfg.hostName != null) cfg.hostName;
+          inherit (cfg) hostId;
 
-          firewall = {
+          nftables.enable = lib.mkIf cfg.containers.enable true;
+
+          firewall = lib.mkIf cfg.containers.enable {
             enable = true;
             allowedTCPPorts = [ ];
             allowedUDPPorts = [ ];
           };
 
-          nat = {
+          nat = lib.mkIf cfg.containers.enable {
             enable = true;
             # Lazy IPv6 connectivity for the container
             enableIPv6 = true;
@@ -33,7 +47,7 @@
           };
 
           # NetworkManager settings
-          networkmanager = {
+          networkmanager = lib.mkIf cfg.containers.enable {
             # Enable IPv6 privacy extensions in NetworkManager.
             connectionConfig."ipv6.ip6-privacy" = 2;
             ethernet.macAddress = "random";
