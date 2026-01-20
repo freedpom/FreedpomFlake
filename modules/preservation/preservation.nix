@@ -7,7 +7,7 @@
       ...
     }:
     let
-      cfg = config.ff.system.preservation;
+      cfg = config.freedpom.system.preservation;
 
       # Directories in / that should always be preserved
       sysDirs = [
@@ -81,7 +81,7 @@
 
       # Return a list of all normal users
       users = lib.attrNames (lib.filterAttrs (_n: v: v.isNormalUser) config.users.users);
-      userCfg = config.freedpom.system.users;
+      userCfg = config.freedpom.system.users.users;
 
       # Return a list of all packages installed on the system
       parsePackages =
@@ -116,7 +116,7 @@
       };
     in
     {
-      options.ff.system.preservation = {
+      options.freedpom.system.preservation = {
         enable = lib.mkEnableOption "Enable preservation";
 
         preserveHome = lib.mkEnableOption "Preserve user directories on an ephemeral /home";
@@ -187,7 +187,7 @@
 
         assertions = [
           {
-            assertion = (!config.ff.system.preservation.enable) || (inputs ? preservation);
+            assertion = (!config.freedpom.system.preservation.enable) || (inputs ? preservation);
             message = "Preservation is required as a flake input to enable our preservation helper, please add it.";
           }
         ];
