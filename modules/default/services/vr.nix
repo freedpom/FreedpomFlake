@@ -80,7 +80,7 @@
                     offset_y = 0.0;
                   }
                 ];
-                application = [ pkgs.wayvr-dashboard ];
+                application = [ pkgs.wayvr ];
               };
             };
           };
