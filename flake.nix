@@ -33,10 +33,11 @@
           inputs.home-manager.flakeModules.home-manager
           inputs.flake-parts.flakeModules.easyOverlay
           inputs.flake-parts.flakeModules.partitions
-          ./modules/_legacy/home-manager
-          ./modules/_legacy/nixos
           ./modules
           ./packages
+          ./packages/containers/image-base.nix
+          ./packages/containers/authentik.nix
+          ./packages/containers/postgresql.nix
         ];
         flake = {
           inherit fmtModule;
