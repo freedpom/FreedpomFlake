@@ -3,6 +3,7 @@
     {
       lib,
       config,
+      hostname,
       ...
     }:
     let
@@ -15,6 +16,7 @@
 
         hostName = lib.mkOption {
           type = lib.types.str;
+          default = hostname;
           description = "System hostname";
         };
 
