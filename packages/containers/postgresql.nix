@@ -10,8 +10,23 @@
       n2c = inputs'.nix2container.packages.nix2container;
     in
     {
-      packages.container-postgresql = n2c.buildImage {
-        name = "postgresql";
+      packages.postgresql-oci = n2c.buildImage {
+        name = "postgresql-oci";
+        meta = with pkgs.lib; {
+          description = "Open-source object-relational database system (OCI image)";
+          longDescription = ''
+            PostgreSQL is a powerful open source object-relational database system
+            with over 35 years of active development. It is known for its reliability,
+            feature completeness, and performance.
+
+            This package provides PostgreSQL as an OCI-compatible container image,
+            suitable for use with Docker, Podman, Kubernetes, and other OCI runtimes.
+          '';
+          homepage = "https://www.postgresql.org/";
+          changelog = "https://www.postgresql.org/docs/release/";
+          license = licenses.postgresql;
+          platforms = platforms.linux;
+        };
 
         copyToRoot = [
           base.runtimeEnv
@@ -38,6 +53,7 @@
 
         config = {
           user = "postgres";
+          workingDir = "/var/lib/postgresql";
 
           env = [
             "PGDATA=/var/lib/postgresql/data"
@@ -62,6 +78,8 @@
             "/var/lib/postgresql/data" = { };
           };
 
+          stopSignal = "SIGTERM";
+
           healthcheck = {
             test = [
               "CMD-SHELL"
@@ -71,6 +89,13 @@
             timeout = "5s";
             retries = 5;
             startPeriod = "20s";
+          };
+
+          labels = {
+            "org.opencontainers.image.title" = "PostgreSQL";
+            "org.opencontainers.image.description" = "Open-source object-relational database system";
+            "org.opencontainers.image.vendor" = "Freedpom";
+            "org.opencontainers.image.licenses" = "PostgreSQL";
           };
         };
       };

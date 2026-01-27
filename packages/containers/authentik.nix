@@ -38,8 +38,24 @@
     in
     {
       packages = {
-        container-authentik-server = n2c.buildImage {
-          name = "authentik-server";
+        authentik-server-oci = n2c.buildImage {
+          name = "authentik-server-oci";
+          meta = with pkgs.lib; {
+            description = "Open-source identity provider (OCI image)";
+            longDescription = ''
+              Authentik is an open-source Identity Provider focused on flexibility
+              and extensibility. It supports various protocols including OAuth2,
+              OpenID Connect, SAML, and LDAP, making it suitable for single sign-on
+              (SSO) scenarios.
+
+              This package provides Authentik as an OCI-compatible container image,
+              suitable for use with Docker, Podman, Kubernetes, and other OCI runtimes.
+            '';
+            homepage = "https://goauthentik.io/";
+            changelog = "https://github.com/goauthentik/authentik/releases";
+            license = licenses.gpl3Plus;
+            platforms = platforms.linux;
+          };
 
           copyToRoot = [
             base.runtimeEnv
@@ -51,15 +67,43 @@
             entrypoint = [ "${pkgs.authentik}/bin/authentik" ];
             cmd = [ "server" ];
 
+            user = "authentik";
+            workingDir = "/";
+
             exposedPorts = {
               "9000/tcp" = { };
               "9443/tcp" = { };
             };
+
+            stopSignal = "SIGTERM";
+
+            labels = {
+              "org.opencontainers.image.title" = "Authentik Server";
+              "org.opencontainers.image.description" = "Open-source identity provider server";
+              "org.opencontainers.image.vendor" = "Freedpom";
+              "org.opencontainers.image.licenses" = "GPL-3.0-or-later";
+            };
           };
         };
 
-        container-authentik-worker = n2c.buildImage {
-          name = "authentik-worker";
+        authentik-worker-oci = n2c.buildImage {
+          name = "authentik-worker-oci";
+          meta = with pkgs.lib; {
+            description = "Open-source identity provider worker (OCI image)";
+            longDescription = ''
+              Authentik is an open-source Identity Provider focused on flexibility
+              and extensibility. It supports various protocols including OAuth2,
+              OpenID Connect, SAML, and LDAP, making it suitable for single sign-on
+              (SSO) scenarios.
+
+              This package provides the Authentik worker as an OCI-compatible container image,
+              suitable for use with Docker, Podman, Kubernetes, and other OCI runtimes.
+            '';
+            homepage = "https://goauthentik.io/";
+            changelog = "https://github.com/goauthentik/authentik/releases";
+            license = licenses.gpl3Plus;
+            platforms = platforms.linux;
+          };
 
           copyToRoot = [
             base.runtimeEnv
@@ -68,7 +112,8 @@
           ];
 
           config = common // {
-            user = "0";
+            user = "authentik";
+            workingDir = "/";
 
             entrypoint = [ "${pkgs.authentik}/bin/authentik" ];
             cmd = [ "worker" ];
@@ -76,6 +121,15 @@
             volumes = common.volumes // {
               "/var/run/docker.sock" = { };
               "/certs" = { };
+            };
+
+            stopSignal = "SIGTERM";
+
+            labels = {
+              "org.opencontainers.image.title" = "Authentik Worker";
+              "org.opencontainers.image.description" = "Open-source identity provider worker";
+              "org.opencontainers.image.vendor" = "Freedpom";
+              "org.opencontainers.image.licenses" = "GPL-3.0-or-later";
             };
           };
         };
