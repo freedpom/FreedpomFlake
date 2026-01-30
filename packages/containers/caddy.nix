@@ -67,7 +67,14 @@
           ];
 
           entrypoint = [ "${pkgs.caddy}/bin/caddy" ];
-          cmd = [ "run" "--config" "/etc/caddy/Caddyfile" "--adapter" "caddyfile" ];
+
+          cmd = [
+            "run"
+            "--config"
+            "/etc/caddy/Caddyfile"
+            "--adapter"
+            "caddyfile"
+          ];
 
           exposedPorts = {
             "80/tcp" = { };
