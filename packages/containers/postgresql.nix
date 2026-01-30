@@ -10,8 +10,9 @@
       n2c = inputs'.nix2container.packages.nix2container;
     in
     {
-      packages.postgresql-oci = n2c.buildImage {
-        name = "postgresql-oci";
+      packages.postgresql-oci = n2c.buildImage { # nix run .#postgresql-oci.copyToPodman
+        name = "postgresql";
+        tag = "latest";
         meta = with pkgs.lib; {
           description = "Open-source object-relational database system (OCI image)";
           longDescription = ''
