@@ -8,20 +8,10 @@
     }:
     let
       n2c = inputs'.nix2container.packages.nix2container;
-
-      crowdsecRoot = pkgs.buildEnv {
-        name = "crowdsec-root";
-        paths = [
-          pkgs.crowdsec
-        ];
-        pathsToLink = [
-          "/bin"
-        ];
-      };
     in
     {
       packages.crowdsec-oci = n2c.buildImage {
-        name = "crowdsec-oci";
+        name = "crowdsec";
         meta = with pkgs.lib; {
           description = "Open-source security engine (OCI image)";
           longDescription = ''
@@ -41,11 +31,25 @@
         copyToRoot = [
           base.runtimeEnv
           base.systemEnv
-          crowdsecRoot
+          (base.mkAppEnv "crowdsec-root" [ pkgs.crowdsec ])
+          (base.mkUser "crowdsec" "101" "101" "/" "/bin/sh")
+        ];
+
+        perms = [
+          {
+            path = "/var/lib/crowdsec/data";
+            regex = ".*";
+            mode = "0755";
+          }
+          {
+            path = "/etc/crowdsec";
+            regex = ".*";
+            mode = "0755";
+          }
         ];
 
         config = {
-          user = "crowdsec:crowdsec";
+          user = "crowdsec";
           workingDir = "/";
 
           env = [
@@ -66,12 +70,20 @@
             "/etc/crowdsec" = { };
           };
 
-          stopSignal = "SIGTERM";
+          healthcheck = {
+            test = [
+              "CMD-SHELL"
+              "${pkgs.crowdsec}/bin/crowdsec -c /etc/crowdsec/config.yaml -t || exit 1"
+            ];
+            interval = "30s";
+            timeout = "10s";
+            retries = 3;
+            startPeriod = "30s";
+          };
 
-          labels = {
+          labels = base.commonLabels // {
             "org.opencontainers.image.title" = "CrowdSec";
             "org.opencontainers.image.description" = "Open-source security engine";
-            "org.opencontainers.image.vendor" = "Freedpom";
             "org.opencontainers.image.licenses" = "MIT";
           };
         };

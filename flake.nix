@@ -38,6 +38,10 @@
           ./packages/containers/image-base.nix
           ./packages/containers/authentik.nix
           ./packages/containers/postgresql.nix
+          ./packages/containers/caddy.nix
+          ./packages/containers/crowdsec.nix
+          ./packages/containers/victoria-metrics.nix
+          ./packages/containers/steam/zomboid.nix
         ];
         flake = {
           inherit fmtModule;

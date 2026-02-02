@@ -8,20 +8,10 @@
     }:
     let
       n2c = inputs'.nix2container.packages.nix2container;
-
-      caddyRoot = pkgs.buildEnv {
-        name = "caddy-root";
-        paths = [
-          pkgs.caddy
-        ];
-        pathsToLink = [
-          "/bin"
-        ];
-      };
     in
     {
       packages.caddy-oci = n2c.buildImage {
-        name = "caddy-oci";
+        name = "caddy";
         meta = with pkgs.lib; {
           description = "Web server with automatic HTTPS (OCI image)";
           longDescription = ''
@@ -41,7 +31,8 @@
         copyToRoot = [
           base.runtimeEnv
           base.systemEnv
-          caddyRoot
+          (base.mkAppEnv "caddy-root" [ pkgs.caddy ])
+          (base.mkUser "caddy" "100" "100" "/srv" "/bin/sh")
         ];
 
         perms = [
@@ -58,7 +49,7 @@
         ];
 
         config = {
-          user = "caddy:caddy";
+          user = "caddy";
           workingDir = "/srv";
 
           env = [
@@ -66,14 +57,23 @@
             "CADDY_INGRESS_PORTS=80,443"
           ];
 
-          entrypoint = [ "${pkgs.caddy}/bin/caddy" ];
+          entrypoint = [ "${pkgs.bash}/bin/bash" ];
 
           cmd = [
-            "run"
-            "--config"
-            "/etc/caddy/Caddyfile"
-            "--adapter"
-            "caddyfile"
+            "-c"
+            ''
+              # Create config directory
+              mkdir -p /etc/caddy
+
+              # Default simple config if not provided
+              if [ ! -f /etc/caddy/Caddyfile ]; then
+                echo ':8080 {
+                  respond "Hello from Caddy!"
+                }' > /etc/caddy/Caddyfile
+              fi
+
+              exec ${pkgs.caddy}/bin/caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+            ''
           ];
 
           exposedPorts = {
@@ -89,8 +89,6 @@
             "/config" = { };
           };
 
-          stopSignal = "SIGTERM";
-
           healthcheck = {
             test = [
               "CMD-SHELL"
@@ -102,10 +100,9 @@
             startPeriod = "10s";
           };
 
-          labels = {
+          labels = base.commonLabels // {
             "org.opencontainers.image.title" = "Caddy";
             "org.opencontainers.image.description" = "Web server with automatic HTTPS";
-            "org.opencontainers.image.vendor" = "Freedpom";
             "org.opencontainers.image.licenses" = "Apache-2.0";
           };
         };

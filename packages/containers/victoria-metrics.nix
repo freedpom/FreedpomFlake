@@ -8,26 +8,6 @@
     }:
     let
       n2c = inputs'.nix2container.packages.nix2container;
-
-      vmRoot = pkgs.buildEnv {
-        name = "vm-root";
-        paths = [
-          pkgs.victoriametrics
-        ];
-        pathsToLink = [
-          "/bin"
-        ];
-      };
-
-      vmagentRoot = pkgs.buildEnv {
-        name = "vmagent-root";
-        paths = [
-          pkgs.vmagent
-        ];
-        pathsToLink = [
-          "/bin"
-        ];
-      };
     in
     {
       packages = {
@@ -52,7 +32,8 @@
           copyToRoot = [
             base.runtimeEnv
             base.systemEnv
-            vmRoot
+            (base.mkAppEnv "vm-root" [ pkgs.victoriametrics ])
+            (base.mkUser "victoria-metrics" "103" "103" "/" "/bin/sh")
           ];
 
           perms = [
@@ -64,7 +45,7 @@
           ];
 
           config = {
-            user = "victoria-metrics:victoria-metrics";
+            user = "victoria-metrics";
             workingDir = "/";
 
             entrypoint = [ "${pkgs.victoriametrics}/bin/victoria-metrics" ];
@@ -95,10 +76,9 @@
               startPeriod = "30s";
             };
 
-            labels = {
+            labels = base.commonLabels // {
               "org.opencontainers.image.title" = "VictoriaMetrics";
               "org.opencontainers.image.description" = "Time series database";
-              "org.opencontainers.image.vendor" = "Freedpom";
               "org.opencontainers.image.licenses" = "Apache-2.0";
             };
           };
@@ -109,11 +89,11 @@
           meta = with pkgs.lib; {
             description = "Metrics collection agent (OCI image)";
             longDescription = ''
-              VMagent is a tiny but brave agent which helps you collect metrics
+              VM agent is a tiny but brave agent which helps you collect metrics
               from various sources and store them to VictoriaMetrics or any other
               Prometheus-compatible storage systems.
 
-              This package provides VMagent as an OCI-compatible container image,
+              This package provides VM agent as an OCI-compatible container image,
               suitable for use with Docker, Podman, Kubernetes, and other OCI runtimes.
             '';
             homepage = "https://victoriametrics.com/products/vmagent/";
@@ -125,11 +105,12 @@
           copyToRoot = [
             base.runtimeEnv
             base.systemEnv
-            vmagentRoot
+            (base.mkAppEnv "vmagent-root" [ pkgs.vmagent ])
+            (base.mkUser "victoria-metrics" "102" "102" "/" "/bin/sh")
           ];
 
           config = {
-            user = "victoria-metrics:victoria-metrics";
+            user = "victoria-metrics";
             workingDir = "/";
 
             entrypoint = [ "${pkgs.vmagent}/bin/vmagent" ];
@@ -160,9 +141,10 @@
             };
 
             labels = {
-              "org.opencontainers.image.title" = "VMagent";
+              "org.opencontainers.image.title" = "VM agent";
               "org.opencontainers.image.description" = "Metrics collection agent";
               "org.opencontainers.image.vendor" = "Freedpom";
+              "org.opencontainers.image.source" = "https://github.com/freedpom/FreedpomFlake";
               "org.opencontainers.image.licenses" = "Apache-2.0";
             };
           };

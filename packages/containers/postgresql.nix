@@ -10,9 +10,9 @@
       n2c = inputs'.nix2container.packages.nix2container;
     in
     {
-      packages.postgresql-oci = n2c.buildImage { # nix run .#postgresql-oci.copyToPodman
+      packages.postgresql-oci = n2c.buildImage {
+        # nix run .#postgresql-oci.copyToPodman
         name = "postgresql";
-        tag = "latest";
         meta = with pkgs.lib; {
           description = "Open-source object-relational database system (OCI image)";
           longDescription = ''
@@ -32,16 +32,14 @@
         copyToRoot = [
           base.runtimeEnv
           base.systemEnv
-          (pkgs.buildEnv {
-            name = "postgres-root";
-            paths = [
-              pkgs.postgresql_16
-              pkgs.glibc
-            ];
-            pathsToLink = [
-              "/bin"
-            ];
-          })
+          (base.mkAppEnv "postgres-root" [
+            pkgs.postgresql_16
+            pkgs.util-linux
+          ])
+          (base.mkUser "postgres" "999" "999" "/var/lib/postgresql" "/bin/sh")
+          (pkgs.runCommand "postgresql-dirs" { } ''
+            mkdir -p $out/run/postgresql
+          '')
         ];
 
         perms = [
@@ -60,15 +58,27 @@
             "PGDATA=/var/lib/postgresql/data"
             "POSTGRES_DB=authentik"
             "POSTGRES_USER=authentik"
+            "PGSOCKET_DIR=/tmp"
           ];
 
           entrypoint = [
-            "${pkgs.postgresql_16}/bin/postgres"
+            "${pkgs.bash}/bin/bash"
           ];
 
           cmd = [
-            "-D"
-            "/var/lib/postgresql/data"
+            "-c"
+            ''
+              # Create directories
+              mkdir -p /var/lib/postgresql/data
+
+              # Create and initialize data directory if it doesn't exist
+              if [ ! -d '/var/lib/postgresql/data/base' ]; then
+                ${pkgs.postgresql_16}/bin/initdb -D /var/lib/postgresql/data -U $POSTGRES_USER
+              fi
+
+              # Start PostgreSQL
+              exec ${pkgs.postgresql_16}/bin/postgres -D /var/lib/postgresql/data
+            ''
           ];
 
           exposedPorts = {
@@ -78,8 +88,6 @@
           volumes = {
             "/var/lib/postgresql/data" = { };
           };
-
-          stopSignal = "SIGTERM";
 
           healthcheck = {
             test = [
@@ -92,10 +100,9 @@
             startPeriod = "20s";
           };
 
-          labels = {
+          labels = base.commonLabels // {
             "org.opencontainers.image.title" = "PostgreSQL";
             "org.opencontainers.image.description" = "Open-source object-relational database system";
-            "org.opencontainers.image.vendor" = "Freedpom";
             "org.opencontainers.image.licenses" = "PostgreSQL";
           };
         };
