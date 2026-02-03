@@ -4,149 +4,168 @@
       pkgs,
       inputs',
       base,
+      lib,
       ...
     }:
     let
       n2c = inputs'.nix2container.packages.nix2container;
+      steam = import ./steam-depot.nix { inherit pkgs lib; };
 
-      zomboidServerFiles = pkgs.stdenv.mkDerivation {
-        pname = "zomboid-server-files";
-        version = "unstable-2025-02-01";
+      zomboid-dedicated-server-unwrapped = pkgs.stdenv.mkDerivation {
+        pname = "zomboid-dedicated-server-unwrapped";
+        version = "42.13.1";
 
-        nativeBuildInputs = [ pkgs.steamcmd pkgs.jdk25_headless ];
-
-        unpackPhase = ''
-          mkdir -p $out
-        '';
-
-        buildPhase = ''
-          echo "Downloading Project Zomboid server files with steamcmd..."
-          export HOME=$TMPDIR
-          export STEAM_DISABLE_SANDBOX=1
-          mkdir -p $HOME/.steam/sdk32 $HOME/.steam/sdk64
-          ln -sf ${pkgs.steamcmd}/bin/steamcmd/linux32/steamclient.so $HOME/.steam/sdk32/steamclient.so || true
-          ln -sf ${pkgs.steamcmd}/bin/steamcmd/linux64/steamclient.so $HOME/.steam/sdk64/steamclient.so || true
-          steamcmd +force_install_dir $out +login anonymous +app_update 380870 validate +quit
-        '';
-
-        dontStrip = true;
-        dontFixup = true;
-
-        outputHash = "gfXg8QZGZEhN86xCvBqvid1px1gVCg0+UeUHzbVxHg4=";
-        outputHashAlgo = "sha256";
-        outputHashMode = "recursive";
-      };
-
-      startupScript = pkgs.writeShellScript "start-zomboid.sh" ''
-        set -e
-
-        echo "=== Project Zomboid Dedicated Server Setup ==="
-        export HOME=/home/pzuser
-
-        SERVER_NAME=''${PZ_SERVER_NAME:-servertest}
-        echo "Server name: $SERVER_NAME"
-
-        echo "Copying server files to /data..."
-        cp -r ${zomboidServerFiles}/* /data/
-        chmod -R +w /data
-
-        echo "Creating server configuration..."
-        cat > "/data/''${SERVER_NAME}.ini" << EOF
-        DefaultPort=16261
-        DefaultDirectConnectPort=16262
-        SteamPort1=8766
-        SteamPort2=8767
-        PublicServer=true
-        PublicDesc=Project Zomboid Server
-        ServerName=''${SERVER_NAME}
-        Password=
-        MaxPlayers=16
-        EOF
-
-        echo "Starting server..."
-        cd /data
-        chmod +x start-server.sh
-        exec ./start-server.sh -servername ''${SERVER_NAME}
-      '';
-    in
-    {
-      packages.zomboid-oci = n2c.buildImage {
-        name = "zomboid";
-        meta = with pkgs.lib; {
-          description = "Project Zomboid dedicated server (OCI image)";
-          longDescription = ''
-            Project Zomboid is the ultimate in zombie survival. Alone or in MP:
-            you loot, build, craft, fight, farm and fish in a struggle to survive.
-
-            This package provides Project Zomboid as an OCI-compatible container image,
-            suitable for use with Docker, Podman, Kubernetes, and other OCI runtimes.
-          '';
-          homepage = "https://projectzomboid.com/";
-          changelog = "https://theindiestone.com/";
-          license = licenses.unfree;
-          platforms = platforms.linux;
+        src = steam.steamFetch {
+          name = "zomboid";
+          appId = "380870";
+          depotId = "380873";
+          manifestId = "7247926727590960916";
+          branch = "42.13.1";
+          # Only download specific files
+          fileList = [
+            "ProjectZomboid64"
+            "pzexe.jar"
+            "regex:^(?!.*jre64).*\/java\/?$"
+            "regex:^(?!.*jre64).*\\.so$"
+          ];
+          hash = "sha256-StO298c48LJI2axWTIyj3kWgh7/PcymO5QtTazu5W9U=";
         };
 
-        copyToRoot = [
-          base.runtimeEnv
-          base.systemEnv
-          (base.mkAppEnv "zomboid-root" [
-            pkgs.jre25_headless
-          ])
-          (base.mkUser "pzuser" "101" "101" "/home/pzuser" "/bin/sh")
-          (pkgs.runCommand "zomboid-scripts" { } ''
-            mkdir -p $out/home/pzuser
-            mkdir -p $out/data
-            cp ${startupScript} $out/data/start-zomboid.sh
-          '')
+        installPhase = ''
+          mkdir -p $out
+          cp -r ./* $out/
+          mkdir -p $out/lib
+          mv **/*.so $out/lib
+          rm -rf $out/natives $out/linux64
+          chmod +x $out/ProjectZomboid64
+        '';
+      };
+
+      zomboid-dedicated-server = pkgs.stdenvNoCC.mkDerivation {
+        pname = "zomboid-dedicated-server";
+        version = "42.13.1";
+
+        src = zomboid-dedicated-server-unwrapped;
+
+        nativeBuildInputs = [
+          pkgs.autoPatchelfHook
         ];
 
-        perms = [
-          {
-            path = "/data";
-            mode = "0777";
-          }
-          {
-            path = "/data/start-zomboid.sh";
-            mode = "0755";
-          }
-          {
-            path = "/home/pzuser";
-            mode = "0777";
-          }
+        buildInputs = [
+          pkgs.zlib
+          pkgs.stdenv.cc.cc
+          pkgs.libx11
+          pkgs.libxext
+          pkgs.libxi
+          pkgs.libxrender
+          pkgs.libxtst
+          pkgs.libsm
+          pkgs.libice
+          pkgs.alsa-lib
         ];
 
-        config = {
-          workingDir = "/data";
+        installPhase = ''
+          mkdir -p $out
+          cp -r ./* $out/
+          cat > $out/ProjectZomboid64.json <<EOF
+      {
+        "mainClass": "zombie.network.GameServer",
+        "classpath": [
+          "java/.",
+          "java/projectzomboid.jar"
+        ],
+        "vmArgs": [
+          "-Djava.awt.headless=true",
+          "-Xms6g",
+          "-Xmx8g",
+          "-Dzomboid.steam=1",
+          "-Dzomboid.znetlog=1",
+          "-Djava.library.path=linux64/:natives/",
+          "-Djava.security.egd=file:/dev/urandom",
+          "-XX:+UseZGC",
+          "-XX:-OmitStackTraceInFastThrow",
+          "-XX:-ZUncommit",
+          "-XX:ParallelGCThreads=4",
+          "-XX:ConcGCThreads=4",
+          "-XX:-CreateCoredumpOnCrash"
+        ]
+      }
+      EOF
+      chmod 644 $out/ProjectZomboid64.json
+        '';
+      };
+    in
+    {
+      packages = {
+        inherit zomboid-dedicated-server;
+        zomboid-oci = n2c.buildImage {
+          name = "zomboid";
+          meta = with pkgs.lib; {
+            description = "Project Zomboid dedicated server (OCI image)";
+            longDescription = ''
+              Project Zomboid is the ultimate in zombie survival. Alone or in MP:
+              you loot, build, craft, fight, farm and fish in a struggle to survive.
 
-          env = [
-            "PZ_SERVER_NAME=servertest"
-            "PZ_MEMORY=4g"
-            "STEAM_DISABLE_SANDBOX=1"
+              This package provides Project Zomboid as an OCI-compatible container image,
+              suitable for use with Docker, Podman, Kubernetes, and other OCI runtimes.
+            '';
+            homepage = "https://projectzomboid.com/";
+            changelog = "https://theindiestone.com/";
+            #license = licenses.unfree; multi license
+            platforms = platforms.linux;
+          };
+
+          copyToRoot = [
+            base.runtimeEnv
+            base.systemEnv
+            (base.mkAppEnv "zomboid-root" [
+              pkgs.jre25_minimal
+            ])
+            (base.mkUser "pzuser" "101" "101" "/home/pzuser" "/bin/sh")
+            (pkgs.runCommand "zomboid-scripts" { } ''
+              mkdir -p $out/data
+              mkdir -p $out/home/pzuser/Zomboid
+              cp -r ${zomboid-dedicated-server}/* $out/data/
+            '')
           ];
 
-          entrypoint = [ "/data/start-zomboid.sh" ];
+          perms = [
+            {
+              path = "/data";
+              mode = "0755";
+            }
+            {
+              path = "/home/pzuser";
+              mode = "0755";
+            }
+          ];
 
-          exposedPorts = {
-            "16261/udp" = { };
-            "16262/udp" = { };
-          };
+          config = {
+            user = "pzuser";
+            workingDir = "/data";
+            entrypoint = [ "/data/ProjectZomboid64" ];
 
-          healthcheck = {
-            test = [
-              "CMD-SHELL"
-              "pgrep -f 'zombie.network.GameServer' > /dev/null || exit 1"
-            ];
-            interval = "30s";
-            timeout = "10s";
-            retries = 3;
-            startPeriod = "60s";
-          };
+            exposedPorts = {
+              "16261/udp" = { };
+              "16262/udp" = { };
+            };
 
-          labels = base.commonLabels // {
-            "org.opencontainers.image.title" = "Project Zomboid";
-            "org.opencontainers.image.description" = "Zombie survival dedicated server";
-            "org.opencontainers.image.licenses" = "Unfree";
+            healthcheck = {
+              test = [
+                "CMD-SHELL"
+                "pgrep -f 'zombie.network.GameServer' > /dev/null || exit 1"
+              ];
+              interval = "30s";
+              timeout = "10s";
+              retries = 3;
+              startPeriod = "60s";
+            };
+
+            labels = base.commonLabels // {
+              "org.opencontainers.image.title" = "Project Zomboid";
+              "org.opencontainers.image.description" = "Zombie survival dedicated server";
+              #"org.opencontainers.image.licenses" = "Unfree";
+            };
           };
         };
       };

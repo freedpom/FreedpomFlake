@@ -15,6 +15,7 @@
             pkgs.shadow
             pkgs.shadow.su
             pkgs.util-linux
+            pkgs.glibc
           ];
           pathsToLink = [
             "/bin"
