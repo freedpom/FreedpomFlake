@@ -30,22 +30,21 @@
           platforms = platforms.linux;
         };
 
+
         srcs = [
-          (steam.steamFetch {
-            name = "zomboid-dedicated-server";
+          (steam.steamFetch { # Server Executable
+            name = "zomboid-lib";
             appId = "380870";
             depotId = "380873";
             manifestId = "7247926727590960916";
             branch = "unstable";
             fileList = [
-              "ProjectZomboid64"
-              "regex:^(?!.*jre64).*\\.jar$"
               "regex:^(?!.*jre64).*\\.so$"
             ];
-            hash = "sha256-StO298c48LJI2axWTIyj3kWgh7/PcymO5QtTazu5W9U=";
+            hash = "sha256-PmdYlvfOQCQw2dwFjz1HthYdE2WB3sooirBnMlNNc/E=";
           })
-          (steam.steamFetch {
-            name = "zomboid-dedicated-server-data";
+          (steam.steamFetch { # /media /java
+            name = "zomboid-data";
             appId = "380870";
             depotId = "380871";
             manifestId = "8354051993030978772";
@@ -57,10 +56,8 @@
         sourceRoot = ".";
 
         postUnpack = ''
-          cp -r ./zomboid-dedicated-server-data-depot/. .
-          cp -r ./zomboid-dedicated-server-depot/. .
-          rm -rf ./zomboid-dedicated-server-depot/ ./zomboid-dedicated-server-data-depot/
-          chmod +x ./ProjectZomboid64
+          cp -r ./zomboid-lib-depot/. ./zomboid-data-depot/. .
+          rm -rf ./zomboid-data-depot/ ./zomboid-lib-depot/
         '';
 
         nativeBuildInputs = [
@@ -68,50 +65,23 @@
         ];
 
         buildInputs = [
-          pkgs.zlib
+          #pkgs.zlib
           pkgs.stdenv.cc.cc
           pkgs.libx11
           pkgs.libxext
-          pkgs.libxi
-          pkgs.libxrender
-          pkgs.libxtst
+          #pkgs.libxi
+          #pkgs.libxrender
+          #pkgs.libxtst
           pkgs.libsm
           pkgs.libice
-          pkgs.alsa-lib
+          #pkgs.alsa-lib
         ];
 
         installPhase = ''
-              mkdir -p $out
-              cp -r ./* $out/
-              #mkdir -p $out/lib
-              #mv **/*.so $out/lib
-              #rm -rf $out/natives $out/linux64
-              #chmod +x $out/ProjectZomboid64
-              cat > $out/ProjectZomboid64.json <<EOF
-          {
-            "mainClass": "zombie.network.GameServer",
-            "classpath": [
-          		"java/.",
-              "java/projectzomboid.jar"
-            ],
-            "vmArgs": [
-              "-Djava.awt.headless=true",
-              "-Xms6g",
-              "-Xmx8g",
-              "-Dzomboid.steam=1",
-              "-Dzomboid.znetlog=1",
-              "-Djava.library.path=linux64/:natives/",
-              "-Djava.security.egd=file:/dev/urandom",
-              "-XX:+UseZGC",
-              "-XX:-OmitStackTraceInFastThrow",
-              "-XX:-ZUncommit",
-              "-XX:ParallelGCThreads=4",
-              "-XX:ConcGCThreads=4",
-              "-XX:-CreateCoredumpOnCrash"
-            ]
-          }
-          EOF
-          chmod 644 $out/ProjectZomboid64.json
+          mkdir -p $out $out/lib
+          cp -r ./* $out/
+          mv $out/**/*.so $out/lib/
+          rm -rf $out/natives $out/linux64
         '';
       };
     in
@@ -124,7 +94,7 @@
             base.runtimeEnv
             base.systemEnv
             (base.mkAppEnv "zomboid-root" [
-              pkgs.jre25_minimal
+              pkgs.zulu25
             ])
             (base.mkUser "pzuser" "101" "101" "/home/pzuser" "/bin/sh")
             (pkgs.runCommand "zomboid-scripts" { } ''
@@ -148,7 +118,24 @@
           config = {
             user = "pzuser";
             workingDir = "/data";
-            entrypoint = [ "/data/ProjectZomboid64" ];
+            entrypoint = [''java \
+              -Djava.awt.headless=true \
+              -Xms6g \
+              -Xmx8g \
+              -Dzomboid.steam=1 \
+              -Dzomboid.znetlog=1 \
+              -Djava.library.path="./lib" \
+              -Djava.security.egd=file:/dev/urandom \
+              -XX:+UseZGC \
+              -XX:-OmitStackTraceInFastThrow \
+              -XX:-ZUncommit \
+              -XX:ParallelGCThreads=4 \
+              -XX:ConcGCThreads=4 \
+              -XX:-CreateCoredumpOnCrash \
+              --enable-native-access=ALL-UNNAMED \
+              -cp "java/.:java/projectzomboid.jar" \
+              zombie.network.GameServer
+              '' ];
 
             exposedPorts = {
               "16261/udp" = { };
