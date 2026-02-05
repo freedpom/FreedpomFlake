@@ -11,6 +11,89 @@
       n2c = inputs'.nix2container.packages.nix2container;
       steam = import ./steam-depot.nix { inherit pkgs lib; };
 
+      zomboidLib = steam.steamFetch {
+        name = "zomboid-lib";
+        appId = "380870";
+        depotId = "380873";
+        manifestId = "7247926727590960916";
+        branch = "unstable";
+        fileList = [
+          "ProjectZomboid64"
+          "regex:^(?!.*jre64).*\\.so$"
+          "regex:^(?!.*jre64).*\\.jar$"
+        ];
+        hash = "sha256-StO298c48LJI2axWTIyj3kWgh7/PcymO5QtTazu5W9U=";
+      };
+
+      zomboidData = steam.steamFetch {
+        # /media /java
+        name = "zomboid-data";
+        appId = "380870";
+        depotId = "380871";
+        manifestId = "8354051993030978772";
+        branch = "42.13.1";
+        hash = "sha256-HNdId6Zmo1FTRvj8cbOgiGiWf8iW+RurMaFm2WB8b2k=";
+      };
+
+      projectZomboid64 = {
+        mainClass = "zombie/network/GameServer";
+        classpath = [
+          "${zomboidData}/java/."
+          "${zomboidData}/java/projectzomboid.jar"
+        ];
+        vmArgs = [
+          "-Djava.awt.headless=true"
+          "-Xmx8g"
+          "-Dzomboid.steam=1"
+          "-Dzomboid.znetlog=1"
+          "-Djava.library.path=${zomboidLib}/linux64/:${zomboidLib}/natives/"
+          "-Djava.security.egd=file:/dev/urandom"
+          "-XX:+UseZGC"
+          "-XX:-OmitStackTraceInFastThrow"
+        ];
+      };
+
+      steamSdk = pkgs.stdenv.mkDerivation rec {
+        name = "steamworks-sdk-redist";
+        version = "18639946";
+        src = steam.steamFetch {
+          inherit name;
+          appId = "1007";
+          depotId = "1006";
+          manifestId = "5587033981095108078";
+          hash = "sha256-CjrVpq5ztL6wTWIa63a/4xHM35DzgDR/O6qVf1YV5xw=";
+        };
+
+        dontBuild = true;
+        dontConfigure = true;
+
+        nativeBuildInputs = [
+          pkgs.autoPatchelfHook
+        ];
+
+        buildInputs = [
+          pkgs.stdenv.cc
+        ];
+
+        installPhase = ''
+          runHook preInstall
+          mkdir -p $out/lib
+          cp linux64/steamclient.so $out/lib
+          runHook postInstall
+        '';
+
+        meta = with lib; {
+          description = "Steamworks SDK shared library";
+          homepage = "https://steamdb.info/app/1007/";
+          sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+          license = licenses.unfreeRedistributable;
+          platforms = [
+            "i686-linux"
+            "x86_64-linux"
+          ];
+        };
+      };
+
       zomboid-dedicated-server = pkgs.stdenv.mkDerivation {
         pname = "zomboid-dedicated-server";
         version = "42.13.1";
@@ -25,32 +108,14 @@
           '';
           homepage = "https://projectzomboid.com/";
           changelog = "https://theindiestone.com/";
-          sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
-          #license = licenses.unfree; mf wont let me build
+          sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+          license = licenses.unfreeRedistributable;
           platforms = platforms.linux;
         };
 
-
         srcs = [
-          (steam.steamFetch { # Server Executable
-            name = "zomboid-lib";
-            appId = "380870";
-            depotId = "380873";
-            manifestId = "7247926727590960916";
-            branch = "unstable";
-            fileList = [
-              "regex:^(?!.*jre64).*\\.so$"
-            ];
-            hash = "sha256-PmdYlvfOQCQw2dwFjz1HthYdE2WB3sooirBnMlNNc/E=";
-          })
-          (steam.steamFetch { # /media /java
-            name = "zomboid-data";
-            appId = "380870";
-            depotId = "380871";
-            manifestId = "8354051993030978772";
-            branch = "42.13.1";
-            hash = "sha256-HNdId6Zmo1FTRvj8cbOgiGiWf8iW+RurMaFm2WB8b2k=";
-          })
+          zomboidLib
+          zomboidData
         ];
 
         sourceRoot = ".";
@@ -60,8 +125,12 @@
           rm -rf ./zomboid-data-depot/ ./zomboid-lib-depot/
         '';
 
+        dontBuild = true;
+        dontConfigure = true;
+
         nativeBuildInputs = [
           pkgs.autoPatchelfHook
+          pkgs.makeWrapper
         ];
 
         buildInputs = [
@@ -78,10 +147,16 @@
         ];
 
         installPhase = ''
-          mkdir -p $out $out/lib
+          runHook preInstall
+          mkdir -p $out/lib
           cp -r ./* $out/
-          mv $out/**/*.so $out/lib/
-          rm -rf $out/natives $out/linux64
+          ln -sf ${steamSdk}/lib/steamclient.so $out/lib/steamclient.so
+          chmod +x $out/ProjectZomboid64
+          wrapProgram $out/ProjectZomboid64 \
+            --prefix LD_LIBRARY_PATH : ${zomboidLib}/linux64/:${zomboidLib}/natives/:${pkgs.zulu25}/lib \
+            --prefix LD_PRELOAD : ${pkgs.zulu25}/lib/server/libjsig.so
+          echo '${builtins.toJSON projectZomboid64}' > $out/ProjectZomboid64.json
+          runHook postInstall
         '';
       };
     in
@@ -98,44 +173,43 @@
             ])
             (base.mkUser "pzuser" "101" "101" "/home/pzuser" "/bin/sh")
             (pkgs.runCommand "zomboid-scripts" { } ''
-              mkdir -p $out/data
-              mkdir -p $out/home/pzuser/Zomboid
+              mkdir -p $out/data $out/home/pzuser/Zomboid/{Logs,Server,Saves,db}
               cp -r ${zomboid-dedicated-server}/* $out/data/
             '')
           ];
 
-          perms = [
-            {
-              path = "/data";
-              mode = "0755";
-            }
-            {
-              path = "/home/pzuser";
-              mode = "0755";
-            }
-          ];
+          maxLayers = 3;
 
           config = {
             user = "pzuser";
             workingDir = "/data";
-            entrypoint = [''java \
-              -Djava.awt.headless=true \
-              -Xms6g \
-              -Xmx8g \
-              -Dzomboid.steam=1 \
-              -Dzomboid.znetlog=1 \
-              -Djava.library.path="./lib" \
-              -Djava.security.egd=file:/dev/urandom \
-              -XX:+UseZGC \
-              -XX:-OmitStackTraceInFastThrow \
-              -XX:-ZUncommit \
-              -XX:ParallelGCThreads=4 \
-              -XX:ConcGCThreads=4 \
-              -XX:-CreateCoredumpOnCrash \
-              --enable-native-access=ALL-UNNAMED \
-              -cp "java/.:java/projectzomboid.jar" \
-              zombie.network.GameServer
-              '' ];
+            entrypoint = [
+              "${pkgs.zulu25}/bin/java"
+              "-Djava.awt.headless=true"
+              "-Xms6g"
+              "-Xmx8g"
+              "-Dzomboid.steam=1"
+              "-Dzomboid.znetlog=1"
+              "-Djava.library.path=${zomboidLib}/linux64/:${zomboidLib}/natives/"
+              "-Djava.security.egd=file:/dev/urandom"
+              "-XX:+UseZGC"
+              "-XX:-OmitStackTraceInFastThrow"
+              "-XX:-ZUncommit"
+              "-XX:ParallelGCThreads=4"
+              "-XX:ConcGCThreads=4"
+              "-XX:-CreateCoredumpOnCrash"
+              "--enable-native-access=ALL-UNNAMED"
+              "-cp"
+              "java/.:java/projectzomboid.jar"
+              "zombie.network.GameServer"
+            ];
+
+            volumes = {
+              "/data" = { };
+              "/home/pzuser/Zomboid" = { };
+            };
+
+            #env = ["LD_LIBRARY_PATH=./lib"];
 
             exposedPorts = {
               "16261/udp" = { };

@@ -51,7 +51,6 @@
               pkgs.authentik
               pkgs.python3
               pkgs.openssl
-              pkgs.glibc
               pkgs.curl
             ])
             (base.mkUser "authentik" "104" "104" "/" "/bin/sh")

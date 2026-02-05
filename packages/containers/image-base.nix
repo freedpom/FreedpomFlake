@@ -7,7 +7,7 @@
           name = "runtime-env";
           paths = [
             pkgs.bashInteractive
-            pkgs.dash
+            pkgs.fakeNss
             pkgs.coreutils
             pkgs.findutils
             pkgs.gnugrep
@@ -20,6 +20,8 @@
           pathsToLink = [
             "/bin"
             "/sbin"
+            "/etc"
+            "/var"
           ];
         };
 
@@ -46,13 +48,14 @@
           "org.opencontainers.image.source" = "https://github.com/freedpom/FreedpomFlake";
         };
 
-        # Helper function to create user setup
         mkUser =
           name: uid: gid: home: shell:
-          pkgs.runCommand "${name}-user-setup" { } ''
-            mkdir -p $out/etc
-            echo "${name}:x:${uid}:${gid}:${name} User:${home}:${shell}" >> $out/etc/passwd
-            echo "${name}:x:${gid}:" >> $out/etc/group
+          pkgs.runCommand "${name}-user" { } ''
+            set -eux
+            mkdir -p $out/etc $out${home}
+            groupadd --root $out -r -g ${toString gid} ${name}
+            useradd --root $out -r -u ${toString uid} -g ${name} -d ${home} -s ${shell} ${name}
+            chown -R ${name}:${name} $out${home}
           '';
 
         # Helper function to create buildEnv for applications
