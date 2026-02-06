@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ---------------------------------------
+# Variables
+# ---------------------------------------
+appID=
+depotID=
+manifestID=
+pubfileID=
+ugcID=
+username=
+password=
+branchName=Public
+dir=
+maxDownloads=8
+useLancache=
+validate=
+lowViolence=
+allPlatforms=
+allArchs=
+allLanguages=
+language=english
+debug=
+rememberPassword=
+out=
+quiet=
+
+# ---------------------------------------
+# Helpers
+# ---------------------------------------
+usage() {
+    echo >&2 "Usage: $0 --app APPID [options]"
+    echo >&2 "Options:"
+    echo >&2 "  --depot DEPOTID"
+    echo >&2 "  --manifest MANIFESTID"
+    echo >&2 "  --pubfile PUBFILEID"
+    echo >&2 "  --ugc UGCID"
+    echo >&2 "  --username USERNAME"
+    echo >&2 "  --password PASSWORD"
+    echo >&2 "  --branch BRANCHNAME"
+    echo >&2 "  --dir OUTDIR"
+    echo >&2 "  --max-downloads N"
+    echo >&2 "  --use-lancache"
+    echo >&2 "  --validate"
+    echo >&2 "  --low-violence"
+    echo >&2 "  --all-platforms"
+    echo >&2 "  --all-archs"
+    echo >&2 "  --all-languages"
+    echo >&2 "  --language LANG"
+    echo >&2 "  --debug"
+    echo >&2 "  --remember-password"
+    exit 1
+}
+
+json_escape() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//
+/\\n}"
+    echo "$s"
+}
+
+print_results() {
+    local hash="$1"
+    cat <<EOF
+{
+  "app": "$(json_escape "$appID")",
+  "depot": "$(json_escape "$depotID")",
+  "manifest": "$(json_escape "$manifestID")",
+  "path": "$(json_escape "$out")",
+  "hash": "$(json_escape "$hash")",
+  "branch": "$(json_escape "$branchName")"
+}
+EOF
+}
+
+# ---------------------------------------
+# Parse args
+# ---------------------------------------
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --app) appID="$2"; shift 2;;
+        --depot) depotID="$2"; shift 2;;
+        --manifest) manifestID="$2"; shift 2;;
+        --pubfile) pubfileID="$2"; shift 2;;
+        --ugc) ugcID="$2"; shift 2;;
+        --username) username="$2"; shift 2;;
+        --password) password="$2"; shift 2;;
+        --branch) branchName="$2"; shift 2;;
+        --dir) dir="$2"; shift 2;;
+        --max-downloads) maxDownloads="$2"; shift 2;;
+        --use-lancache) useLancache=1; shift;;
+        --validate) validate=1; shift;;
+        --low-violence) lowViolence=1; shift;;
+        --all-platforms) allPlatforms=1; shift;;
+        --all-archs) allArchs=1; shift;;
+        --all-languages) allLanguages=1; shift;;
+        --language) language="$2"; shift 2;;
+        --debug) debug=1; shift;;
+        --remember-password) rememberPassword=1; shift;;
+        --quiet) quiet=1; shift;;
+        *) usage;;
+    esac
+done
+
+[[ -n "$appID" ]] || usage
+[[ -n "$dir" ]] || dir="./steam-fetch-output"
+
+mkdir -p "$dir"
+
+# ---------------------------------------
+# Download function
+# ---------------------------------------
+steam_fetch() {
+    local outPath="$1"
+    shift
+
+    local cmd="./DepotDownloader -app $appID"
+    [[ -n "$depotID" ]] && cmd="$cmd -depot $depotID"
+    [[ -n "$manifestID" ]] && cmd="$cmd -manifest $manifestID"
+    [[ -n "$pubfileID" ]] && cmd="$cmd -pubfile $pubfileID"
+    [[ -n "$ugcID" ]] && cmd="$cmd -ugc $ugcID"
+    [[ -n "$username" ]] && cmd="$cmd -username $username"
+    [[ -n "$password" ]] && cmd="$cmd -password $password"
+    [[ -n "$branchName" ]] && cmd="$cmd -branch $branchName"
+    [[ -n "$dir" ]] && cmd="$cmd -dir $outPath"
+    [[ -n "$allPlatforms" ]] && cmd="$cmd -all-platforms"
+    [[ -n "$allArchs" ]] && cmd="$cmd -all-archs"
+    [[ -n "$allLanguages" ]] && cmd="$cmd -all-languages"
+    [[ -n "$lowViolence" ]] && cmd="$cmd -lowviolence"
+    [[ -n "$validate" ]] && cmd="$cmd -validate"
+    [[ -n "$debug" ]] && cmd="$cmd -debug"
+    [[ -n "$useLancache" ]] && cmd="$cmd -use-lancache"
+
+    echo "Running: $cmd" >&2
+    $cmd
+}
+
+# ---------------------------------------
+# Run the fetch
+# ---------------------------------------
+steam_fetch "$dir"
+
+# Compute hash
+hash=$(nix-hash --type sha256 --base32 "$dir")
+
+# Print results
+print_results "$hash"

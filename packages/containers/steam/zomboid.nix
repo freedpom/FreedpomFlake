@@ -9,9 +9,9 @@
     }:
     let
       n2c = inputs'.nix2container.packages.nix2container;
-      steam = import ./steam-depot.nix { inherit pkgs lib; };
+      inherit ((pkgs.callPackage ./fetch-steam.nix { inherit pkgs lib; })) fetchSteamDepot;
 
-      zomboidLib = steam.steamFetch {
+      zomboidLib = fetchSteamDepot {
         name = "zomboid-lib";
         appId = "380870";
         depotId = "380873";
@@ -22,10 +22,10 @@
           "regex:^(?!.*jre64).*\\.so$"
           "regex:^(?!.*jre64).*\\.jar$"
         ];
-        hash = "sha256-StO298c48LJI2axWTIyj3kWgh7/PcymO5QtTazu5W9U=";
+        hash = lib.fakeHash;
       };
 
-      zomboidData = steam.steamFetch {
+      zomboidData = fetchSteamDepot {
         # /media /java
         name = "zomboid-data";
         appId = "380870";
@@ -35,32 +35,14 @@
         hash = "sha256-HNdId6Zmo1FTRvj8cbOgiGiWf8iW+RurMaFm2WB8b2k=";
       };
 
-      projectZomboid64 = {
-        mainClass = "zombie/network/GameServer";
-        classpath = [
-          "${zomboidData}/java/."
-          "${zomboidData}/java/projectzomboid.jar"
-        ];
-        vmArgs = [
-          "-Djava.awt.headless=true"
-          "-Xmx8g"
-          "-Dzomboid.steam=1"
-          "-Dzomboid.znetlog=1"
-          "-Djava.library.path=${zomboidLib}/linux64/:${zomboidLib}/natives/"
-          "-Djava.security.egd=file:/dev/urandom"
-          "-XX:+UseZGC"
-          "-XX:-OmitStackTraceInFastThrow"
-        ];
-      };
-
       steamSdk = pkgs.stdenv.mkDerivation rec {
         name = "steamworks-sdk-redist";
         version = "18639946";
-        src = steam.steamFetch {
+        src = fetchSteamDepot {
           inherit name;
           appId = "1007";
           depotId = "1006";
-          manifestId = "5587033981095108078";
+          manifestId = "5587033981095108078"; # 23 July 2025 – 18:30:43 UTC
           hash = "sha256-CjrVpq5ztL6wTWIa63a/4xHM35DzgDR/O6qVf1YV5xw=";
         };
 
@@ -113,17 +95,16 @@
           platforms = platforms.linux;
         };
 
-        srcs = [
-          zomboidLib
-          zomboidData
-        ];
+        src = zomboidData;
 
-        sourceRoot = ".";
+        #sourceRoot = ".";
 
-        postUnpack = ''
-          cp -r ./zomboid-lib-depot/. ./zomboid-data-depot/. .
-          rm -rf ./zomboid-data-depot/ ./zomboid-lib-depot/
-        '';
+        # postUnpack = ''
+        #   mkdir -p ./lib/
+        #   cp -r ./zomboid-lib-depot/. ./zomboid-data-depot/. .
+        #   cp -r ./linux64/. ./natives/.
+        #   rm -rf ./zomboid-data-depot/ ./zomboid-lib-depot/ ./linux64/ ./natives/
+        # '';
 
         dontBuild = true;
         dontConfigure = true;
@@ -134,28 +115,21 @@
         ];
 
         buildInputs = [
-          #pkgs.zlib
           pkgs.stdenv.cc.cc
           pkgs.libx11
           pkgs.libxext
-          #pkgs.libxi
-          #pkgs.libxrender
-          #pkgs.libxtst
           pkgs.libsm
           pkgs.libice
-          #pkgs.alsa-lib
         ];
 
         installPhase = ''
           runHook preInstall
-          mkdir -p $out/lib
+          mkdir -p $out
           cp -r ./* $out/
-          ln -sf ${steamSdk}/lib/steamclient.so $out/lib/steamclient.so
-          chmod +x $out/ProjectZomboid64
-          wrapProgram $out/ProjectZomboid64 \
-            --prefix LD_LIBRARY_PATH : ${zomboidLib}/linux64/:${zomboidLib}/natives/:${pkgs.zulu25}/lib \
-            --prefix LD_PRELOAD : ${pkgs.zulu25}/lib/server/libjsig.so
-          echo '${builtins.toJSON projectZomboid64}' > $out/ProjectZomboid64.json
+          #ln -sf ${steamSdk}/lib/steamclient.so $out/lib/steamclient.so
+          #wrapProgram $out/ProjectZomboid64 \
+          #  --prefix LD_LIBRARY_PATH : $out/lib:$\{zomboidLib}/linux64/:$\{zomboidLib}/natives/:$\{pkgs.zulu25}/lib \
+          #  --prefix LD_PRELOAD : $\{pkgs.zulu25}/lib/server/libjsig.so
           runHook postInstall
         '';
       };
