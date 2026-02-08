@@ -71,7 +71,7 @@
           find "$out" -mindepth 1 -maxdepth 1 ! -name share \
             -exec mv {} "$out/share/zomboid" \;
         '';
-        hash = lib.fakeHash;
+        hash = "sha256-dJEdjLIiZTsE2L03GU0GW8/MEssIe/Av4gOcmh4vfpg=";
       };
 
       zomboid-dedicated-server = pkgs.stdenv.mkDerivation {
@@ -99,7 +99,7 @@
           cat > $out/bin/ProjectZomboid <<'EOF'
         #!/usr/bin/env bash
 
-        export LD_LIBRARY_PATH="${pkgs.curl.out}/lib:${pkgs.stdenv.cc.cc.lib}/lib:${zomboidLib}/lib:${pkgs.zulu25}/lib:$LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH="${pkgs.curl.out}/lib:${pkgs.stdenv.cc.cc.lib}/lib:${zomboidLib}/lib:${pkgs.zulu25}/lib:${steamSdk}/lib/steamclient.so:$LD_LIBRARY_PATH"
         export LD_PRELOAD="${pkgs.zulu25}/lib/server/libjsig.so"
 
         export PZ_CACHEDIR="''\${PZ_CACHEDIR:-$XDG_CACHE_HOME}"
