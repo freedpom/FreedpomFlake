@@ -9,7 +9,32 @@
     }:
     let
       n2c = inputs'.nix2container.packages.nix2container;
-      inherit ((pkgs.callPackage ./fetch-steam.nix { inherit pkgs lib; })) fetchSteamDepot;
+      inherit ((pkgs.callPackage ../../fetchsteam/fetch-steam.nix { inherit pkgs lib; })) fetchSteamDepot;
+
+      steamSdk = fetchSteamDepot {
+        name = "steamworks-sdk-redist";
+        appId = "1007";
+        depotId = "1006";
+        manifestId = "5587033981095108078"; # 23 July 2025 – 18:30:43 UTC
+        nativeBuildInputs = [
+          pkgs.autoPatchelfHook
+        ];
+        postFetch = ''
+          mkdir -p $out/lib
+          cp $out/linux64/steamclient.so $out/lib
+          rm -rf $out/linux64/ $out/steamclient.so $out/libsteamwebrtc.so
+        '';
+        hash = "sha256-FPgE8duGCQWeh16ONcYlpw/932yp0zxpEEr2phHRzDg=";
+        meta = with lib; {
+          description = "Steamworks SDK shared library";
+          homepage = "https://steamdb.info/app/1007/";
+          sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+          license = licenses.unfreeRedistributable;
+          platforms = [
+            "x86_64-linux"
+          ];
+        };
+      };
 
       zomboidLib = fetchSteamDepot {
         name = "zomboid-lib";
@@ -18,75 +43,45 @@
         manifestId = "7247926727590960916";
         branch = "unstable";
         fileList = [
-          "ProjectZomboid64"
           "regex:^(?!.*jre64).*\\.so$"
-          "regex:^(?!.*jre64).*\\.jar$"
         ];
-        hash = lib.fakeHash;
+        postFetch = ''
+          mkdir -p $out/lib/
+          cp -r $out/linux64/. $out/natives/. $out/lib/
+          cp $out/libpzexe_jni64.so $out/lib/libpzexe_jni64.so
+          rm -rf $out/linux64/ $out/natives/ $out/libpzexe_jni64.so
+        '';
+        hash = "sha256-iA96Hn27vXjMT2F0V1aPTKHLYK0is2ni4bo31YRFeik=";
       };
 
       zomboidData = fetchSteamDepot {
-        # /media /java
         name = "zomboid-data";
         appId = "380870";
         depotId = "380871";
         manifestId = "8354051993030978772";
         branch = "42.13.1";
-        hash = "sha256-HNdId6Zmo1FTRvj8cbOgiGiWf8iW+RurMaFm2WB8b2k=";
-      };
-
-      steamSdk = pkgs.stdenv.mkDerivation rec {
-        name = "steamworks-sdk-redist";
-        version = "18639946";
-        src = fetchSteamDepot {
-          inherit name;
-          appId = "1007";
-          depotId = "1006";
-          manifestId = "5587033981095108078"; # 23 July 2025 – 18:30:43 UTC
-          hash = "sha256-CjrVpq5ztL6wTWIa63a/4xHM35DzgDR/O6qVf1YV5xw=";
-        };
-
-        dontBuild = true;
-        dontConfigure = true;
-
-        nativeBuildInputs = [
-          pkgs.autoPatchelfHook
+        fileList = [
+          "regex:^(?:\\.\\/)?(media)\\/.*"
+          "regex:^.*\\.(lua|lbc|jar)$"
+          "steam_appid.txt"
         ];
-
-        buildInputs = [
-          pkgs.stdenv.cc
-        ];
-
-        installPhase = ''
-          runHook preInstall
-          mkdir -p $out/lib
-          cp linux64/steamclient.so $out/lib
-          runHook postInstall
+        postFetch = ''
+          mkdir -p $out/share/zomboid
+          ln -sf ${steamSdk}/lib/steamclient.so $out/share/zomboid/steamclient.so
+          find "$out" -mindepth 1 -maxdepth 1 ! -name share \
+            -exec mv {} "$out/share/zomboid" \;
         '';
-
-        meta = with lib; {
-          description = "Steamworks SDK shared library";
-          homepage = "https://steamdb.info/app/1007/";
-          sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
-          license = licenses.unfreeRedistributable;
-          platforms = [
-            "i686-linux"
-            "x86_64-linux"
-          ];
-        };
+        hash = lib.fakeHash;
       };
 
       zomboid-dedicated-server = pkgs.stdenv.mkDerivation {
         pname = "zomboid-dedicated-server";
         version = "42.13.1";
         meta = with pkgs.lib; {
-          description = "Project Zomboid dedicated server (OCI image)";
+          description = "Project Zomboid dedicated server";
           longDescription = ''
             Project Zomboid is the ultimate in zombie survival. Alone or in MP:
             you loot, build, craft, fight, farm and fish in a struggle to survive.
-
-            This package provides Project Zomboid as an OCI-compatible container image,
-            suitable for use with Docker, Podman, Kubernetes, and other OCI runtimes.
           '';
           homepage = "https://projectzomboid.com/";
           changelog = "https://theindiestone.com/";
@@ -95,119 +90,68 @@
           platforms = platforms.linux;
         };
 
-        src = zomboidData;
-
-        #sourceRoot = ".";
-
-        # postUnpack = ''
-        #   mkdir -p ./lib/
-        #   cp -r ./zomboid-lib-depot/. ./zomboid-data-depot/. .
-        #   cp -r ./linux64/. ./natives/.
-        #   rm -rf ./zomboid-data-depot/ ./zomboid-lib-depot/ ./linux64/ ./natives/
-        # '';
-
+        dontUnpack = true;
         dontBuild = true;
         dontConfigure = true;
 
-        nativeBuildInputs = [
-          pkgs.autoPatchelfHook
-          pkgs.makeWrapper
-        ];
-
-        buildInputs = [
-          pkgs.stdenv.cc.cc
-          pkgs.libx11
-          pkgs.libxext
-          pkgs.libsm
-          pkgs.libice
-        ];
-
         installPhase = ''
-          runHook preInstall
-          mkdir -p $out
-          cp -r ./* $out/
-          #ln -sf ${steamSdk}/lib/steamclient.so $out/lib/steamclient.so
-          #wrapProgram $out/ProjectZomboid64 \
-          #  --prefix LD_LIBRARY_PATH : $out/lib:$\{zomboidLib}/linux64/:$\{zomboidLib}/natives/:$\{pkgs.zulu25}/lib \
-          #  --prefix LD_PRELOAD : $\{pkgs.zulu25}/lib/server/libjsig.so
-          runHook postInstall
+          mkdir -p $out/bin
+          cat > $out/bin/ProjectZomboid <<'EOF'
+        #!/usr/bin/env bash
+
+        export LD_LIBRARY_PATH="${pkgs.curl.out}/lib:${pkgs.stdenv.cc.cc.lib}/lib:${zomboidLib}/lib:${pkgs.zulu25}/lib:$LD_LIBRARY_PATH"
+        export LD_PRELOAD="${pkgs.zulu25}/lib/server/libjsig.so"
+
+        export PZ_CACHEDIR="''\${PZ_CACHEDIR:-$XDG_CACHE_HOME}"
+        mkdir -p "''\$PZ_CACHEDIR/Zomboid"
+
+        export PZ_XMS="''\${PZ_XMS:--Xms6g}"
+        export PZ_XMX="''\${PZ_XMX:--Xmx8g}"
+
+        export PZ_PARALLEL_GC_THREADS="''\${PZ_PARALLEL_GC_THREADS:-4}"
+        export PZ_CONC_GC_THREADS="''\${PZ_CONC_GC_THREADS:-4}"
+
+        if [ "''\${PZ_STEAM:-true}" = "true" ]; then
+          export STEAM_ARG="-Dzomboid.steam=1"
+        else
+          export STEAM_ARG="-Dzomboid.steam=0"
+        fi
+
+        export PZ_SERVERNAME="''\${PZ_SERVERNAME:-BigBallz}"
+        export PZ_ADMINUSER="''\${PZ_ADMINUSER:-admin}"
+        export PZ_ADMINPASS="''\${PZ_ADMINPASS:-password}"
+        export PZ_GAME_OPTS="''\${PZ_GAME_OPTS:-}"
+
+        cd ${zomboidData}/share/zomboid
+        ${pkgs.zulu25}/bin/java \
+          -Djava.awt.headless=true \
+          $PZ_XMS $PZ_XMX \
+          $STEAM_ARG \
+          -Ddeployment.user.cachedir="$PZ_CACHEDIR" \
+          -Djava.library.path="${zomboidLib}/lib" \
+          -Djava.security.egd=file:/dev/urandom \
+          -XX:+UseZGC \
+          -XX:-OmitStackTraceInFastThrow \
+          -XX:-ZUncommit \
+          -XX:ParallelGCThreads=$PZ_PARALLEL_GC_THREADS \
+          -XX:ConcGCThreads=$PZ_CONC_GC_THREADS \
+          -XX:-CreateCoredumpOnCrash \
+          --enable-native-access=ALL-UNNAMED \
+          -cp "${zomboidData}/share/zomboid/java/.:${zomboidData}/share/zomboid/java/projectzomboid.jar" \
+          zombie.network.GameServer \
+            -servername "$PZ_SERVERNAME" \
+            -adminusername "$PZ_ADMINUSER" \
+            -adminpassword "$PZ_ADMINPASS" \
+            $PZ_GAME_OPTS
+        EOF
+          chmod +x $out/bin/ProjectZomboid
         '';
+
       };
     in
     {
       packages = {
         inherit zomboid-dedicated-server;
-        zomboid-oci = n2c.buildImage {
-          name = "zomboid";
-          copyToRoot = [
-            base.runtimeEnv
-            base.systemEnv
-            (base.mkAppEnv "zomboid-root" [
-              pkgs.zulu25
-            ])
-            (base.mkUser "pzuser" "101" "101" "/home/pzuser" "/bin/sh")
-            (pkgs.runCommand "zomboid-scripts" { } ''
-              mkdir -p $out/data $out/home/pzuser/Zomboid/{Logs,Server,Saves,db}
-              cp -r ${zomboid-dedicated-server}/* $out/data/
-            '')
-          ];
-
-          maxLayers = 3;
-
-          config = {
-            user = "pzuser";
-            workingDir = "/data";
-            entrypoint = [
-              "${pkgs.zulu25}/bin/java"
-              "-Djava.awt.headless=true"
-              "-Xms6g"
-              "-Xmx8g"
-              "-Dzomboid.steam=1"
-              "-Dzomboid.znetlog=1"
-              "-Djava.library.path=${zomboidLib}/linux64/:${zomboidLib}/natives/"
-              "-Djava.security.egd=file:/dev/urandom"
-              "-XX:+UseZGC"
-              "-XX:-OmitStackTraceInFastThrow"
-              "-XX:-ZUncommit"
-              "-XX:ParallelGCThreads=4"
-              "-XX:ConcGCThreads=4"
-              "-XX:-CreateCoredumpOnCrash"
-              "--enable-native-access=ALL-UNNAMED"
-              "-cp"
-              "java/.:java/projectzomboid.jar"
-              "zombie.network.GameServer"
-            ];
-
-            volumes = {
-              "/data" = { };
-              "/home/pzuser/Zomboid" = { };
-            };
-
-            #env = ["LD_LIBRARY_PATH=./lib"];
-
-            exposedPorts = {
-              "16261/udp" = { };
-              "16262/udp" = { };
-            };
-
-            healthcheck = {
-              test = [
-                "CMD-SHELL"
-                "pgrep -f 'zombie.network.GameServer' > /dev/null || exit 1"
-              ];
-              interval = "30s";
-              timeout = "10s";
-              retries = 3;
-              startPeriod = "60s";
-            };
-
-            labels = base.commonLabels // {
-              "org.opencontainers.image.title" = "Project Zomboid";
-              "org.opencontainers.image.description" = "Zombie survival dedicated server";
-              "org.opencontainers.image.licenses" = "Unfree";
-            };
-          };
-        };
       };
     };
 }
