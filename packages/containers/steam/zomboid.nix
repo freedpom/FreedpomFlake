@@ -99,7 +99,7 @@
           cat > $out/bin/ProjectZomboid <<'EOF'
         #!/usr/bin/env bash
 
-        export LD_LIBRARY_PATH="${pkgs.curl.out}/lib:${pkgs.stdenv.cc.cc.lib}/lib:${zomboidLib}/lib:${pkgs.zulu25}/lib:${steamSdk}/lib/steamclient.so:$LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH="${pkgs.curl.out}/lib:${pkgs.stdenv.cc.cc.lib}/lib:${zomboidLib}/lib:${pkgs.zulu25}/lib:${steamSdk}/lib:$LD_LIBRARY_PATH"
         export LD_PRELOAD="${pkgs.zulu25}/lib/server/libjsig.so"
 
         export PZ_CACHEDIR="''\${PZ_CACHEDIR:-$XDG_CACHE_HOME}"
@@ -119,17 +119,17 @@
         export PZ_GAME_OPTS="''\${PZ_GAME_OPTS:-}"
 
         cd ${zomboidData}/share/zomboid
+
         ${pkgs.zulu25}/bin/java \
           -Djava.awt.headless=true \
-          -Xmx$PZ_MEM -Xmx$PZ_MEM \
+          -Xms$PZ_MEM \
+          -Xmx$PZ_MEM \
           $STEAM_ARG \
           -Ddeployment.user.cachedir="$PZ_CACHEDIR" \
           -Djava.library.path="${zomboidLib}/lib" \
           -Djava.security.egd=file:/dev/urandom \
-          -XX:+AlwaysPreTouch
+          -XX:+AlwaysPreTouch \
           -XX:+UseZGC \
-          -XX:+ZGenerational
-          -XX:-ZUncommit \
           -XX:-CreateCoredumpOnCrash \
           --enable-native-access=ALL-UNNAMED \
           -cp "${zomboidData}/share/zomboid/java/.:${zomboidData}/share/zomboid/java/projectzomboid.jar" \
@@ -139,8 +139,10 @@
             -adminpassword "$PZ_ADMINPASS" \
             $PZ_GAME_OPTS
         EOF
+
           chmod +x $out/bin/ProjectZomboid
         '';
+
 
       };
     in
