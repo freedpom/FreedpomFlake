@@ -105,11 +105,7 @@
         export PZ_CACHEDIR="''\${PZ_CACHEDIR:-$XDG_CACHE_HOME}"
         mkdir -p "''\$PZ_CACHEDIR/Zomboid"
 
-        export PZ_XMS="''\${PZ_XMS:--Xms6g}"
-        export PZ_XMX="''\${PZ_XMX:--Xmx8g}"
-
-        export PZ_PARALLEL_GC_THREADS="''\${PZ_PARALLEL_GC_THREADS:-4}"
-        export PZ_CONC_GC_THREADS="''\${PZ_CONC_GC_THREADS:-4}"
+        export PZ_MEM="''\${PZ_XMS:-10g}"
 
         if [ "''\${PZ_STEAM:-true}" = "true" ]; then
           export STEAM_ARG="-Dzomboid.steam=1"
@@ -117,7 +113,7 @@
           export STEAM_ARG="-Dzomboid.steam=0"
         fi
 
-        export PZ_SERVERNAME="''\${PZ_SERVERNAME:-BigBallz}"
+        export PZ_SERVERNAME="''\${PZ_SERVERNAME:-servertest}"
         export PZ_ADMINUSER="''\${PZ_ADMINUSER:-admin}"
         export PZ_ADMINPASS="''\${PZ_ADMINPASS:-password}"
         export PZ_GAME_OPTS="''\${PZ_GAME_OPTS:-}"
@@ -125,16 +121,15 @@
         cd ${zomboidData}/share/zomboid
         ${pkgs.zulu25}/bin/java \
           -Djava.awt.headless=true \
-          $PZ_XMS $PZ_XMX \
+          -Xmx$PZ_MEM -Xmx$PZ_MEM \
           $STEAM_ARG \
           -Ddeployment.user.cachedir="$PZ_CACHEDIR" \
           -Djava.library.path="${zomboidLib}/lib" \
           -Djava.security.egd=file:/dev/urandom \
+          -XX:+AlwaysPreTouch
           -XX:+UseZGC \
-          -XX:-OmitStackTraceInFastThrow \
+          -XX:+ZGenerational
           -XX:-ZUncommit \
-          -XX:ParallelGCThreads=$PZ_PARALLEL_GC_THREADS \
-          -XX:ConcGCThreads=$PZ_CONC_GC_THREADS \
           -XX:-CreateCoredumpOnCrash \
           --enable-native-access=ALL-UNNAMED \
           -cp "${zomboidData}/share/zomboid/java/.:${zomboidData}/share/zomboid/java/projectzomboid.jar" \
