@@ -104,15 +104,8 @@
 
         export PZ_CACHEDIR="''\${PZ_CACHEDIR:-$XDG_CACHE_HOME}"
         mkdir -p "''\$PZ_CACHEDIR/Zomboid"
-
         export PZ_MEM="''\${PZ_XMS:-10g}"
-
-        if [ "''\${PZ_STEAM:-true}" = "true" ]; then
-          export STEAM_ARG="-Dzomboid.steam=1"
-        else
-          export STEAM_ARG="-Dzomboid.steam=0"
-        fi
-
+        export PZ_STEAM="''\${PZ_STEAM:-1}"
         export PZ_SERVERNAME="''\${PZ_SERVERNAME:-servertest}"
         export PZ_ADMINUSER="''\${PZ_ADMINUSER:-admin}"
         export PZ_ADMINPASS="''\${PZ_ADMINPASS:-password}"
@@ -124,7 +117,7 @@
           -Djava.awt.headless=true \
           -Xms$PZ_MEM \
           -Xmx$PZ_MEM \
-          $STEAM_ARG \
+          -Dzomboid.steam=$PZ_STEAM \
           -Ddeployment.user.cachedir="$PZ_CACHEDIR" \
           -Djava.library.path="${zomboidLib}/lib" \
           -Djava.security.egd=file:/dev/urandom \
