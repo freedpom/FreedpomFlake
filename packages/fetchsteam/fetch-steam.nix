@@ -44,6 +44,7 @@ let
             nativeBuildInputs ? [ ],
             passthru ? { },
             meta ? { },
+            modlist ? null,
           }:
           let
             fileListFile =
@@ -88,6 +89,7 @@ let
               STEAM_MAX_DOWNLOADS = if maxDownloads != null then toString maxDownloads else "";
               STEAM_PREFETCH = preFetch;
               STEAM_POSTFETCH = postFetch;
+              MODLIST = lib.optionalString (modlist != null) (lib.concatStringsSep " " modlist);
             };
             inherit outputHash outputHashAlgo;
             outputHashMode = "recursive";

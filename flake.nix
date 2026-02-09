@@ -42,6 +42,7 @@
           ./packages/containers/crowdsec.nix
           ./packages/containers/victoria-metrics.nix
           ./packages/containers/steam/zomboid.nix
+          ./packages/containers/steam/modtest.nix
         ];
         flake = {
           inherit fmtModule;
