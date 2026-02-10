@@ -60,6 +60,7 @@ let
             nativeBuildInputs = [
               pkgs.depotdownloader
               pkgs.cacert
+              pkgs.parallel
             ]
             ++ nativeBuildInputs;
             SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";

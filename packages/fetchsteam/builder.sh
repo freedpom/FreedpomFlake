@@ -57,7 +57,7 @@ if [ -n "${STEAM_PREFETCH:-}" ]; then eval "$STEAM_PREFETCH"; fi
 
 # Run DepotDownloader
 DepotDownloader "${args[@]}"
-for n in $MODLIST; do DepotDownloader -app "$STEAM_APP_ID" -pubfile "$n" -dir "$out"; done
+parallel -j "${STEAM_MAX_DOWNLOADS:-5}" "DepotDownloader -app $STEAM_APP_ID -pubfile {} -dir $out" ::: $MODLIST
 
 # Cleanup
 rm -rf "$out/.DepotDownloader"
