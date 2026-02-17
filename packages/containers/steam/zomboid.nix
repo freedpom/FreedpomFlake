@@ -99,14 +99,14 @@
           export LD_LIBRARY_PATH="${pkgs.curl.out}/lib:${pkgs.stdenv.cc.cc.lib}/lib:${zomboidLib}/lib:${pkgs.zulu25}/lib:${steamSdk}/lib:$LD_LIBRARY_PATH"
           export LD_PRELOAD="${pkgs.zulu25}/lib/server/libjsig.so"
 
-          export PZ_CACHEDIR="''\${"PZ_CACHEDIR:-$XDG_CACHE_HOME"}"
-          mkdir -p "''\$PZ_CACHEDIR/Zomboid"
-          export PZ_MEM="''\${"PZ_XMS:-10g"}"
-          export PZ_STEAM="''\${"PZ_STEAM:-1"}"
-          export PZ_SERVERNAME="''\${"PZ_SERVERNAME:-servertest"}"
-          export PZ_ADMINUSER="''\${"PZ_ADMINUSER:-admin"}"
-          export PZ_ADMINPASS="''\${"PZ_ADMINPASS:-password"}"
-          export PZ_GAME_OPTS="''\${"PZ_GAME_OPTS:-"}"
+          export PZ_CACHEDIR="''${PZ_CACHEDIR:-$XDG_CACHE_HOME}"
+          mkdir -p "''${PZ_CACHEDIR}/Zomboid"
+          export PZ_MEM="''${PZ_XMS:-10g}"
+          export PZ_STEAM="''${PZ_STEAM:-1}"
+          export PZ_SERVERNAME="''${PZ_SERVERNAME:-servertest}"
+          export PZ_ADMINUSER="''${PZ_ADMINUSER:-admin}"
+          export PZ_ADMINPASS="''${PZ_ADMINPASS:-password}"
+          export PZ_GAME_OPTS="''${PZ_GAME_OPTS:-}"
 
           cd ${zomboidData}/share/zomboid
 
