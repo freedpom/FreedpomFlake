@@ -34,18 +34,10 @@
           (base.mkAppEnv "redis-root" [
             pkgs.redis
           ])
-          (base.mkUsersWithRoot "redis" "999" "999" "/data" "/bin/sh")
+          base.rootUser
           (pkgs.runCommand "redis-setup" { } ''
-                        mkdir -p $out/data
-                        mkdir -p $out/etc/redis
-                        # Create entrypoint script
-                        mkdir -p $out/usr/local/bin
-                        cat > $out/usr/local/bin/start-redis << 'EOF'
-            #!/bin/sh
-            chown -R redis:redis /data
-            exec su -s /bin/sh redis -c 'exec redis-server --port 6379 --dir /data --appendonly yes --protected-mode no --bind 0.0.0.0'
-            EOF
-                        chmod +x $out/usr/local/bin/start-redis
+            mkdir -p $out/data
+            mkdir -p $out/etc/redis
           '')
         ];
 
@@ -57,7 +49,19 @@
             "REDIS_PORT=6379"
           ];
 
-          entrypoint = [ "/usr/local/bin/start-redis" ];
+          entrypoint = [ "${pkgs.bash}/bin/bash" ];
+
+          cmd = [
+            "-c"
+            ''
+              ${pkgs.redis}/bin/redis-server \
+                --port 6379 \
+                --dir /data \
+                --appendonly no \
+                --protected-mode no \
+                --bind 0.0.0.0
+            ''
+          ];
 
           exposedPorts = {
             "6379/tcp" = { };
@@ -72,7 +76,7 @@
           healthcheck = {
             test = [
               "CMD-SHELL"
-              "redis-cli ping || exit 1"
+              "${pkgs.redis}/bin/redis-cli ping || exit 1"
             ];
             interval = "30s";
             timeout = "10s";

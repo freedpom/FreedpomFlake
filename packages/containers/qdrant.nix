@@ -61,43 +61,47 @@
           base.runtimeEnv
           base.systemEnv
           (base.mkAppEnv "qdrant-root" [ qdrantBinary ])
-          (base.mkUsersWithRoot "qdrant" "1000" "1000" "/qdrant" "/bin/sh")
+          base.rootUser
           (pkgs.runCommand "qdrant-setup" { } ''
-                        mkdir -p $out/qdrant/storage
-                        mkdir -p $out/qdrant/snapshots
-                        # Create entrypoint script
-                        mkdir -p $out/usr/local/bin
-                        cat > $out/usr/local/bin/start-qdrant << 'EOF'
-            #!/bin/sh
-            chown -R qdrant:qdrant /qdrant
-            exec su -s /bin/sh qdrant -c 'QDRANT__STORAGE__STORAGE_PATH=/qdrant/storage QDRANT__SNAPSHOTS__SNAPSHOTS_PATH=/qdrant/snapshots QDRANT__SERVICE__HTTP_PORT=6333 QDRANT__SERVICE__GRPC_PORT=6334 exec ${qdrantBinary}/bin/qdrant'
-            EOF
-                        chmod +x $out/usr/local/bin/start-qdrant
+            mkdir -p $out/qdrant/storage
+            mkdir -p $out/qdrant/snapshots
           '')
         ];
 
         config = {
           user = "root";
           workingDir = "/qdrant";
-          entrypoint = [ "/usr/local/bin/start-qdrant" ];
+
+          env = [
+            "QDRANT__STORAGE__STORAGE_PATH=/qdrant/storage"
+            "QDRANT__SNAPSHOTS__SNAPSHOTS_PATH=/qdrant/snapshots"
+            "QDRANT__SERVICE__HTTP_PORT=6333"
+            "QDRANT__SERVICE__GRPC_PORT=6334"
+          ];
+
+          entrypoint = [ "${qdrantBinary}/bin/qdrant" ];
+
           exposedPorts = {
             "6333/tcp" = { };
             "6334/tcp" = { };
           };
+
           volumes = {
             "/qdrant/storage" = { };
             "/qdrant/snapshots" = { };
           };
+
           healthcheck = {
             test = [
               "CMD-SHELL"
-              "curl -f http://localhost:6333/readyz || exit 1"
+              "${pkgs.curl}/bin/curl -f http://localhost:6333/readyz || exit 1"
             ];
             interval = "30s";
             timeout = "10s";
             retries = 3;
             startPeriod = "30s";
           };
+
           labels = base.commonLabels // {
             "org.opencontainers.image.title" = "Qdrant";
             "org.opencontainers.image.description" = "Vector database and vector similarity search engine";

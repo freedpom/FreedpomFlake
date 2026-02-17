@@ -35,29 +35,20 @@
             pkgs.grafana
             pkgs.curl
           ])
-          (base.mkUsersWithRoot "grafana" "472" "472" "/var/lib/grafana" "/bin/sh")
+          base.rootUser
           (pkgs.runCommand "grafana-setup" { } ''
                         mkdir -p $out/var/lib/grafana
                         mkdir -p $out/var/log/grafana
                         mkdir -p $out/etc/grafana/provisioning/datasources
                         mkdir -p $out/etc/grafana/provisioning/dashboards
-                        # Create entrypoint script
-                        mkdir -p $out/usr/local/bin
-                        cat > $out/usr/local/bin/start-grafana << 'EOF'
-            #!/bin/sh
-            chown -R grafana:grafana /var/lib/grafana /var/log/grafana /etc/grafana
-            mkdir -p /var/lib/grafana/plugins
-            mkdir -p /etc/grafana/provisioning/datasources /etc/grafana/provisioning/dashboards /etc/grafana/provisioning/notifiers /etc/grafana/provisioning/alerting
-            if [ ! -f /etc/grafana/grafana.ini ]; then
-              echo "[paths]" > /etc/grafana/grafana.ini
-              echo "data = /var/lib/grafana" >> /etc/grafana/grafana.ini
-              echo "logs = /var/log/grafana" >> /etc/grafana/grafana.ini
-              echo "plugins = /var/lib/grafana/plugins" >> /etc/grafana/grafana.ini
-              echo "provisioning = /etc/grafana/provisioning" >> /etc/grafana/grafana.ini
-            fi
-            exec su -s /bin/sh grafana -c 'GF_PATHS_CONFIG=/etc/grafana/grafana.ini GF_PATHS_DATA=/var/lib/grafana GF_PATHS_LOGS=/var/log/grafana GF_PATHS_PLUGINS=/var/lib/grafana/plugins GF_PATHS_PROVISIONING=/etc/grafana/provisioning GF_SERVER_HTTP_PORT=3000 exec ${pkgs.grafana}/bin/grafana server --config=/etc/grafana/grafana.ini --homepath=${pkgs.grafana}/share/grafana --packaging=nix'
+                        # Create minimal config
+                        cat > $out/etc/grafana/grafana.ini << 'EOF'
+            [paths]
+            data = /var/lib/grafana
+            logs = /var/log/grafana
+            plugins = /var/lib/grafana/plugins
+            provisioning = /etc/grafana/provisioning
             EOF
-                        chmod +x $out/usr/local/bin/start-grafana
           '')
         ];
 
@@ -65,7 +56,14 @@
           user = "root";
           workingDir = "/var/lib/grafana";
 
-          entrypoint = [ "/usr/local/bin/start-grafana" ];
+          entrypoint = [ "${pkgs.grafana}/bin/grafana" ];
+
+          cmd = [
+            "server"
+            "--config=/etc/grafana/grafana.ini"
+            "--homepath=${pkgs.grafana}/share/grafana"
+            "--packaging=nix"
+          ];
 
           exposedPorts = {
             "3000/tcp" = { };
@@ -80,7 +78,7 @@
           healthcheck = {
             test = [
               "CMD-SHELL"
-              "curl -f http://localhost:3000/api/health || exit 1"
+              "${pkgs.curl}/bin/curl -f http://localhost:3000/api/health || exit 1"
             ];
             interval = "30s";
             timeout = "10s";

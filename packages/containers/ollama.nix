@@ -32,40 +32,44 @@
           base.runtimeEnv
           base.systemEnv
           (base.mkAppEnv "ollama-root" [ pkgs.ollama ])
-          (base.mkUsersWithRoot "ollama" "1000" "1000" "/home/ollama" "/bin/sh")
+          base.rootUser
           (pkgs.runCommand "ollama-setup" { } ''
-                        mkdir -p $out/home/ollama/.ollama
-                        # Create entrypoint script
-                        mkdir -p $out/usr/local/bin
-                        cat > $out/usr/local/bin/start-ollama << 'EOF'
-            #!/bin/sh
-            chown -R ollama:ollama /home/ollama
-            exec su -s /bin/sh ollama -c 'OLLAMA_HOST=0.0.0.0:11434 OLLAMA_MODELS=/home/ollama/.ollama/models OLLAMA_KEEP_ALIVE=5m exec ${pkgs.ollama}/bin/ollama serve'
-            EOF
-                        chmod +x $out/usr/local/bin/start-ollama
+            mkdir -p $out/root/.ollama
           '')
         ];
 
         config = {
           user = "root";
-          workingDir = "/home/ollama";
-          entrypoint = [ "/usr/local/bin/start-ollama" ];
+          workingDir = "/root";
+
+          env = [
+            "OLLAMA_HOST=0.0.0.0:11434"
+            "OLLAMA_MODELS=/root/.ollama/models"
+            "OLLAMA_KEEP_ALIVE=5m"
+          ];
+
+          entrypoint = [ "${pkgs.ollama}/bin/ollama" ];
+          cmd = [ "serve" ];
+
           exposedPorts = {
             "11434/tcp" = { };
           };
+
           volumes = {
-            "/home/ollama/.ollama" = { };
+            "/root/.ollama" = { };
           };
+
           healthcheck = {
             test = [
               "CMD-SHELL"
-              "curl -f http://localhost:11434/api/tags || exit 1"
+              "${pkgs.curl}/bin/curl -f http://localhost:11434/api/tags || exit 1"
             ];
             interval = "30s";
             timeout = "10s";
             retries = 3;
             startPeriod = "60s";
           };
+
           labels = base.commonLabels // {
             "org.opencontainers.image.title" = "Ollama";
             "org.opencontainers.image.description" = "Run LLMs locally with ease";
