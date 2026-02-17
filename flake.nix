@@ -41,6 +41,12 @@
           ./packages/containers/caddy.nix
           ./packages/containers/crowdsec.nix
           ./packages/containers/victoria-metrics.nix
+          ./packages/containers/grafana.nix
+          ./packages/containers/qdrant.nix
+          ./packages/containers/redis.nix
+          ./packages/containers/ollama.nix
+          ./packages/containers/langchain.nix
+          ./packages/containers/zomboid-oci.nix
           ./packages/containers/steam/zomboid.nix
           ./packages/containers/steam/modtest.nix
         ];
