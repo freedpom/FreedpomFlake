@@ -4,6 +4,7 @@
       pkgs,
       inputs',
       base,
+      config,
       ...
     }:
     let
