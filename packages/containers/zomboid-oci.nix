@@ -36,12 +36,14 @@
             pkgs.curl
           ])
           (base.mkUsersWithRoot "zomboid" 1000 1000 "/var/zomboid" "/bin/bash")
-          (pkgs.runCommand "zomboid-setup" { } ''
-            mkdir -p $out/var/zomboid
-            mkdir -p $out/var/zomboid/config
-            mkdir -p $out/var/zomboid/cache
-            chmod 755 $out/var/zomboid
-          '')
+        ];
+
+        perms = [
+          {
+            path = "/var/zomboid";
+            regex = ".*";
+            mode = "0777";
+          }
         ];
 
         config = {
@@ -68,7 +70,9 @@
               echo "Server Name: $PZ_SERVERNAME"
               echo "Memory: $PZ_MEM"
 
-              mkdir -p $PZ_CACHEDIR/Zomboid
+              mkdir -p "$PZ_CACHEDIR/Zomboid/Logs"
+              mkdir -p "$PZ_CACHEDIR/Zomboid/Server"
+              chmod -R 777 "$PZ_CACHEDIR"
 
               exec ${config.packages.zomboid-dedicated-server}/bin/ProjectZomboid
             ''
@@ -79,10 +83,6 @@
             "16262/udp" = { }; # Game port
             "8766/udp" = { }; # Steam master server
             "8767/udp" = { }; # Steam communication
-          };
-
-          volumes = {
-            "/var/zomboid" = { };
           };
 
           stopSignal = "SIGTERM";

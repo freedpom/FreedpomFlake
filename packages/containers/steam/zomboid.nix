@@ -37,7 +37,7 @@
         name = "zomboid-lib";
         appId = "380870";
         depotId = "380873";
-        manifestId = "7247926727590960916";
+        manifestId = "9077490617364318789";
         branch = "unstable";
         fileList = [
           "regex:^(?!.*jre64).*\\.so$"
@@ -48,7 +48,7 @@
           cp $out/libpzexe_jni64.so $out/lib/libpzexe_jni64.so
           rm -rf $out/linux64/ $out/natives/ $out/libpzexe_jni64.so
         '';
-        hash = "sha256-iA96Hn27vXjMT2F0V1aPTKHLYK0is2ni4bo31YRFeik=";
+        hash = "sha256-h7NJevgiAkP1QRHtFu/8pQCHQFBIwmLXKo6r0tyyBW8=";
       };
 
       zomboidData = fetchSteamDepot {
@@ -64,7 +64,6 @@
         ];
         postFetch = ''
           mkdir -p $out/share/zomboid
-          ln -sf ${steamSdk}/lib/steamclient.so $out/share/zomboid/steamclient.so
           find "$out" -mindepth 1 -maxdepth 1 ! -name share \
             -exec mv {} "$out/share/zomboid" \;
         '';
@@ -93,10 +92,11 @@
 
         installPhase = ''
             mkdir -p $out/bin
+            cp ${steamSdk}/lib/steamclient.so $out/bin/
             cat > $out/bin/ProjectZomboid <<'EOF'
           #!/usr/bin/env bash
 
-          export LD_LIBRARY_PATH="${pkgs.curl.out}/lib:${pkgs.stdenv.cc.cc.lib}/lib:${zomboidLib}/lib:${pkgs.zulu25}/lib:${steamSdk}/lib:$LD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="${pkgs.curl.out}/lib:${pkgs.stdenv.cc.cc.lib}/lib:${zomboidLib}/lib:${steamSdk}/lib:${pkgs.zulu25}/lib:$LD_LIBRARY_PATH"
           export LD_PRELOAD="${pkgs.zulu25}/lib/server/libjsig.so"
 
           export PZ_CACHEDIR="''${PZ_CACHEDIR:-$XDG_CACHE_HOME}"

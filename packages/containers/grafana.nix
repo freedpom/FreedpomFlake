@@ -10,6 +10,9 @@
       n2c = inputs'.nix2container.packages.nix2container;
     in
     {
+      overlayAttrs = {
+        inherit (config.packages) grafana-oci;
+      };
       packages.grafana-oci = n2c.buildImage {
         name = "grafana";
         meta = with pkgs.lib; {
