@@ -116,52 +116,6 @@
                   '';
                 };
 
-                preservation = {
-                  directories = lib.mkOption {
-                    type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
-                    default = [ ];
-                    example = [
-                      ".config/nvim"
-                      {
-                        directory = ".local/share/Steam";
-                        method = "symlink";
-                      }
-                    ];
-                    description = ''
-                      Home directory paths to persist across system rebuilds when using an impermanence setup.
-                      Can be strings for simple paths or attribute sets with method and mode options.
-                    '';
-                  };
-
-                  files = lib.mkOption {
-                    type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
-                    default = [ ];
-                    example = [
-                      ".bashrc"
-                      {
-                        file = ".ssh/id_ed25519";
-                        mode = "0600";
-                      }
-                    ];
-                    description = ''
-                      Home directory files to persist across system rebuilds when using an impermanence setup.
-                      Can be strings for simple paths or attribute sets with permissions and mode options.
-                    '';
-                  };
-
-                  mountOptions = lib.mkOption {
-                    type = lib.types.listOf lib.types.str;
-                    default = [ ];
-                    example = [
-                      "noatime"
-                      "compress=zstd"
-                    ];
-                    description = ''
-                      Filesystem mount options applied to this user's persistent storage locations.
-                      Useful for optimizing performance or enabling filesystem-specific features.
-                    '';
-                  };
-                };
               };
             }
           );

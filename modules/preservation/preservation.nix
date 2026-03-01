@@ -116,40 +116,94 @@
       };
     in
     {
-      options.freedpom.system.preservation = {
-        enable = lib.mkEnableOption "Enable preservation";
+      options.freedpom.system = {
+        preservation = {
+          enable = lib.mkEnableOption "Enable preservation";
 
-        preserveHome = lib.mkEnableOption "Preserve user directories on an ephemeral /home";
+          preserveHome = lib.mkEnableOption "Preserve user directories on an ephemeral /home";
 
-        storageDir = lib.mkOption {
-          type = lib.types.str;
-          default = "/nix/persist";
-          description = "Directory where persistent data will be stored";
+          storageDir = lib.mkOption {
+            type = lib.types.str;
+            default = "/nix/persist";
+            description = "Directory where persistent data will be stored";
+          };
+
+          directories = lib.mkOption {
+            type = lib.types.listOf (lib.types.either lib.types.attrs lib.types.str);
+            default = [ ];
+            description = "Extra directories to be preserved";
+          };
+
+          files = lib.mkOption {
+            type = lib.types.listOf (lib.types.either lib.types.attrs lib.types.str);
+            default = [ ];
+            description = "Extra files to be preserved";
+          };
+
+          build-dir = lib.mkOption {
+            type = lib.types.str;
+            default = "/var/nix-build";
+            description = ''
+              The default nix build directory /tmp will often fill the root tmpfs on large builds. Changing
+              this to a directory on a physical drive e.g. /var/nix-build will fix this but may be undesirable on
+              systems that actually have enough memory to build in ram. Setting back to the nix default /tmp
+              will disable automatic bind mount generation for the directory.
+            '';
+          };
         };
 
-        directories = lib.mkOption {
-          type = lib.types.listOf (lib.types.either lib.types.attrs lib.types.str);
-          default = [ ];
-          description = "Extra directories to be preserved";
-        };
+        users.users = lib.mkOption {
+          type = lib.types.attrsOf (
+            lib.types.submodule {
+              options.preservation = {
+                directories = lib.mkOption {
+                  type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
+                  default = [ ];
+                  example = [
+                    ".config/nvim"
+                    {
+                      directory = ".local/share/Steam";
+                      method = "symlink";
+                    }
+                  ];
+                  description = ''
+                    Home directory paths to persist across system rebuilds when using an impermanence setup.
+                    Can be strings for simple paths or attribute sets with method and mode options.
+                  '';
+                };
 
-        files = lib.mkOption {
-          type = lib.types.listOf (lib.types.either lib.types.attrs lib.types.str);
-          default = [ ];
-          description = "Extra files to be preserved";
-        };
+                files = lib.mkOption {
+                  type = lib.types.listOf (lib.types.either lib.types.str lib.types.attrs);
+                  default = [ ];
+                  example = [
+                    ".bashrc"
+                    {
+                      file = ".ssh/id_ed25519";
+                      mode = "0600";
+                    }
+                  ];
+                  description = ''
+                    Home directory files to persist across system rebuilds when using an impermanence setup.
+                    Can be strings for simple paths or attribute sets with permissions and mode options.
+                  '';
+                };
 
-        build-dir = lib.mkOption {
-          type = lib.types.str;
-          default = "/var/nix-build";
-          description = ''
-            The default nix build directory /tmp will often fill the root tmpfs on large builds. Changing
-            this to a directory on a physical drive e.g. /var/nix-build will fix this but may be undesirable on
-            systems that actually have enough memory to build in ram. Setting back to the nix default /tmp
-            will disable automatic bind mount generation for the directory.
-          '';
+                mountOptions = lib.mkOption {
+                  type = lib.types.listOf lib.types.str;
+                  default = [ ];
+                  example = [
+                    "noatime"
+                    "compress=zstd"
+                  ];
+                  description = ''
+                    Filesystem mount options applied to this user's persistent storage locations.
+                    Useful for optimizing performance or enabling filesystem-specific features.
+                  '';
+                };
+              };
+            }
+          );
         };
-
       };
 
       config = lib.mkIf cfg.enable {
