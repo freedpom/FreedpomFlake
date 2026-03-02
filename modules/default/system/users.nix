@@ -84,6 +84,15 @@
                   '';
                 };
 
+                files = lib.mkOption {
+                  type = lib.types.attrsOf lib.types.package;
+                  default = { };
+                  description = ''
+                    Files to be written to the users home directory formatted
+                    as "path/from/$HOME" = derivation containing file"
+                  '';
+                };
+
                 userOptions = lib.mkOption {
                   type = lib.types.submodule {
                     freeformType = lib.types.attrs;
@@ -115,7 +124,6 @@
                     See users.users.<name> in NixOS manual for complete list.
                   '';
                 };
-
               };
             }
           );
@@ -157,6 +165,39 @@
           inherit (cfg) mutableUsers;
           users = lib.genAttrs userNames buildUserConfiguration;
         };
+
+        systemd.tmpfiles.settings = lib.mapAttrs' (
+          user: userConfig:
+          lib.nameValuePair "home-${user}" (
+            lib.concatMapAttrs (
+              path: file:
+              let
+                parts = lib.init (lib.splitString "/" path);
+                parentDirs = lib.imap1 (i: _: lib.concatStringsSep "/" (lib.take i parts)) parts;
+              in
+              lib.listToAttrs (
+                map (
+                  dirPath:
+                  lib.nameValuePair "/home/${user}/${dirPath}" {
+                    d = {
+                      inherit (config.users.users.${user}) group;
+                      inherit user;
+                    };
+                  }
+                ) parentDirs
+              )
+              // {
+                "/home/${user}/${path}" = {
+                  "L+" = {
+                    argument = toString file;
+                    inherit (config.users.users.${user}) group;
+                    inherit user;
+                  };
+                };
+              }
+            ) userConfig.files
+          )
+        ) cfg.users;
       };
     };
 }
