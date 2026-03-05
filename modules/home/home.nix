@@ -29,6 +29,10 @@
                       hypr."hyprland.conf" = pkgs.writeText "hyprland.conf" "my hyprland config";
                       foot."foot.ini" = pkgs.writeText "foot.ini" "my foot config";
                     };
+                    ".ssh" = {
+                      config = pkgs.writeText "ssh-config" "my ssh config";
+                      mode = 0700;
+                    };
                     myFile = ./file.txt;
                   };
                 };
