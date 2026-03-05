@@ -54,8 +54,8 @@
                   path = "${acc}/${name}";
                   nodeMode = value.mode or defaultMode;
                   defaults = {
-                    inherit user;
                     inherit (config.users.users.${user}) group;
+                    user = userConfig.username;
                     mode = toString nodeMode;
                   };
                 in

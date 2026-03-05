@@ -39,6 +39,7 @@
           isNormalUser = !isSystemUser userConfig.role;
           createHome = !isSystemUser userConfig.role;
           extraGroups = buildUserGroups userConfig;
+          name = cfg.users.${userName}.username;
         };
     in
     {
