@@ -12,7 +12,7 @@
         name = "steamworks-sdk-redist";
         appId = "1007";
         depotId = "1006";
-        manifestId = "5587033981095108078"; # 23 July 2025 – 18:30:43 UTC
+        manifestId = "6403079453713498174"; # 8 December 2025 – 18:16:30 UTC
         nativeBuildInputs = [
           pkgs.autoPatchelfHook
         ];
@@ -21,7 +21,7 @@
           cp $out/linux64/steamclient.so $out/lib
           rm -rf $out/linux64/ $out/steamclient.so $out/libsteamwebrtc.so
         '';
-        hash = "sha256-FPgE8duGCQWeh16ONcYlpw/932yp0zxpEEr2phHRzDg=";
+        hash = "sha256-fyE5tA/m8daAOIy7ziDGlqFjuQRb++m7Dx7DsEX+bh0=";
         meta = with lib; {
           description = "Steamworks SDK shared library";
           homepage = "https://steamdb.info/app/1007/";
@@ -37,7 +37,7 @@
         name = "zomboid-lib";
         appId = "380870";
         depotId = "380873";
-        manifestId = "9077490617364318789";
+        manifestId = "9077490617364318789"; # 16 February 2026 – 15:45:57 UTC
         branch = "unstable";
         fileList = [
           "regex:^(?!.*jre64).*\\.so$"
@@ -48,15 +48,15 @@
           cp $out/libpzexe_jni64.so $out/lib/libpzexe_jni64.so
           rm -rf $out/linux64/ $out/natives/ $out/libpzexe_jni64.so
         '';
-        hash = "sha256-h7NJevgiAkP1QRHtFu/8pQCHQFBIwmLXKo6r0tyyBW8=";
+        hash = lib.fakeHash;
       };
 
       zomboidData = fetchSteamDepot {
         name = "zomboid-data";
         appId = "380870";
         depotId = "380871";
-        manifestId = "8354051993030978772";
-        branch = "42.13.1";
+        manifestId = "5444919678555867848"; # 3 March 2026 – 16:54:27 UTC
+        branch = "unstable";
         fileList = [
           "regex:^(?:\\.\\/)?(media)\\/.*"
           "regex:^.*\\.(lua|lbc|jar)$"
@@ -67,7 +67,7 @@
           find "$out" -mindepth 1 -maxdepth 1 ! -name share \
             -exec mv {} "$out/share/zomboid" \;
         '';
-        hash = "sha256-dJEdjLIiZTsE2L03GU0GW8/MEssIe/Av4gOcmh4vfpg=";
+        hash = lib.fakeHash;
       };
 
       zomboid-dedicated-server = pkgs.stdenv.mkDerivation {
