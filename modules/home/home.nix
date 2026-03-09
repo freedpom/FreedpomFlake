@@ -20,20 +20,23 @@
                   type = lib.types.attrs;
                   default = { };
                   description = ''
-                    Attrset describing files in /home/${name}, non leaf nodes will be treated as directories
-                    and leaf nodes containing a derivation or path will be treated as files to be linked.
-                    Attrs may contain a mode value to set permissions for themselves and their children.
+                    Attrset describing files in /home/${name}, nodes containing a source attribute will be
+                    treated as paths to be linked, paths may resolve anywhere on the system.
+                    Any node may contain a mode attribute to setpermissions for itself. 
                   '';
                   example = {
                     ".config" = {
-                      hypr."hyprland.conf" = pkgs.writeText "hyprland.conf" "my hyprland config";
-                      foot."foot.ini" = pkgs.writeText "foot.ini" "my foot config";
+                      hypr."hyprland.conf".source = pkgs.writeText "hyprland.conf" "my hyprland config";
+                      foot."foot.ini".source = pkgs.writeText "foot.ini" "my foot config";
                     };
                     ".ssh" = {
-                      config = pkgs.writeText "ssh-config" "my ssh config";
-                      mode = 0700;
+                      config.source = pkgs.writeText "ssh-config" "my ssh config"; # write a file named config to ~/.ssh/
+                      mode = "0700"; # set permissions at directory level
                     };
-                    myFile = ./file.txt;
+                    myFile = {
+                      source = ./file.txt;
+                      mode = "0650"; # permissions at file level
+                    };
                   };
                 };
               }
@@ -47,32 +50,40 @@
           user: userConfig:
           let
             recurse =
-              acc: defaultMode: tree:
+              acc: tree:
               lib.concatMapAttrs (
                 name: value:
                 let
                   path = "${acc}/${name}";
-                  nodeMode = value.mode or defaultMode;
+                  nodeMode = value.mode or "-";
                   defaults = {
                     inherit (config.users.users.${user}) group;
                     user = userConfig.username;
-                    mode = toString nodeMode;
+                    mode = nodeMode;
                   };
                 in
-                if lib.isPath value || lib.isDerivation value then
+                if lib.hasAttr "source" value then
                   {
-                    "${path}"."L+" = defaults // {
-                      argument = toString value;
-                    };
+                    "${path}"."L+" = {
+                      argument = toString value.source;
+                    }
+                    // defaults;
                   }
                 else
                   {
                     "${path}".d = defaults;
                   }
-                  // recurse path nodeMode (lib.removeAttrs value [ "mode" ])
+                  // recurse path (
+                    lib.removeAttrs value [
+                      "mode"
+                      "source"
+                    ]
+                  )
               ) tree;
           in
-          lib.nameValuePair "home-${user}" (recurse "/home/${user}" "-" userConfig.files)
+          lib.nameValuePair "home-${userConfig.username}" (
+            recurse config.users.users.${user}.home userConfig.files
+          )
         ) cfg.users;
       };
     };
