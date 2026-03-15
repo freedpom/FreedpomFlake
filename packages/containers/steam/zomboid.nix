@@ -37,7 +37,7 @@
         name = "zomboid-lib";
         appId = "380870";
         depotId = "380873";
-        manifestId = "9077490617364318789"; # 16 February 2026 – 15:45:57 UTC
+        manifestId = "1926980309109431060"; # 11 March, 2026
         branch = "unstable";
         fileList = [
           "regex:^(?!.*jre64).*\\.so$"
@@ -48,14 +48,14 @@
           cp $out/libpzexe_jni64.so $out/lib/libpzexe_jni64.so
           rm -rf $out/linux64/ $out/natives/ $out/libpzexe_jni64.so
         '';
-        hash = "sha256-h7NJevgiAkP1QRHtFu/8pQCHQFBIwmLXKo6r0tyyBW8=";
+        hash = "sha256-2/6AhKNnNOvGILixXQp25ob6OrKtACGqLo2EBIFAdj8=";
       };
 
       zomboidData = fetchSteamDepot {
         name = "zomboid-data";
         appId = "380870";
         depotId = "380871";
-        manifestId = "5444919678555867848"; # 3 March 2026 – 16:54:27 UTC
+        manifestId = "8052840903128894065"; # 11 March, 2026
         branch = "unstable";
         fileList = [
           "regex:^(?:\\.\\/)?(media)\\/.*"
@@ -67,12 +67,12 @@
           find "$out" -mindepth 1 -maxdepth 1 ! -name share \
             -exec mv {} "$out/share/zomboid" \;
         '';
-        hash = "sha256-wNc2IJfKvKLkkocbwgxx65MAhPiByD6NykRZtwYaFVI=";
+        hash = "sha256-KYF/ejoZJogH3ethJOjpZv4HcTfCkw+HFjd00d273XA=";
       };
 
       zomboid-dedicated-server = pkgs.stdenv.mkDerivation {
         pname = "zomboid-dedicated-server";
-        version = "42.14.1";
+        version = "42.15.2";
         meta = with pkgs.lib; {
           description = "Project Zomboid dedicated server";
           longDescription = ''
