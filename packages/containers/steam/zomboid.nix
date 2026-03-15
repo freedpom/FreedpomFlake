@@ -48,7 +48,7 @@
           cp $out/libpzexe_jni64.so $out/lib/libpzexe_jni64.so
           rm -rf $out/linux64/ $out/natives/ $out/libpzexe_jni64.so
         '';
-        hash = lib.fakeHash;
+        hash = "sha256-h7NJevgiAkP1QRHtFu/8pQCHQFBIwmLXKo6r0tyyBW8=";
       };
 
       zomboidData = fetchSteamDepot {
@@ -67,12 +67,12 @@
           find "$out" -mindepth 1 -maxdepth 1 ! -name share \
             -exec mv {} "$out/share/zomboid" \;
         '';
-        hash = lib.fakeHash;
+        hash = "sha256-wNc2IJfKvKLkkocbwgxx65MAhPiByD6NykRZtwYaFVI=";
       };
 
       zomboid-dedicated-server = pkgs.stdenv.mkDerivation {
         pname = "zomboid-dedicated-server";
-        version = "42.13.1";
+        version = "42.14.1";
         meta = with pkgs.lib; {
           description = "Project Zomboid dedicated server";
           longDescription = ''
