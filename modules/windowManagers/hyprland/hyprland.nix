@@ -37,6 +37,7 @@
           };
       };
     };
+
   flake.homeModules.windowManagers =
     {
       pkgs,
@@ -70,43 +71,6 @@
             xwayland.enable = true;
           };
         };
-      };
-    };
-  flake.modules.hjem.hyprland =
-    { config, lib, ... }:
-    let
-      cfg = config.freedpom.windowManagers.hyprland;
-
-      literalString = s: if lib.isBool s then lib.boolToString s else toString s;
-
-      splitConf = {
-        attrs = lib.filterAttrs (_: v: lib.isAttrs v) cfg.settings;
-        lists = lib.filterAttrs (_: v: lib.isList v) cfg.settings;
-      };
-
-      # convert section config into single string
-      sectionConf =
-        s: lib.concatStringsSep "\n" (lib.mapAttrsToList (n: v: "  ${n}=${literalString v}") s);
-
-      # add section names to configs
-      attrConf = lib.mapAttrsToList (n: v: "${n} {\n" + (sectionConf v) + "\n}\n") splitConf.attrs;
-
-      listConf = lib.flatten (
-        lib.mapAttrsToList (n: v: (lib.map (c: "${n}=${c}") v) ++ [ "" ]) splitConf.lists
-      );
-
-      finalConf = lib.concatStringsSep "\n" (attrConf ++ listConf);
-    in
-    {
-      options.freedpom.windowManagers.hyprland = {
-        enable = lib.mkEnableOption "Enable hyprland config generation";
-        settings = lib.mkOption {
-          type = lib.types.anything;
-          default = { };
-        };
-      };
-      config = lib.mkIf cfg.enable {
-        xdg.config.files."hypr/hyprland.conf".text = finalConf;
       };
     };
 }
