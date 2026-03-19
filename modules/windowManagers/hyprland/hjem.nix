@@ -1,6 +1,11 @@
 {
   flake.modules.hjem.hyprland =
-    { config, lib, osConfig, ... }:
+    {
+      config,
+      lib,
+      osConfig,
+      ...
+    }:
     let
       cfg = config.freedpom.windowManagers.hyprland;
 
@@ -16,55 +21,73 @@
         s: lib.concatStringsSep "\n" (lib.mapAttrsToList (n: v: "  ${n}=${toLiteralString v}") s);
 
       # map over attrs from config with sectionCfg, output attrset of strings
-      attrCfg = lib.mapAttrs (n: v: "${n} {\n" + (sectionCfg v) + "\n}\n") splitCfg.attrs;
+      attrCfg = lib.mapAttrs (n: v: "${n} {\n" + (sectionCfg v) + "\n}\n\n") splitCfg.attrs;
 
       # convert list based config into atrset of strings
       listCfg = lib.mapAttrs (
         n: v: lib.concatStringsSep "\n" ((lib.map (c: "${n}=${c}") v) ++ [ "\n" ])
       ) splitCfg.lists;
 
-      monitorCfg = let
-        monitors = lib.mapAttrs' (
-          name: cfg:
-          lib.nameValuePair (
-            if cfg.identifiers.description != null then "desc:${cfg.identifiers.description}" else name
-          ) cfg
-        ) osConfig.freedpom.hardware.displays;
-      in { monitors' = lib.concatStringsSep "\n" (lib.mapAttrsToList (
-          name: cfg:
-          let
-            resolution = "${toString cfg.resolution.width}x${toString cfg.resolution.height}@${toString cfg.framerate}";
-            inherit (cfg) position;
-            scale = toString cfg.scale;
+      monitorCfg =
+        let
+          monitors = lib.mapAttrs' (
+            name: cfg:
+            lib.nameValuePair (
+              if cfg.identifiers.description != null then "desc:${cfg.identifiers.description}" else name
+            ) cfg
+          ) osConfig.freedpom.hardware.displays;
+        in
+        {
+          monitors' =
+            lib.concatStringsSep "\n" (
+              lib.mapAttrsToList (
+                name: cfg:
+                let
+                  resolution = "${toString cfg.resolution.width}x${toString cfg.resolution.height}@${toString cfg.framerate}";
+                  inherit (cfg) position;
+                  scale = toString cfg.scale;
 
-            base = "${name}, ${resolution}, ${position}, ${scale}";
+                  base = "${name}, ${resolution}, ${position}, ${scale}";
 
-            transform = lib.optionalString (cfg.transform != null) ", transform, ${toString cfg.transform}";
+                  transform = lib.optionalString (cfg.transform != null) ", transform, ${toString cfg.transform}";
 
-            mirror = lib.optionalString (cfg.mirror != null) ", mirror, ${cfg.mirror}";
+                  mirror = lib.optionalString (cfg.mirror != null) ", mirror, ${cfg.mirror}";
 
-            bitdepth = lib.optionalString (cfg.colorDepth == 10) ", bitdepth, 10";
+                  bitdepth = lib.optionalString (cfg.colorDepth == 10) ", bitdepth, 10";
 
-            cm = lib.optionalString (cfg.colorProfile != null) ", cm, ${cfg.colorProfile}";
+                  cm = lib.optionalString (cfg.colorProfile != null) ", cm, ${cfg.colorProfile}";
 
-            sdrbright = lib.optionalString (
-              cfg.sdrBrightness != null
-            ) ", sdrbrightness, ${toString cfg.sdrBrightness}";
+                  sdrbright = lib.optionalString (
+                    cfg.sdrBrightness != null
+                  ) ", sdrbrightness, ${toString cfg.sdrBrightness}";
 
-            sdrsat = lib.optionalString (
-              cfg.sdrSaturation != null
-            ) ", sdrsaturation, ${toString cfg.sdrSaturation}";
+                  sdrsat = lib.optionalString (
+                    cfg.sdrSaturation != null
+                  ) ", sdrsaturation, ${toString cfg.sdrSaturation}";
 
-            vrr = lib.optionalString (cfg.vrr != null) ", vrr, ${toString cfg.vrr}";
-          in
-          "monitor=" + base + transform + mirror + bitdepth + cm + sdrbright + sdrsat + vrr
-        ) monitors) + "\n"; };
+                  vrr = lib.optionalString (cfg.vrr != null) ", vrr, ${toString cfg.vrr}";
+                in
+                "monitor=" + base + transform + mirror + bitdepth + cm + sdrbright + sdrsat + vrr
+              ) monitors
+            )
+            + "\n\n";
+        };
 
-      bigCfg = attrCfg // listCfg // monitorCfg;
+      cursorCfg = lib.optionalAttrs cfg.hyprCursor.enable {
+        hyprcursor = ''
+          ENV=HYPRCURSOR_THEME,${cfg.hyprCursor.theme.name}
+          ENV=HYPRCURSOR_SIZE,${cfg.hyprCursor.size}
+        ''
+        + "\n";
+      };
+
+      bigCfg = attrCfg // listCfg // monitorCfg // cursorCfg;
 
       # Values that should be put at the top of the config, in order of priority
       priorityValues = [
         "source"
+        "ENV"
+        "hyprcursor"
         "bezier"
       ];
 
@@ -83,9 +106,30 @@
           type = lib.types.anything;
           default = { };
         };
+        hyprCursor = {
+          enable = lib.mkEnableOption "Enable hyprcursor";
+          theme = {
+            name = lib.mkOption {
+              type = lib.types.str;
+              default = "";
+            };
+            package = lib.mkOption {
+              type = lib.types.nullOr lib.types.package;
+              default = null;
+            };
+          };
+          size = lib.mkOption {
+            type = lib.types.str;
+            default = "24";
+          };
+        };
       };
       config = lib.mkIf cfg.enable {
-        xdg.config.files."hypr/hyprland.conf".text = finalCfg;
+        xdg = {
+          config.files."hypr/hyprland.conf".text = finalCfg;
+          data.files."icons/${cfg.hyprCursor.theme.name}-hyprcursor".source =
+            lib.mkIf cfg.hyprCursor.enable cfg.hyprCursor.theme.package;
+        };
       };
     };
 }
