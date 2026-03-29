@@ -33,6 +33,7 @@
           inputs.home-manager.flakeModules.home-manager
           inputs.flake-parts.flakeModules.easyOverlay
           inputs.flake-parts.flakeModules.partitions
+          inputs.flake-parts.flakeModules.modules
           ./modules
           ./packages
           ./packages/containers/image-base.nix

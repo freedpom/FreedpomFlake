@@ -1,13 +1,14 @@
 {
-  flake.modules.hjem.hyprland =
+  flake.modules.hjem.desktop =
     {
       config,
       lib,
       osConfig,
+      pkgs,
       ...
     }:
     let
-      cfg = config.freedpom.windowManagers.hyprland;
+      cfg = config.freedpom.desktop.hyprland;
 
       toLiteralString = s: if lib.isBool s then lib.boolToString s else toString s;
 
@@ -71,23 +72,42 @@
               ) monitors
             )
             + "\n\n";
+          workspaces' =
+            lib.concatStringsSep "\n" (
+              lib.concatLists (
+                lib.mapAttrsToList (name: cfg: map (ws: "workspace=${ws}, monitor:${name}") cfg.workspaces) monitors
+              )
+            )
+            + "\n\n";
         };
 
-      cursorCfg = lib.optionalAttrs cfg.hyprCursor.enable {
-        hyprcursor = ''
-          ENV=HYPRCURSOR_THEME,${cfg.hyprCursor.theme.name}
-          ENV=HYPRCURSOR_SIZE,${cfg.hyprCursor.size}
-        ''
-        + "\n";
-      };
+      cursorCfg =
+        lib.optionalAttrs
+          (
+            (config.freedpom.desktop.cursors.hyprcursor.theme.name != "")
+            || (config.freedpom.desktop.cursors.xcursor.theme.name != "")
+          )
+          {
+            cursors =
+              lib.optionalString (config.freedpom.desktop.cursors.hyprcursor.theme.name != "") ''
+                env=HYPRCURSOR_THEME,${config.freedpom.desktop.cursors.hyprcursor.theme.name}
+                env=HYPRCURSOR_SIZE,${config.freedpom.desktop.cursors.hyprcursor.size}
+              ''
+              + lib.optionalString (config.freedpom.desktop.cursors.xcursor.theme.name != "") ''
+                env=XCURSOR_THEME,${config.freedpom.desktop.cursors.xcursor.theme.name}
+                env=XCURSOR_SIZE,${config.freedpom.desktop.cursors.xcursor.size}
+                exec=dconf write /org/gnome/desktop/interface/cursor-theme "'${config.freedpom.desktop.cursors.xcursor.theme.name}'"
+              ''
+              + "\n";
+          };
 
       bigCfg = attrCfg // listCfg // monitorCfg // cursorCfg;
 
       # Values that should be put at the top of the config, in order of priority
       priorityValues = [
         "source"
-        "ENV"
-        "hyprcursor"
+        "env"
+        "cursors"
         "bezier"
       ];
 
@@ -100,35 +120,25 @@
       finalCfg = lib.foldl' (acc: n: acc + bigCfg.${n}) "" order;
     in
     {
-      options.freedpom.windowManagers.hyprland = {
+      options.freedpom.desktop.hyprland = {
         enable = lib.mkEnableOption "Enable hyprland config generation";
+        autostart = lib.mkEnableOption "Autostart hyprland(assumes UWSM for now)";
         settings = lib.mkOption {
           type = lib.types.anything;
           default = { };
-        };
-        hyprCursor = {
-          enable = lib.mkEnableOption "Enable hyprcursor";
-          theme = {
-            name = lib.mkOption {
-              type = lib.types.str;
-              default = "";
-            };
-            package = lib.mkOption {
-              type = lib.types.nullOr lib.types.package;
-              default = null;
-            };
-          };
-          size = lib.mkOption {
-            type = lib.types.str;
-            default = "24";
-          };
         };
       };
       config = lib.mkIf cfg.enable {
         xdg = {
           config.files."hypr/hyprland.conf".text = finalCfg;
-          data.files."icons/${cfg.hyprCursor.theme.name}-hyprcursor".source =
-            lib.mkIf cfg.hyprCursor.enable cfg.hyprCursor.theme.package;
+        };
+        systemd.services.uwsm-hyprland = {
+          description = "Start hyprland session with uwsm";
+          wantedBy = [ "default.target" ];
+          serviceConfig = {
+            ExecStart = "${pkgs.bash}/bin/bash -lc 'if uwsm check may-start; then exec uwsm start hyprland-uwsm.desktop; fi'";
+            Type = "simple";
+          };
         };
       };
     };
