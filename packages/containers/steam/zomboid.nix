@@ -55,7 +55,7 @@
         name = "zomboid-data";
         appId = "380870";
         depotId = "380871";
-        manifestId = "8052840903128894065"; # 11 March, 2026
+        manifestId = "5369213955995092828"; # 29 March, 2026
         branch = "unstable";
         fileList = [
           "regex:^(?:\\.\\/)?(media)\\/.*"
@@ -67,7 +67,7 @@
           find "$out" -mindepth 1 -maxdepth 1 ! -name share \
             -exec mv {} "$out/share/zomboid" \;
         '';
-        hash = "sha256-KYF/ejoZJogH3ethJOjpZv4HcTfCkw+HFjd00d273XA=";
+        hash = "sha256-ARNUoldUuK7Ds+v6YbBfUUfgGjd13+t0v34D6XURCOM=";
       };
 
       zomboid-dedicated-server = pkgs.stdenv.mkDerivation {
