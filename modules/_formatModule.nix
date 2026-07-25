@@ -24,16 +24,6 @@ localFlake:
           mdformat.enable = true;
           shfmt.enable = true;
           statix.enable = true;
-          typos = {
-            enable = true;
-            excludes = [ "*.png" ];
-            configFile =
-              let
-                tomlConfig = '''';
-                tomlFile = pkgs.writeText "typos.toml" tomlConfig;
-              in
-              toString tomlFile;
-          };
         };
       };
     };
